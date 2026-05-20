@@ -58,6 +58,34 @@ Math Notebook 是一个面向数学错题整理、AI 分析、相似题检索和
 - API 地址覆盖
 - APK 更新检测与安装
 
+## 效果展示
+
+### Web 端
+
+<p align="center">
+  <img src="./docs/效果展示/web1.png" alt="Web 端截图 1" width="45%" />
+  &nbsp;&nbsp;
+  <img src="./docs/效果展示/web2.png" alt="Web 端截图 2" width="45%" />
+</p>
+
+### Flutter Android 端
+
+<p align="center">
+  <img src="./docs/效果展示/mobile%20(1).jpg" alt="移动端截图 1" width="30%" />
+  &nbsp;
+  <img src="./docs/效果展示/mobile%20(2).jpg" alt="移动端截图 2" width="30%" />
+  &nbsp;
+  <img src="./docs/效果展示/mobile%20(3).jpg" alt="移动端截图 3" width="30%" />
+</p>
+
+<p align="center">
+  <img src="./docs/效果展示/mobile%20(4).jpg" alt="移动端截图 4" width="30%" />
+  &nbsp;
+  <img src="./docs/效果展示/mobile%20(5).jpg" alt="移动端截图 5" width="30%" />
+  &nbsp;
+  <img src="./docs/效果展示/mobile%20(6).jpg" alt="移动端截图 6" width="30%" />
+</p>
+
 ## 仓库结构
 
 ```text
@@ -203,14 +231,6 @@ flutter run --dart-define=API_BASE_URL=http://10.0.2.2:8080
 - [后端部署手册（systemd）](./docs/部署文档/03-后端部署-systemd.md)
 - [前端部署手册（Nginx）](./docs/部署文档/04-前端部署-Nginx.md)
 - [Flutter Android 构建与发布](./docs/部署文档/05-Flutter-Android构建发布.md)
-
-### 设计与流程
-
-- [项目流程设计](./docs/项目流程文档/02-project-flow-web.md)
-- [API 设计文档](./docs/项目流程文档/03-api-design.md)
-- [前端页面设计](./docs/项目流程文档/04-frontend_page_design.md)
-- [后端模块设计](./docs/项目流程文档/05-backend_module_design.md)
-- [Flutter Android 规划](./docs/项目流程文档/06-flutter_android_plan.md)
 
 ## 推荐的 Ubuntu 生产部署形态
 
