@@ -1,12 +1,12 @@
-# Math Notebook
+# 题迹 Notebook
 
-Math Notebook 是一个面向数学错题整理、AI 分析、相似题检索和移动复盘的全栈项目。当前仓库已经同时包含：
+题迹 Notebook 是一个面向数学错题整理、AI 分析、相似题检索和移动复盘的全栈项目。当前仓库已经同时包含：
 
 - `backend/`：Go 后端，负责认证、错题 CRUD、图片上传、OCR、AI 分析、向量检索、移动端版本检查
 - `frontend/`：Vue 3 + Vite Web 前端，承担完整业务基线和后台式管理能力
 - `mobile/flutter_app/`：Flutter Android 客户端，聚焦拍照上传、OCR 确认、AI 确认、随手复盘
 - `deployments/`：部署初始化 SQL 与部署模板
-- `docs/`：产品流程、接口设计、架构设计和 Ubuntu 部署文档
+- `docs/`：接口设计、架构设计和 Ubuntu 部署文档
 
 ## 项目目标
 
@@ -118,7 +118,6 @@ Notebook/
 │   ├── nginx/
 │   └── systemd/
 ├── docs/
-│   ├── 项目流程文档/
 │   ├── 标签系统提示词/
 │   ├── 外部工具调用文档/
 │   ├── 部署文档/
