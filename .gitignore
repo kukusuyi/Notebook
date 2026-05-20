@@ -1,0 +1,24 @@
+# Backend
+backend/.gocache
+backend/.runlogs
+backend/configs/config.yaml
+
+# Frontend
+frontend/node_modules
+frontend/.env.production
+frontend/dist
+frontend/dist.zip
+frontend/dist.7z
+frontend/dist.tar.gz
+
+# Flutter
+**/.dart_tool/
+**/.flutter-plugins
+**/.flutter-plugins-dependencies
+**/.packages
+**/.metadata
+**/build/
+**/.idea/
+**/*.iml
+**/android/local.properties
+mobile/flutter_app/config/app_config.json

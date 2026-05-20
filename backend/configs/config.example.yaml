@@ -1,0 +1,100 @@
+app:
+  name: math-notebook-backend
+  host: 0.0.0.0
+  port: 8080
+  env: local
+
+# 是否开启用户注册，关闭此项后将不允许前端注册用户
+auth:
+  enable_registration: true
+
+db:
+  host: localhost
+  port: 3306
+  user: root
+  password: ""
+  name: wrong_question_book
+# 默认用户  初始化后可以去删掉
+default_user:
+  id: 1
+  username: default_user
+  email: default@example.com
+# 文件存储
+file:
+  provider: oss
+  bucket: wrong-question-images
+  base_url: http://127.0.0.1:9000
+  minio:
+    endpoint: 127.0.0.1:9000
+    access_key: admin
+    secret_key: change-me
+    use_ssl: false
+    region: ""
+    public_base_url: http://127.0.0.1:9000
+    auto_create_bucket: true
+    public_read: true
+  # provider=lightcos 时使用
+  # bucket 填写腾讯云控制台里的完整 Bucket 名，例如 examplebucket-1250000000
+  # public_base_url 建议填写自定义域名，移动端 APK 更新不要使用体验域名
+  lightcos:
+    bucket_url: https://examplebucket-1250000000.light-cos.com
+    secret_id: your-secret-id
+    secret_key: your-secret-key
+    public_base_url: https://files.example.com
+# 向量数据库 qdrant
+vector:
+  collection_name: wrong_question_vectors
+  qdrant_url: http://127.0.0.1:6333
+  api_key: ""
+  distance: Cosine
+  timeout_seconds: 30
+
+jwt:
+  secret: "change-me-in-production"
+  expiration_hours: 168
+
+imageOcr:
+  name: qwen
+  model: qwen3.6-plus
+  api_key: your-api-key
+
+models:
+  - name: qwen
+    provider_type: qwen
+    base_url: https://dashscope.aliyuncs.com/compatible-mode/v1
+    model: qwen3.6-plus
+    api_key: your-api-key
+
+  - name: deepseek
+    provider_type: deepseek
+    base_url: https://api.deepseek.com
+    model: deepseek-chat
+    api_key: your-api-key
+
+  - name: kimi
+    provider_type: kimi
+    base_url: https://api.moonshot.cn/v1
+    model: kimi-chat
+    api_key: your-api-key
+
+  - name: ofox
+    provider_type: openai_compatible
+    base_url: https://api.ofox.ai/v1
+    model: gpt
+    api_key: your-api-key
+
+# embedding 你可以替换自己想用的, 一但选定就不要随意变更，中途更换embedding模型需要重新生成向量（如果你不知道怎么重新生成向量请不要变更）
+embedding_model:
+  provider_type: qwen
+  base_url: https://dashscope.aliyuncs.com/compatible-mode/v1
+  model: text-embedding-v4
+  api_key: your-api-key
+
+# 移动端版本配置，用于热更新检查
+# provider=oss 时，apk 文件需上传到 {public_base_url}/{bucket}/apk/ 目录下
+# provider=lightcos 时，apk 文件需上传到 {public_base_url}/apk/ 目录下
+mobile_version:
+  version: "1.0.0"
+  apk_filename: "math-notebook.apk"
+  force_update: false
+  update_description: ""

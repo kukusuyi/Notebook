@@ -1,0 +1,36 @@
+name: math_notebook_flutter
+description: Math Notebook Android client built with Flutter.
+publish_to: "none"
+
+version: 1.0.0+1
+
+environment:
+  sdk: ">=3.4.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.8
+  dio: ^5.7.0
+  flutter_math_fork:
+    path: third_party/flutter_math_fork
+  flutter_riverpod: ^2.5.1
+  go_router: ^14.6.0
+  google_fonts: ^6.2.1
+  image_picker: ^1.1.2
+  open_filex: ^4.0.0
+  package_info_plus: ^8.0.0
+  path_provider: ^2.1.0
+  permission_handler: ^11.0.0
+  shared_preferences: ^2.3.2
+  url_launcher: ^6.3.1
+
+dev_dependencies:
+  flutter_lints: ^4.0.0
+  flutter_test:
+    sdk: flutter
+
+flutter:
+  uses-material-design: true
+  assets:
+    - config/

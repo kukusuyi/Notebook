@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <!-- Dev builds still hit local HTTP backends such as 10.0.2.2:8080. -->
+    <base-config cleartextTrafficPermitted="true" />
+</network-security-config>
+

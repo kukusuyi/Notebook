@@ -1,0 +1,18 @@
+[Unit]
+Description=Math Notebook Backend
+After=network.target mysql.service
+Wants=network.target
+
+[Service]
+Type=simple
+User=mathnotebook
+Group=mathnotebook
+WorkingDirectory=/opt/math-notebook/backend
+ExecStart=/opt/math-notebook/backend/math-notebook-backend
+Restart=always
+RestartSec=5
+Environment=CONFIG_PATH=/opt/math-notebook/backend/configs/config.yaml
+Environment=APP_ENV=production
+
+[Install]
+WantedBy=multi-user.target
