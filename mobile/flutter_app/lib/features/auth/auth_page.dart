@@ -130,9 +130,12 @@ class _AuthPageState extends ConsumerState<AuthPage> {
                             ),
                           ],
                         ),
-                        if ((authState.errorMessage ?? '').trim().isNotEmpty) ...[
+                        if ((authState.errorMessage ?? '')
+                            .trim()
+                            .isNotEmpty) ...[
                           const SizedBox(height: 12),
-                          _AuthErrorMessage(message: authState.errorMessage!.trim()),
+                          _AuthErrorMessage(
+                              message: authState.errorMessage!.trim()),
                         ],
                         const SizedBox(height: 8),
                         TextButton(
