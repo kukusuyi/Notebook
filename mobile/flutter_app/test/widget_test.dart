@@ -20,7 +20,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('Math Notebook'), findsOneWidget);
+    expect(find.text('题迹 Notebook'), findsOneWidget);
     expect(find.text('登录'), findsOneWidget);
   });
 }

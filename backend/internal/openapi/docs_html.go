@@ -5,7 +5,7 @@ const DocsHTML = `<!DOCTYPE html>
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Math Notebook API Docs</title>
+  <title>题迹 Notebook API Docs</title>
   <style>
     :root {
       --bg: #f4efe6;
@@ -226,7 +226,7 @@ const DocsHTML = `<!DOCTYPE html>
     </aside>
     <main class="content">
       <section class="hero">
-        <h2>Math Notebook Backend</h2>
+        <h2>题迹 Notebook Backend</h2>
         <p id="description">正在加载接口文档...</p>
         <div class="toolbar">
           <a href="/docs/openapi.json" target="_blank" rel="noreferrer">查看 OpenAPI JSON</a>
