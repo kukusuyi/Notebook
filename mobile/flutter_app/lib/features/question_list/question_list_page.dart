@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_math_fork/flutter_math.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -8,14 +7,8 @@ import '../../core/config/effective_api_base_url.dart';
 import '../../core/storage/auth_session_repository.dart';
 import '../../shared/models/question_models.dart';
 import '../../shared/utils/platform_ui.dart';
+import '../../shared/widgets/question_compact_preview.dart';
 import '../question_list/question_repository.dart';
-
-final RegExp _questionFormulaPattern = RegExp(
-  r'(\\\[[\s\S]+?\\\]|\\\([\s\S]+?\\\)|\$\$[\s\S]+?\$\$|\$[^$\n]+\$)',
-);
-final RegExp _questionMathSignalPattern = RegExp(
-  r'\\[a-zA-Z]+|[_^=<>]|(?:[A-Za-z0-9)][+\-*/][A-Za-z0-9(])',
-);
 
 enum _QuestionExportMode {
   withAnswers('with_answers', '携带答案导出'),
@@ -330,7 +323,7 @@ class _QuestionListCard extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     RepaintBoundary(
-                      child: _QuestionPreview(content: item.questionCore),
+                      child: QuestionCompactPreview(content: item.questionCore),
                     ),
                     const SizedBox(height: 8),
                     Text(
@@ -352,125 +345,6 @@ class _QuestionListCard extends StatelessWidget {
       ),
     );
   }
-}
-
-class _QuestionPreview extends StatelessWidget {
-  static const double _formulaLineHeight = 36;
-
-  const _QuestionPreview({
-    required this.content,
-  });
-
-  final String content;
-
-  @override
-  Widget build(BuildContext context) {
-    final preview = _buildQuestionPreview(content);
-    final textStyle = Theme.of(context).textTheme.bodyLarge;
-
-    return SizedBox(
-      height: _QuestionListCard._previewHeight,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            preview.textLine,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: textStyle,
-          ),
-          const SizedBox(height: 8),
-          SizedBox(
-            height: _formulaLineHeight,
-            child: preview.formulaLine == null
-                ? const SizedBox.shrink()
-                : ClipRect(
-                    child: OverflowBox(
-                      alignment: Alignment.centerLeft,
-                      minWidth: 0,
-                      maxWidth: double.infinity,
-                      minHeight: 0,
-                      maxHeight: double.infinity,
-                      child: Math.tex(
-                        preview.formulaLine!,
-                        mathStyle: MathStyle.text,
-                        textStyle: textStyle,
-                        onErrorFallback: (error) => Text(
-                          preview.formulaFallbackText ?? preview.formulaLine!,
-                          maxLines: 1,
-                          overflow: TextOverflow.clip,
-                          style: textStyle,
-                        ),
-                      ),
-                    ),
-                  ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _QuestionPreviewData {
-  const _QuestionPreviewData({
-    required this.textLine,
-    this.formulaLine,
-    this.formulaFallbackText,
-  });
-
-  final String textLine;
-  final String? formulaLine;
-  final String? formulaFallbackText;
-}
-
-_QuestionPreviewData _buildQuestionPreview(String raw) {
-  final normalized =
-      raw.replaceAll('\n', ' ').replaceAll(RegExp(r'\s+'), ' ').trim();
-  if (normalized.isEmpty) {
-    return const _QuestionPreviewData(textLine: '暂无内容');
-  }
-
-  final firstFormulaMatch = _questionFormulaPattern.firstMatch(normalized);
-  if (firstFormulaMatch != null) {
-    final formulaRaw = firstFormulaMatch.group(0) ?? '';
-    final textLine = normalized
-        .replaceAll(_questionFormulaPattern, ' ')
-        .replaceAll(RegExp(r'\s+'), ' ')
-        .trim();
-
-    final formulaText = _stripFormulaDelimiters(formulaRaw);
-    return _QuestionPreviewData(
-      textLine: textLine.isEmpty ? '公式题' : textLine,
-      formulaLine: formulaText,
-      formulaFallbackText: formulaText,
-    );
-  }
-
-  if (_questionMathSignalPattern.hasMatch(normalized)) {
-    return _QuestionPreviewData(
-      textLine: '公式题',
-      formulaLine: normalized,
-      formulaFallbackText: normalized,
-    );
-  }
-
-  return _QuestionPreviewData(textLine: normalized);
-}
-
-String _stripFormulaDelimiters(String raw) {
-  if (raw.startsWith(r'\[') && raw.endsWith(r'\]')) {
-    return raw.substring(2, raw.length - 2).trim();
-  }
-  if (raw.startsWith(r'\(') && raw.endsWith(r'\)')) {
-    return raw.substring(2, raw.length - 2).trim();
-  }
-  if (raw.startsWith(r'$$') && raw.endsWith(r'$$')) {
-    return raw.substring(2, raw.length - 2).trim();
-  }
-  if (raw.startsWith(r'$') && raw.endsWith(r'$')) {
-    return raw.substring(1, raw.length - 1).trim();
-  }
-  return raw.trim();
 }
 
 class _FilterSummaryCard extends StatelessWidget {
