@@ -60,17 +60,26 @@ class QuestionDetailPage extends ConsumerWidget {
               const SizedBox(height: 16),
               _SectionCard(
                 title: '题目主干',
-                child: LatexBlock(data.questionCore),
+                child: LatexBlock(
+                  data.questionCore,
+                  allowHorizontalScroll: false,
+                ),
               ),
               const SizedBox(height: 16),
               _SectionCard(
                 title: '标准解',
-                child: LatexBlock(data.standardSolution),
+                child: LatexBlock(
+                  data.standardSolution,
+                  allowHorizontalScroll: false,
+                ),
               ),
               const SizedBox(height: 16),
               _SectionCard(
                 title: '错误解',
-                child: LatexBlock(data.wrongSolution),
+                child: LatexBlock(
+                  data.wrongSolution,
+                  allowHorizontalScroll: false,
+                ),
               ),
               const SizedBox(height: 16),
               _SectionCard(

@@ -39,8 +39,8 @@ String routeForDraft(QuestionDraft draft) {
   switch (draft.status) {
     case DraftStatus.ocrProcessing:
     case DraftStatus.ocrReviewing:
-      return '/questions/ocr-review';
     case DraftStatus.aiProcessing:
+      return '/questions/ocr-review';
     case DraftStatus.aiReviewing:
       return '/questions/ai-review';
     default:

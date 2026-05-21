@@ -17,10 +17,11 @@ class QuestionFlowService {
   final Ref _ref;
 
   Future<void> recognizeUploadedImage(UploadedImage image) async {
-    final draftController =
-        _ref.read(questionDraftControllerProvider.notifier);
+    final draftController = _ref.read(questionDraftControllerProvider.notifier);
     draftController.replaceWithUpload(image);
+    await draftController.flush();
     draftController.markStatus(DraftStatus.ocrProcessing);
+    await draftController.flush();
 
     final result = await _ref.read(aiRepositoryProvider).recognizeWrongQuestion(
           imageUrl: image.imageUrl,
@@ -34,18 +35,20 @@ class QuestionFlowService {
   }
 
   Future<void> analyzeCurrentDraft() async {
-    final draftController =
-        _ref.read(questionDraftControllerProvider.notifier);
+    final draftController = _ref.read(questionDraftControllerProvider.notifier);
+    await draftController.flush();
     final draft = _ref.read(questionDraftControllerProvider);
     if (draft == null) {
       throw StateError('当前没有可分析的草稿');
     }
 
     draftController.markStatus(DraftStatus.aiProcessing);
+    await draftController.flush();
 
     final result = await _ref.read(aiRepositoryProvider).analyzeWrongQuestion(
           AnalyzeWrongQuestionPayload(
-            providerName: draft.providerName.isEmpty ? null : draft.providerName,
+            providerName:
+                draft.providerName.isEmpty ? null : draft.providerName,
             modelName: draft.modelName.isEmpty ? null : draft.modelName,
             chapter: draft.chapterLocked && draft.chapter.isNotEmpty
                 ? draft.chapter
@@ -59,8 +62,8 @@ class QuestionFlowService {
   }
 
   Future<int> saveCurrentDraft() async {
-    final draftController =
-        _ref.read(questionDraftControllerProvider.notifier);
+    final draftController = _ref.read(questionDraftControllerProvider.notifier);
+    await draftController.flush();
     final draft = _ref.read(questionDraftControllerProvider);
     if (draft == null) {
       throw StateError('当前没有可保存的草稿');

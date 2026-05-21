@@ -5,11 +5,13 @@ final RegExp _rawLatexCommandPattern = RegExp(r'\\[a-zA-Z]+');
 final RegExp _explicitLatexDelimiterPattern = RegExp(
   r'(\\\[[\s\S]+?\\\]|\\\([\s\S]+?\\\)|\$\$[\s\S]+?\$\$|\$[^$\n]+\$)',
 );
-final RegExp _optionPrefixPattern = RegExp(r'^([A-Za-z]\s*[.、)|]|[0-9]+\s*[.、)])\s+');
+final RegExp _optionPrefixPattern =
+    RegExp(r'^([A-Za-z]\s*[.、)|]|[0-9]+\s*[.、)])\s+');
 final RegExp _mathDominantPattern =
     RegExp(r"^[A-Za-z0-9\s\\{}[\]()_^|=+\-*/<>,.:;'`~!?%&]+$");
 final RegExp _cjkPattern = RegExp(r'[\u3400-\u9fff]');
-final RegExp _cjkSeparatorPattern = RegExp(r'([\u3400-\u9fff\u3000-\u303f\uff00-\uffef])');
+final RegExp _cjkSeparatorPattern =
+    RegExp(r'([\u3400-\u9fff\u3000-\u303f\uff00-\uffef])');
 final RegExp _mathSignalPattern = RegExp(
   r'\\[a-zA-Z]+|[_^=<>]|(?:\b[a-zA-Z]+\s*\([^)]*\))|(?:[A-Za-z0-9)][+\-*/][A-Za-z0-9(])',
 );
@@ -18,9 +20,13 @@ class LatexBlock extends StatelessWidget {
   const LatexBlock(
     this.content, {
     super.key,
+    this.allowHorizontalScroll = true,
+    this.selectableText = true,
   });
 
   final String content;
+  final bool allowHorizontalScroll;
+  final bool selectableText;
 
   @override
   Widget build(BuildContext context) {
@@ -33,7 +39,9 @@ class LatexBlock extends StatelessWidget {
     final segments = _parseSegments(normalizedValue);
     final hasMath = segments.any((segment) => segment.isMath);
     if (!hasMath) {
-      return SelectableText(normalizedValue);
+      return selectableText
+          ? SelectableText(normalizedValue)
+          : Text(normalizedValue);
     }
 
     final lines = normalizedValue.split('\n');
@@ -45,6 +53,7 @@ class LatexBlock extends StatelessWidget {
           _LatexLine(
             content: lines[index],
             textStyle: Theme.of(context).textTheme.bodyLarge,
+            allowHorizontalScroll: allowHorizontalScroll,
           ),
         ],
       ],
@@ -56,16 +65,56 @@ class _LatexLine extends StatelessWidget {
   const _LatexLine({
     required this.content,
     required this.textStyle,
+    required this.allowHorizontalScroll,
   });
 
   final String content;
   final TextStyle? textStyle;
+  final bool allowHorizontalScroll;
 
   @override
   Widget build(BuildContext context) {
     final segments = _parseSegments(content);
     if (segments.isEmpty) {
       return const SizedBox.shrink();
+    }
+
+    if (!allowHorizontalScroll) {
+      return LayoutBuilder(
+        builder: (context, constraints) {
+          return Wrap(
+            spacing: 4,
+            runSpacing: 6,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              for (final segment in segments)
+                if (segment.isMath)
+                  ConstrainedBox(
+                    constraints: BoxConstraints(
+                      maxWidth: constraints.maxWidth,
+                    ),
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      alignment: Alignment.centerLeft,
+                      child: Math.tex(
+                        segment.value,
+                        textStyle: textStyle,
+                        onErrorFallback: (error) => Text(
+                          segment.raw,
+                          style: textStyle,
+                        ),
+                      ),
+                    ),
+                  )
+                else if (segment.value.isNotEmpty)
+                  Text(
+                    segment.value,
+                    style: textStyle,
+                  ),
+            ],
+          );
+        },
+      );
     }
 
     return SingleChildScrollView(
@@ -196,7 +245,8 @@ String _wrapRawLatexLine(String line) {
   if (body.isNotEmpty &&
       !_containsExplicitLatexDelimiters(trimmed) &&
       _isMathDominantLine(body) &&
-      (_rawLatexCommandPattern.hasMatch(body) || _mathSignalPattern.hasMatch(body))) {
+      (_rawLatexCommandPattern.hasMatch(body) ||
+          _mathSignalPattern.hasMatch(body))) {
     return '$leadingWhitespace$optionPrefix\\($body\\)';
   }
 
@@ -260,7 +310,8 @@ bool _shouldWrapRawMathChunk(String chunk) {
     return false;
   }
 
-  return _rawLatexCommandPattern.hasMatch(trimmed) || _mathSignalPattern.hasMatch(trimmed);
+  return _rawLatexCommandPattern.hasMatch(trimmed) ||
+      _mathSignalPattern.hasMatch(trimmed);
 }
 
 bool _containsExplicitLatexDelimiters(String line) {
