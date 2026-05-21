@@ -5,7 +5,7 @@
         <div class="auth-grid">
             <section class="auth-story">
                 <div class="story-mark">∫</div>
-                <h1>Math Notebook</h1>
+                <h1>题迹 Notebook</h1>
 
                 <div class="story-points">
                     <article class="paper-card point-card">
