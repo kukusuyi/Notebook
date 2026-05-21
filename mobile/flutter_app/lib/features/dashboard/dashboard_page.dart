@@ -10,6 +10,7 @@ import '../../shared/models/question_models.dart';
 import '../../shared/models/tag_models.dart';
 import '../../shared/utils/draft_navigation.dart';
 import '../../shared/utils/platform_ui.dart';
+import '../../shared/widgets/question_compact_preview.dart';
 import '../question_create/question_draft_controller.dart';
 import 'dashboard_repository.dart';
 
@@ -689,9 +690,8 @@ class _QuickLinkTile extends StatelessWidget {
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(18),
           border: Border.all(
-            color: highlighted
-                ? const Color(0xFFB8DCCD)
-                : const Color(0xFFD9E2DC),
+            color:
+                highlighted ? const Color(0xFFB8DCCD) : const Color(0xFFD9E2DC),
           ),
           color: highlighted ? const Color(0xFFEAF7F2) : Colors.white,
         ),
@@ -761,15 +761,17 @@ class _RecentQuestionsCard extends StatelessWidget {
                       borderRadius: BorderRadius.circular(18),
                     ),
                     contentPadding: const EdgeInsets.all(16),
-                    title: Text(
-                      item.questionCore,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
+                    title: RepaintBoundary(
+                      child: QuestionCompactPreview(
+                        content: item.questionCore,
+                      ),
                     ),
                     subtitle: Padding(
                       padding: const EdgeInsets.only(top: 8),
                       child: Text(
                         '${item.subject} · ${item.chapter}\n掌握状态：${item.masteryStatus.label}',
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
                     trailing: const Icon(Icons.chevron_right),
