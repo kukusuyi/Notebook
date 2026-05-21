@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -17,6 +18,7 @@ import '../features/tag_manage/tag_manage_page.dart';
 import '../shared/models/common_models.dart';
 import '../shared/models/question_models.dart';
 import 'app_shell.dart';
+import 'tab_navigation_intent.dart';
 
 final appRouterProvider = Provider<GoRouter>((ref) {
   final authState = ref.watch(authControllerProvider);
@@ -42,36 +44,54 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state, child) {
           return AppShell(
             currentLocation: state.uri.path,
+            tabNavigationIntent:
+                state.extra is TabNavigationIntent ? state.extra as TabNavigationIntent : null,
             child: child,
           );
         },
         routes: [
           GoRoute(
             path: '/dashboard',
-            builder: (context, state) => const DashboardPage(),
+            pageBuilder: (context, state) =>
+                _buildTabPage(state: state, child: const DashboardPage()),
           ),
           GoRoute(
             path: '/questions',
-            builder: (context, state) => QuestionListPage(
-              initialFilter: _questionFilterFromState(state),
-              activeTagName: state.uri.queryParameters['tag_name'] ?? '',
+            pageBuilder: (context, state) => _buildTabPage(
+              state: state,
+              child: QuestionListPage(
+                initialFilter: _questionFilterFromState(state),
+                activeTagName: state.uri.queryParameters['tag_name'] ?? '',
+              ),
             ),
           ),
           GoRoute(
             path: '/questions/create',
-            builder: (context, state) => const QuestionCreatePage(),
+            pageBuilder: (context, state) => _buildTabPage(
+              state: state,
+              child: const QuestionCreatePage(),
+            ),
           ),
           GoRoute(
             path: '/questions/upload',
-            builder: (context, state) => const QuestionUploadPage(),
+            pageBuilder: (context, state) => _buildTabPage(
+              state: state,
+              child: const QuestionUploadPage(),
+            ),
           ),
           GoRoute(
             path: '/questions/ocr-review',
-            builder: (context, state) => const OcrReviewPage(),
+            pageBuilder: (context, state) => _buildTabPage(
+              state: state,
+              child: const OcrReviewPage(),
+            ),
           ),
           GoRoute(
             path: '/questions/ai-review',
-            builder: (context, state) => const AiReviewPage(),
+            pageBuilder: (context, state) => _buildTabPage(
+              state: state,
+              child: const AiReviewPage(),
+            ),
           ),
           GoRoute(
             path: '/questions/:id',
@@ -93,17 +113,33 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           ),
           GoRoute(
             path: '/tags',
-            builder: (context, state) => const TagManagePage(),
+            pageBuilder: (context, state) => _buildTabPage(
+              state: state,
+              child: const TagManagePage(),
+            ),
           ),
           GoRoute(
             path: '/settings',
-            builder: (context, state) => const SettingsPage(),
+            pageBuilder: (context, state) => _buildTabPage(
+              state: state,
+              child: const SettingsPage(),
+            ),
           ),
         ],
       ),
     ],
   );
 });
+
+Page<void> _buildTabPage({
+  required GoRouterState state,
+  required Widget child,
+}) {
+  return NoTransitionPage<void>(
+    key: state.pageKey,
+    child: child,
+  );
+}
 
 ListQuestionFilter _questionFilterFromState(GoRouterState state) {
   final query = state.uri.queryParameters;
