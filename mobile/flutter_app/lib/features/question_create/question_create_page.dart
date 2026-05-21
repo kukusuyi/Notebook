@@ -72,6 +72,7 @@ class _QuestionCreatePageState extends ConsumerState<QuestionCreatePage> {
         ],
       ),
       body: ListView(
+        keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
         padding: const EdgeInsets.all(20),
         children: [
           Card(

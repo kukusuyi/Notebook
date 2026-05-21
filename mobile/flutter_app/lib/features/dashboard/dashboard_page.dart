@@ -9,6 +9,7 @@ import '../../shared/models/dashboard_models.dart';
 import '../../shared/models/question_models.dart';
 import '../../shared/models/tag_models.dart';
 import '../../shared/utils/draft_navigation.dart';
+import '../../shared/utils/platform_ui.dart';
 import '../question_create/question_draft_controller.dart';
 import 'dashboard_repository.dart';
 
@@ -27,110 +28,112 @@ class DashboardPage extends ConsumerWidget {
         : environment.defaultApiBaseUrl;
 
     return Scaffold(
-      body: RefreshIndicator(
-        onRefresh: () async {
-          ref.invalidate(dashboardSnapshotProvider);
-          await ref.read(dashboardSnapshotProvider.future);
-        },
-        child: ListView(
-          padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
-          children: [
-            Text(
-              '错题仪表盘',
-              style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                    fontWeight: FontWeight.w800,
-                  ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              '把录入、复盘和标签热点都放到首页，移动端也能直接进入复习节奏。',
-              style: Theme.of(context).textTheme.bodyMedium,
-            ),
-            const SizedBox(height: 20),
-            _QuickActionRow(
-              onUpload: () => context.go(
-                hasActiveDraft(draft) ? routeForDraft(draft!) : '/questions/upload',
+      body: SafeArea(
+        bottom: false,
+        child: RefreshIndicator(
+          onRefresh: () async {
+            ref.invalidate(dashboardSnapshotProvider);
+            await ref.read(dashboardSnapshotProvider.future);
+          },
+          child: ListView(
+            padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
+            children: [
+              Text(
+                '错题仪表盘',
+                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                      fontWeight: FontWeight.w800,
+                    ),
               ),
-              onCreate: () => context.go(
-                hasActiveDraft(draft) ? routeForDraft(draft!) : '/questions/create',
+              const SizedBox(height: 8),
+              Text(
+                '把录入、复盘和标签热点都放到首页，移动端也能直接进入复习节奏。',
+                style: Theme.of(context).textTheme.bodyMedium,
               ),
-              onList: () => context.go('/questions'),
-            ),
-            if (hasActiveDraft(draft)) ...[
+              const SizedBox(height: 20),
+              _QuickActionRow(
+                onUpload: () => context.go(
+                  hasActiveDraft(draft)
+                      ? routeForDraft(draft!)
+                      : '/questions/upload',
+                ),
+                onCreate: () => context.go(
+                  hasActiveDraft(draft)
+                      ? routeForDraft(draft!)
+                      : '/questions/create',
+                ),
+                onList: () => context.go('/questions'),
+              ),
+              if (hasActiveDraft(draft)) ...[
+                const SizedBox(height: 16),
+                _DraftResumeCard(
+                  draft: draft!,
+                  onContinue: () => context.go(routeForDraft(draft)),
+                  onDiscard: () => _discardDraft(context, ref),
+                ),
+              ],
               const SizedBox(height: 16),
-              _DraftResumeCard(
-                draft: draft!,
-                onContinue: () => context.go(routeForDraft(draft)),
-                onDiscard: () => _discardDraft(context, ref),
-              ),
-            ],
-            const SizedBox(height: 16),
-            snapshot.when(
-              loading: () => const Padding(
-                padding: EdgeInsets.symmetric(vertical: 48),
-                child: Center(child: CircularProgressIndicator()),
-              ),
-              error: (error, stackTrace) => Padding(
-                padding: const EdgeInsets.symmetric(vertical: 24),
-                child: Card(
-                  child: Padding(
-                    padding: const EdgeInsets.all(20),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          '仪表盘数据加载失败',
-                          style:
-                              Theme.of(context).textTheme.titleLarge?.copyWith(
-                                    fontWeight: FontWeight.w700,
-                                  ),
-                        ),
-                        const SizedBox(height: 12),
-                        Text(error.toString()),
-                        const SizedBox(height: 16),
-                        FilledButton(
-                          onPressed: () => ref.invalidate(
-                            dashboardSnapshotProvider,
+              snapshot.when(
+                loading: () => const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 48),
+                  child: Center(child: CircularProgressIndicator()),
+                ),
+                error: (error, stackTrace) => Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 24),
+                  child: Card(
+                    child: Padding(
+                      padding: const EdgeInsets.all(20),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            '仪表盘数据加载失败',
+                            style: Theme.of(context)
+                                .textTheme
+                                .titleLarge
+                                ?.copyWith(
+                                  fontWeight: FontWeight.w700,
+                                ),
                           ),
-                          child: const Text('重试'),
-                        ),
-                      ],
+                          const SizedBox(height: 12),
+                          Text(error.toString()),
+                          const SizedBox(height: 16),
+                          FilledButton(
+                            onPressed: () => ref.invalidate(
+                              dashboardSnapshotProvider,
+                            ),
+                            child: const Text('重试'),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
+                data: (data) => _DashboardContent(
+                  snapshot: data,
+                  apiBaseUrl: currentBaseUrl,
+                ),
               ),
-              data: (data) => _DashboardContent(
-                snapshot: data,
-                apiBaseUrl: currentBaseUrl,
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
   }
 
-  void _discardDraft(BuildContext context, WidgetRef ref) {
-    showDialog(
+  Future<void> _discardDraft(BuildContext context, WidgetRef ref) async {
+    final confirmed = await showPlatformConfirmDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('丢弃草稿'),
-        content: const Text('确定要丢弃当前草稿吗？丢弃后无法恢复。'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text('取消'),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.of(ctx).pop();
-              ref.read(questionDraftControllerProvider.notifier).clear();
-            },
-            child: const Text('确定丢弃'),
-          ),
-        ],
-      ),
+      title: '丢弃草稿',
+      message: '确定要丢弃当前草稿吗？丢弃后无法恢复。',
+      confirmLabel: '确定丢弃',
+      isDestructive: true,
     );
+
+    if (!confirmed) {
+      return;
+    }
+
+    ref.read(questionDraftControllerProvider.notifier).clear();
   }
 }
 
@@ -636,7 +639,7 @@ class _QuickLinksCard extends StatelessWidget {
                   ),
             ),
             const SizedBox(height: 6),
-            Text('把最常用的动作放在首页，减少来回切换。'),
+            const Text('把最常用的动作放在首页，减少来回切换。'),
             const SizedBox(height: 16),
             _QuickLinkTile(
               title: '进入待掌握列表',
@@ -741,7 +744,7 @@ class _RecentQuestionsCard extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 6),
-            Text('最近录入的 4 道题会出现在这里，方便快速回到刚整理过的内容。'),
+            const Text('最近录入的 4 道题会出现在这里，方便快速回到刚整理过的内容。'),
             const SizedBox(height: 16),
             if (items.isEmpty)
               const Padding(
@@ -812,7 +815,7 @@ class _TopTagsCard extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 6),
-            Text('按知识点和错因拆分，便于识别“考点密度”和“失误模式”。'),
+            const Text('按知识点和错因拆分，便于识别“考点密度”和“失误模式”。'),
             const SizedBox(height: 16),
             LayoutBuilder(
               builder: (context, constraints) {

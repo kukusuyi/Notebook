@@ -40,6 +40,14 @@ class UpdateController extends Notifier<UpdateState> {
   UpdateState build() => const UpdateState();
 
   Future<void> downloadAndInstall(String apkUrl) async {
+    if (!Platform.isAndroid) {
+      state = state.copyWith(
+        status: UpdateStatus.error,
+        error: '当前平台不支持应用内安装更新，请使用 iOS 分发渠道安装新版本。',
+      );
+      return;
+    }
+
     state = state.copyWith(status: UpdateStatus.downloading, progress: 0);
 
     try {

@@ -55,6 +55,7 @@ class _AuthPageState extends ConsumerState<AuthPage> {
       appSettingsControllerProvider.select((state) => state.apiBaseUrlOverride),
     );
     final effectiveApiBaseUrl = ref.watch(effectiveApiBaseUrlProvider);
+    final apiLabel = effectiveApiBaseUrl.isEmpty ? '未配置' : effectiveApiBaseUrl;
 
     return Scaffold(
       body: Container(
@@ -71,6 +72,7 @@ class _AuthPageState extends ConsumerState<AuthPage> {
         child: SafeArea(
           child: Center(
             child: SingleChildScrollView(
+              keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
               padding: const EdgeInsets.all(24),
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 480),
@@ -152,7 +154,7 @@ class _AuthPageState extends ConsumerState<AuthPage> {
                         ),
                         const SizedBox(height: 12),
                         Text(
-                          '当前 API：$effectiveApiBaseUrl',
+                          '当前 API：$apiLabel',
                           style: Theme.of(context).textTheme.bodySmall,
                         ),
                         const SizedBox(height: 4),

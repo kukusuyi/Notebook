@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../shared/models/tag_models.dart';
+import '../../shared/utils/platform_ui.dart';
 import 'tag_repository.dart';
 
 class TagManagePage extends ConsumerStatefulWidget {
@@ -50,6 +51,7 @@ class _TagManagePageState extends ConsumerState<TagManagePage> {
       body: RefreshIndicator(
         onRefresh: _loadTags,
         child: ListView(
+          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
           padding: const EdgeInsets.fromLTRB(20, 20, 20, 96),
           children: [
             Card(
@@ -214,24 +216,13 @@ class _TagManagePageState extends ConsumerState<TagManagePage> {
   }
 
   Future<void> _confirmDelete(TagItem tag) async {
-    final confirmed = await showDialog<bool>(
-          context: context,
-          builder: (ctx) => AlertDialog(
-            title: const Text('删除标签'),
-            content: Text('确认删除“${tag.tagName}”吗？'),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(ctx).pop(false),
-                child: const Text('取消'),
-              ),
-              TextButton(
-                onPressed: () => Navigator.of(ctx).pop(true),
-                child: const Text('删除'),
-              ),
-            ],
-          ),
-        ) ??
-        false;
+    final confirmed = await showPlatformConfirmDialog(
+      context: context,
+      title: '删除标签',
+      message: '确认删除“${tag.tagName}”吗？',
+      confirmLabel: '删除',
+      isDestructive: true,
+    );
 
     if (!confirmed) {
       return;
@@ -250,19 +241,13 @@ class _TagManagePageState extends ConsumerState<TagManagePage> {
     _createNameController.clear();
     _createType = _selectedType ?? TagType.knowledgePoint;
 
-    return showModalBottomSheet<void>(
+    return showPlatformModalSheet<void>(
       context: context,
-      isScrollControlled: true,
       builder: (ctx) {
         return StatefulBuilder(
           builder: (context, setSheetState) {
             return Padding(
-              padding: EdgeInsets.fromLTRB(
-                20,
-                20,
-                20,
-                MediaQuery.of(context).viewInsets.bottom + 20,
-              ),
+              padding: const EdgeInsets.fromLTRB(20, 20, 20, 20),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -323,6 +308,7 @@ class _TagManagePageState extends ConsumerState<TagManagePage> {
           },
         );
       },
+      isScrollControlled: true,
     );
   }
 

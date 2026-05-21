@@ -66,6 +66,7 @@ class _OcrReviewPageState extends ConsumerState<OcrReviewPage> {
         ],
       ),
       body: ListView(
+        keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
         padding: const EdgeInsets.all(20),
         children: [
           if (draft.sourceImageUrl.isNotEmpty)

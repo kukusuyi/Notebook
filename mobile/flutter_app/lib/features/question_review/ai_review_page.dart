@@ -70,6 +70,7 @@ class _AiReviewPageState extends ConsumerState<AiReviewPage> {
         ],
       ),
       body: ListView(
+        keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
         padding: const EdgeInsets.all(20),
         children: [
           Card(
@@ -288,4 +289,3 @@ class _AiReviewPageState extends ConsumerState<AiReviewPage> {
     );
   }
 }
-

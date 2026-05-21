@@ -45,12 +45,15 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     final effectiveBaseUrl = settings.apiBaseUrlOverride.isNotEmpty
         ? settings.apiBaseUrlOverride
         : environment.defaultApiBaseUrl;
+    final effectiveBaseUrlLabel =
+        effectiveBaseUrl.isEmpty ? '未配置，请填写后端地址' : effectiveBaseUrl;
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('设置'),
       ),
       body: ListView(
+        keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
         padding: const EdgeInsets.all(20),
         children: [
           Card(
@@ -70,10 +73,10 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                   const SizedBox(height: 4),
                   Text('默认来源：${environment.defaultApiBaseUrlSource}'),
                   const SizedBox(height: 8),
-                  Text('当前生效：$effectiveBaseUrl'),
+                  Text('当前生效：$effectiveBaseUrlLabel'),
                   const SizedBox(height: 8),
                   Text(
-                    '正式包默认地址请修改 ${AppEnvironment.actualConfigAssetPath}，设置页覆盖只影响当前设备。',
+                    '正式包默认地址请修改 ${AppEnvironment.actualConfigAssetPath}；真机联调请改成宿主机局域网地址，设置页覆盖只影响当前设备。',
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: Theme.of(context).colorScheme.onSurfaceVariant,
                         ),
