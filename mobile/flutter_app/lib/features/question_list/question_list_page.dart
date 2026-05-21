@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_math_fork/flutter_math.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -8,6 +9,13 @@ import '../../core/storage/auth_session_repository.dart';
 import '../../shared/models/question_models.dart';
 import '../../shared/utils/platform_ui.dart';
 import '../question_list/question_repository.dart';
+
+final RegExp _questionFormulaPattern = RegExp(
+  r'(\\\[[\s\S]+?\\\]|\\\([\s\S]+?\\\)|\$\$[\s\S]+?\$\$|\$[^$\n]+\$)',
+);
+final RegExp _questionMathSignalPattern = RegExp(
+  r'\\[a-zA-Z]+|[_^=<>]|(?:[A-Za-z0-9)][+\-*/][A-Za-z0-9(])',
+);
 
 enum _QuestionExportMode {
   withAnswers('with_answers', '携带答案导出'),
@@ -98,6 +106,7 @@ class _QuestionListPageState extends ConsumerState<QuestionListPage> {
           data: (data) {
             if (data.list.isEmpty) {
               return ListView(
+                physics: const AlwaysScrollableScrollPhysics(),
                 padding: const EdgeInsets.all(24),
                 children: [
                   if (_filter.hasAnyFilter || widget.activeTagName.isNotEmpty)
@@ -111,61 +120,61 @@ class _QuestionListPageState extends ConsumerState<QuestionListPage> {
               );
             }
 
-            return ListView(
-              padding: const EdgeInsets.fromLTRB(20, 20, 20, 96),
-              children: [
-                if (_filter.hasAnyFilter ||
-                    widget.activeTagName.isNotEmpty) ...[
-                  _FilterSummaryCard(
-                    filter: _filter,
-                    activeTagName: widget.activeTagName,
-                  ),
-                  const SizedBox(height: 16),
-                ],
-                _SelectionSummaryCard(
-                  selectedCount: _selectedQuestionIds.length,
-                  onClear: _selectedQuestionIds.isEmpty
-                      ? null
-                      : () {
-                          setState(() {
-                            _selectedQuestionIds.clear();
-                          });
-                        },
-                  onExport:
-                      _selectedQuestionIds.isEmpty ? null : _showExportOptions,
+            final headerChildren = <Widget>[
+              if (_filter.hasAnyFilter || widget.activeTagName.isNotEmpty)
+                _FilterSummaryCard(
+                  filter: _filter,
+                  activeTagName: widget.activeTagName,
                 ),
+              if (_filter.hasAnyFilter || widget.activeTagName.isNotEmpty)
                 const SizedBox(height: 16),
-                Text(
-                  '共 ${data.total} 条错题',
-                  style: Theme.of(context).textTheme.bodyMedium,
+              _SelectionSummaryCard(
+                selectedCount: _selectedQuestionIds.length,
+                onClear: _selectedQuestionIds.isEmpty
+                    ? null
+                    : () {
+                        setState(() {
+                          _selectedQuestionIds.clear();
+                        });
+                      },
+                onExport:
+                    _selectedQuestionIds.isEmpty ? null : _showExportOptions,
+              ),
+              const SizedBox(height: 16),
+              Text(
+                '共 ${data.total} 条错题',
+                style: Theme.of(context).textTheme.bodyMedium,
+              ),
+              const SizedBox(height: 12),
+            ];
+
+            return CustomScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              slivers: [
+                SliverPadding(
+                  padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
+                  sliver: SliverList(
+                    delegate: SliverChildListDelegate(headerChildren),
+                  ),
                 ),
-                const SizedBox(height: 12),
-                ...data.list.map(
-                  (item) => Padding(
-                    padding: const EdgeInsets.only(bottom: 12),
-                    child: Card(
-                      child: ListTile(
-                        contentPadding: const EdgeInsets.all(16),
-                        leading: Checkbox(
-                          value: _isQuestionSelected(item.questionId),
-                          onChanged: (_) => _toggleSelection(item.questionId),
+                SliverPadding(
+                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 96),
+                  sliver: SliverList.builder(
+                    itemCount: data.list.length,
+                    itemBuilder: (context, index) {
+                      final item = data.list[index];
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: _QuestionListCard(
+                          item: item,
+                          selected: _isQuestionSelected(item.questionId),
+                          onToggleSelected: () =>
+                              _toggleSelection(item.questionId),
+                          onTap: () =>
+                              context.push('/questions/${item.questionId}'),
                         ),
-                        title: Text(
-                          item.questionCore,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        subtitle: Padding(
-                          padding: const EdgeInsets.only(top: 8),
-                          child: Text(
-                            '${item.subject} · ${item.chapter}\n掌握状态：${item.masteryStatus.label} · 来源：${item.sourceImageUrl.isNotEmpty ? '图片' : '文本'}',
-                          ),
-                        ),
-                        trailing: const Icon(Icons.chevron_right),
-                        onTap: () =>
-                            context.push('/questions/${item.questionId}'),
-                      ),
-                    ),
+                      );
+                    },
                   ),
                 ),
               ],
@@ -279,6 +288,189 @@ class _QuestionListPageState extends ConsumerState<QuestionListPage> {
       SnackBar(content: Text('已打开${exportMode.label}打印页，请在系统浏览器中保存为 PDF')),
     );
   }
+}
+
+class _QuestionListCard extends StatelessWidget {
+  static const double _previewHeight = 76;
+
+  const _QuestionListCard({
+    required this.item,
+    required this.selected,
+    required this.onToggleSelected,
+    required this.onTap,
+  });
+
+  final QuestionListItem item;
+  final bool selected;
+  final VoidCallback onToggleSelected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(top: 2),
+                child: Checkbox(
+                  value: selected,
+                  onChanged: (_) => onToggleSelected(),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    RepaintBoundary(
+                      child: _QuestionPreview(content: item.questionCore),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      '${item.subject} · ${item.chapter}\n掌握状态：${item.masteryStatus.label} · 来源：${item.sourceImageUrl.isNotEmpty ? '图片' : '文本'}',
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 12),
+              const Padding(
+                padding: EdgeInsets.only(top: 4),
+                child: Icon(Icons.chevron_right),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _QuestionPreview extends StatelessWidget {
+  static const double _formulaLineHeight = 36;
+
+  const _QuestionPreview({
+    required this.content,
+  });
+
+  final String content;
+
+  @override
+  Widget build(BuildContext context) {
+    final preview = _buildQuestionPreview(content);
+    final textStyle = Theme.of(context).textTheme.bodyLarge;
+
+    return SizedBox(
+      height: _QuestionListCard._previewHeight,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            preview.textLine,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: textStyle,
+          ),
+          const SizedBox(height: 8),
+          SizedBox(
+            height: _formulaLineHeight,
+            child: preview.formulaLine == null
+                ? const SizedBox.shrink()
+                : ClipRect(
+                    child: OverflowBox(
+                      alignment: Alignment.centerLeft,
+                      minWidth: 0,
+                      maxWidth: double.infinity,
+                      minHeight: 0,
+                      maxHeight: double.infinity,
+                      child: Math.tex(
+                        preview.formulaLine!,
+                        mathStyle: MathStyle.text,
+                        textStyle: textStyle,
+                        onErrorFallback: (error) => Text(
+                          preview.formulaFallbackText ?? preview.formulaLine!,
+                          maxLines: 1,
+                          overflow: TextOverflow.clip,
+                          style: textStyle,
+                        ),
+                      ),
+                    ),
+                  ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _QuestionPreviewData {
+  const _QuestionPreviewData({
+    required this.textLine,
+    this.formulaLine,
+    this.formulaFallbackText,
+  });
+
+  final String textLine;
+  final String? formulaLine;
+  final String? formulaFallbackText;
+}
+
+_QuestionPreviewData _buildQuestionPreview(String raw) {
+  final normalized =
+      raw.replaceAll('\n', ' ').replaceAll(RegExp(r'\s+'), ' ').trim();
+  if (normalized.isEmpty) {
+    return const _QuestionPreviewData(textLine: '暂无内容');
+  }
+
+  final firstFormulaMatch = _questionFormulaPattern.firstMatch(normalized);
+  if (firstFormulaMatch != null) {
+    final formulaRaw = firstFormulaMatch.group(0) ?? '';
+    final textLine = normalized
+        .replaceAll(_questionFormulaPattern, ' ')
+        .replaceAll(RegExp(r'\s+'), ' ')
+        .trim();
+
+    final formulaText = _stripFormulaDelimiters(formulaRaw);
+    return _QuestionPreviewData(
+      textLine: textLine.isEmpty ? '公式题' : textLine,
+      formulaLine: formulaText,
+      formulaFallbackText: formulaText,
+    );
+  }
+
+  if (_questionMathSignalPattern.hasMatch(normalized)) {
+    return _QuestionPreviewData(
+      textLine: '公式题',
+      formulaLine: normalized,
+      formulaFallbackText: normalized,
+    );
+  }
+
+  return _QuestionPreviewData(textLine: normalized);
+}
+
+String _stripFormulaDelimiters(String raw) {
+  if (raw.startsWith(r'\[') && raw.endsWith(r'\]')) {
+    return raw.substring(2, raw.length - 2).trim();
+  }
+  if (raw.startsWith(r'\(') && raw.endsWith(r'\)')) {
+    return raw.substring(2, raw.length - 2).trim();
+  }
+  if (raw.startsWith(r'$$') && raw.endsWith(r'$$')) {
+    return raw.substring(2, raw.length - 2).trim();
+  }
+  if (raw.startsWith(r'$') && raw.endsWith(r'$')) {
+    return raw.substring(1, raw.length - 1).trim();
+  }
+  return raw.trim();
 }
 
 class _FilterSummaryCard extends StatelessWidget {

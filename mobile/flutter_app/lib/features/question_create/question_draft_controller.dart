@@ -16,7 +16,8 @@ class QuestionDraftController extends Notifier<QuestionDraft?> {
 
   @override
   QuestionDraft? build() {
-    return ref.read(questionDraftRepositoryProvider).readDraft();
+    final draft = ref.read(questionDraftRepositoryProvider).readDraft();
+    return _normalizeRecoveredDraft(draft);
   }
 
   bool ensureManualDraft() {
@@ -148,6 +149,10 @@ class QuestionDraftController extends Notifier<QuestionDraft?> {
     _commit(current.copyWith(status: status));
   }
 
+  Future<void> flush() {
+    return _pendingPersistence.catchError((_) {});
+  }
+
   void clear() {
     state = null;
     _enqueuePersistence(
@@ -163,8 +168,31 @@ class QuestionDraftController extends Notifier<QuestionDraft?> {
   }
 
   void _enqueuePersistence(Future<void> Function() action) {
-    _pendingPersistence = _pendingPersistence
-        .catchError((_) {})
-        .then((_) => action());
+    _pendingPersistence =
+        _pendingPersistence.catchError((_) {}).then((_) => action());
+  }
+
+  QuestionDraft? _normalizeRecoveredDraft(QuestionDraft? draft) {
+    if (draft == null) {
+      return null;
+    }
+
+    final normalizedStatus = switch (draft.status) {
+      DraftStatus.ocrProcessing ||
+      DraftStatus.aiProcessing =>
+        DraftStatus.ocrReviewing,
+      _ => draft.status,
+    };
+
+    if (normalizedStatus == draft.status) {
+      return draft;
+    }
+
+    final normalizedDraft = draft.copyWith(status: normalizedStatus);
+    _enqueuePersistence(
+      () =>
+          ref.read(questionDraftRepositoryProvider).saveDraft(normalizedDraft),
+    );
+    return normalizedDraft;
   }
 }
