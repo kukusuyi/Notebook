@@ -19,7 +19,10 @@ class _AuthPageState extends ConsumerState<AuthPage> {
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
   final _emailController = TextEditingController();
+  final _apiUrlController = TextEditingController();
   bool _registerMode = false;
+  bool _apiUrlExpanded = false;
+  bool _apiUrlHydrated = false;
   String? _lastShownErrorMessage;
 
   @override
@@ -44,6 +47,7 @@ class _AuthPageState extends ConsumerState<AuthPage> {
     _usernameController.dispose();
     _passwordController.dispose();
     _emailController.dispose();
+    _apiUrlController.dispose();
     super.dispose();
   }
 
@@ -55,7 +59,6 @@ class _AuthPageState extends ConsumerState<AuthPage> {
       appSettingsControllerProvider.select((state) => state.apiBaseUrlOverride),
     );
     final effectiveApiBaseUrl = ref.watch(effectiveApiBaseUrlProvider);
-    final apiLabel = effectiveApiBaseUrl.isEmpty ? '未配置' : effectiveApiBaseUrl;
 
     return Scaffold(
       body: Container(
@@ -83,7 +86,7 @@ class _AuthPageState extends ConsumerState<AuthPage> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Math Notebook',
+                          '题迹 Notebook',
                           style: Theme.of(context)
                               .textTheme
                               .headlineMedium
@@ -152,17 +155,12 @@ class _AuthPageState extends ConsumerState<AuthPage> {
                             _registerMode ? '已有账号，去登录' : '没有账号，先注册',
                           ),
                         ),
-                        const SizedBox(height: 12),
-                        Text(
-                          '当前 API：$apiLabel',
-                          style: Theme.of(context).textTheme.bodySmall,
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          apiBaseUrl.isEmpty
-                              ? '默认来源：${environment.defaultApiBaseUrlSource}'
-                              : '当前使用设置页覆盖地址',
-                          style: Theme.of(context).textTheme.bodySmall,
+                        const Divider(height: 32),
+                        _buildApiUrlSection(
+                          context,
+                          environment,
+                          apiBaseUrl,
+                          effectiveApiBaseUrl,
                         ),
                       ],
                     ),
@@ -174,6 +172,133 @@ class _AuthPageState extends ConsumerState<AuthPage> {
         ),
       ),
     );
+  }
+
+  Widget _buildApiUrlSection(
+    BuildContext context,
+    AppEnvironment environment,
+    String apiBaseUrl,
+    String effectiveApiBaseUrl,
+  ) {
+    final theme = Theme.of(context);
+    final apiLabel = effectiveApiBaseUrl.isEmpty ? '未配置' : effectiveApiBaseUrl;
+
+    if (!_apiUrlExpanded) {
+      return InkWell(
+        onTap: () => setState(() => _apiUrlExpanded = true),
+        borderRadius: BorderRadius.circular(8),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: Row(
+            children: [
+              Icon(
+                Icons.link,
+                size: 16,
+                color: theme.colorScheme.primary,
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'API 地址：$apiLabel',
+                      style: theme.textTheme.bodySmall,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      apiBaseUrl.isEmpty
+                          ? '来源：${environment.defaultApiBaseUrlSource}'
+                          : '已覆盖',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                        fontSize: 11,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Icon(
+                Icons.chevron_right,
+                size: 18,
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    _hydrateApiUrlIfNeeded(environment.defaultApiBaseUrl, apiBaseUrl);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Icon(
+              Icons.link,
+              size: 16,
+              color: theme.colorScheme.primary,
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                'API 地址配置',
+                style: theme.textTheme.labelLarge,
+              ),
+            ),
+            IconButton(
+              onPressed: () => setState(() => _apiUrlExpanded = false),
+              icon: const Icon(Icons.keyboard_arrow_up, size: 20),
+              visualDensity: VisualDensity.compact,
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        TextFormField(
+          controller: _apiUrlController,
+          decoration: const InputDecoration(
+            labelText: 'API Base URL',
+            hintText: 'http://192.168.x.x:8080',
+            isDense: true,
+          ),
+          style: theme.textTheme.bodySmall,
+        ),
+        const SizedBox(height: 8),
+        FilledButton(
+          onPressed: () => _saveApiUrl(environment.defaultApiBaseUrl),
+          child: const Text('保存地址'),
+        ),
+        const SizedBox(height: 4),
+      ],
+    );
+  }
+
+  void _hydrateApiUrlIfNeeded(String defaultBaseUrl, String overrideBaseUrl) {
+    if (_apiUrlHydrated) return;
+    _apiUrlController.text =
+        overrideBaseUrl.isNotEmpty ? overrideBaseUrl : defaultBaseUrl;
+    _apiUrlHydrated = true;
+  }
+
+  Future<void> _saveApiUrl(String defaultBaseUrl) async {
+    final raw = _apiUrlController.text.trim();
+    final nextValue = raw == defaultBaseUrl ? '' : raw;
+    await ref
+        .read(appSettingsControllerProvider.notifier)
+        .setApiBaseUrlOverride(nextValue);
+
+    if (mounted) {
+      _apiUrlHydrated = false;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('API 地址已保存，重新生效中')),
+      );
+    }
   }
 
   Future<void> _submit() async {

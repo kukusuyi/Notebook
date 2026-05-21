@@ -42,13 +42,12 @@ class _AppState extends ConsumerState<App> {
     final settings = ref.watch(appSettingsControllerProvider);
 
     return MaterialApp.router(
-      title: 'Math Notebook',
+      title: '题迹 Notebook',
       debugShowCheckedModeBanner: false,
       theme: buildAppTheme(
-        seedColor:
-            settings.themeColorSeed != null
-                ? Color(settings.themeColorSeed!)
-                : null,
+        seedColor: settings.themeColorSeed != null
+            ? Color(settings.themeColorSeed!)
+            : null,
       ),
       scrollBehavior: const AppScrollBehavior(),
       routerConfig: router,
