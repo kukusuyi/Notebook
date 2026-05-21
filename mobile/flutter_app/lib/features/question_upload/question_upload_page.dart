@@ -9,6 +9,7 @@ import '../../core/network/api_exception.dart';
 import '../../shared/models/common_models.dart';
 import '../../shared/models/question_models.dart';
 import '../../shared/utils/draft_navigation.dart';
+import '../../shared/utils/platform_ui.dart';
 import '../question_create/question_draft_controller.dart';
 import 'file_repository.dart';
 import 'question_image_crop_page.dart';
@@ -49,6 +50,7 @@ class _QuestionUploadPageState extends ConsumerState<QuestionUploadPage> {
         ],
       ),
       body: ListView(
+        keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
         padding: const EdgeInsets.all(20),
         children: [
           Card(
@@ -186,25 +188,14 @@ class _QuestionUploadPageState extends ConsumerState<QuestionUploadPage> {
 
   Future<bool> _confirmReplaceDraft(QuestionDraft draft) async {
     final draftLabel = draft.flowMode == DraftFlowMode.upload ? '图片草稿' : '手动录入草稿';
-    final result = await showDialog<bool>(
+    return showPlatformConfirmDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('替换当前草稿'),
-        content: Text('当前还有一份未完成的$draftLabel。继续拍照/选图会丢弃它，并开始新的图片草稿。'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(false),
-            child: const Text('保留当前草稿'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(true),
-            child: const Text('丢弃并继续'),
-          ),
-        ],
-      ),
+      title: '替换当前草稿',
+      message: '当前还有一份未完成的$draftLabel。继续拍照/选图会丢弃它，并开始新的图片草稿。',
+      confirmLabel: '丢弃并继续',
+      cancelLabel: '保留当前草稿',
+      isDestructive: true,
     );
-
-    return result ?? false;
   }
 
   Future<void> _uploadAndRecognize() async {

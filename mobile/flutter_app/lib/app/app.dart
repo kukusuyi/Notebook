@@ -1,9 +1,11 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../core/storage/app_settings_controller.dart';
 import '../core/update/version_checker.dart';
 import '../features/update/update_dialog.dart';
+import 'app_scroll_behavior.dart';
 import 'app_router.dart';
 import 'app_theme.dart';
 
@@ -24,6 +26,10 @@ class _AppState extends ConsumerState<App> {
   }
 
   Future<void> _checkForUpdate() async {
+    if (kIsWeb || defaultTargetPlatform != TargetPlatform.android) {
+      return;
+    }
+
     final result = await ref.read(versionCheckerProvider.future);
     if (result.hasUpdate && result.latestVersion != null && mounted) {
       UpdateDialog.show(context, result.latestVersion!);
@@ -44,8 +50,8 @@ class _AppState extends ConsumerState<App> {
                 ? Color(settings.themeColorSeed!)
                 : null,
       ),
+      scrollBehavior: const AppScrollBehavior(),
       routerConfig: router,
     );
   }
 }
-

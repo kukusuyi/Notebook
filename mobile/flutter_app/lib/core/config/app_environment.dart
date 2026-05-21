@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -13,7 +14,8 @@ class AppEnvironment {
 
   static const String actualConfigAssetPath = 'config/app_config.json';
   static const String exampleConfigAssetPath = 'config/app_config.example.json';
-  static const String fallbackApiBaseUrl = 'http://10.0.2.2:8080';
+  static const String androidEmulatorApiBaseUrl = 'http://10.0.2.2:8080';
+  static const String iosSimulatorApiBaseUrl = 'http://127.0.0.1:8080';
 
   final String flavor;
   final String defaultApiBaseUrl;
@@ -26,12 +28,11 @@ class AppEnvironment {
     );
     const apiBaseUrl = String.fromEnvironment(
       'API_BASE_URL',
-      defaultValue: fallbackApiBaseUrl,
+      defaultValue: '',
     );
 
-    final source = apiBaseUrl == fallbackApiBaseUrl
-        ? '内置默认值（建议改 config/app_config.json）'
-        : 'dart-define=API_BASE_URL';
+    final source =
+        apiBaseUrl.isEmpty ? '未配置默认地址' : 'dart-define=API_BASE_URL';
 
     return AppEnvironment(
       flavor: flavor,
@@ -55,7 +56,7 @@ class AppEnvironment {
       );
     }
 
-    return AppEnvironment.fromFallback();
+    return _loadRuntimeFallback(flavor);
   }
 }
 
@@ -90,6 +91,88 @@ Future<_AssetAppConfig?> _loadConfigFromAsset(String path) async {
   } on FormatException {
     return null;
   }
+}
+
+Future<AppEnvironment> _loadRuntimeFallback(String flavor) async {
+  const apiBaseUrl = String.fromEnvironment(
+    'API_BASE_URL',
+    defaultValue: '',
+  );
+
+  if (apiBaseUrl.isNotEmpty) {
+    return AppEnvironment(
+      flavor: flavor,
+      defaultApiBaseUrl: apiBaseUrl,
+      defaultApiBaseUrlSource: 'dart-define=API_BASE_URL',
+    );
+  }
+
+  final runtimeFallback = await _resolveRuntimeFallback();
+  return AppEnvironment(
+    flavor: flavor,
+    defaultApiBaseUrl: runtimeFallback.apiBaseUrl,
+    defaultApiBaseUrlSource: runtimeFallback.source,
+  );
+}
+
+Future<_RuntimeFallback> _resolveRuntimeFallback() async {
+  if (kIsWeb) {
+    return const _RuntimeFallback(
+      apiBaseUrl: AppEnvironment.iosSimulatorApiBaseUrl,
+      source: 'Web/Simulator 默认地址',
+    );
+  }
+
+  try {
+    final deviceInfo = DeviceInfoPlugin();
+    switch (defaultTargetPlatform) {
+      case TargetPlatform.android:
+        final info = await deviceInfo.androidInfo;
+        if (!info.isPhysicalDevice) {
+          return const _RuntimeFallback(
+            apiBaseUrl: AppEnvironment.androidEmulatorApiBaseUrl,
+            source: 'Android 模拟器默认地址',
+          );
+        }
+
+        return const _RuntimeFallback(
+          apiBaseUrl: '',
+          source: 'Android 真机请在 config/app_config.json 或设置页填写局域网地址',
+        );
+      case TargetPlatform.iOS:
+        final info = await deviceInfo.iosInfo;
+        if (!info.isPhysicalDevice) {
+          return const _RuntimeFallback(
+            apiBaseUrl: AppEnvironment.iosSimulatorApiBaseUrl,
+            source: 'iOS 模拟器默认地址',
+          );
+        }
+
+        return const _RuntimeFallback(
+          apiBaseUrl: '',
+          source: 'iOS 真机请在 config/app_config.json 或设置页填写局域网地址',
+        );
+      default:
+        break;
+    }
+  } catch (_) {
+    // Fall through to the generic guidance below.
+  }
+
+  return const _RuntimeFallback(
+    apiBaseUrl: '',
+    source: '请在 config/app_config.json、dart-define 或设置页配置 API 地址',
+  );
+}
+
+class _RuntimeFallback {
+  const _RuntimeFallback({
+    required this.apiBaseUrl,
+    required this.source,
+  });
+
+  final String apiBaseUrl;
+  final String source;
 }
 
 final appEnvironmentProvider = Provider<AppEnvironment>((ref) {

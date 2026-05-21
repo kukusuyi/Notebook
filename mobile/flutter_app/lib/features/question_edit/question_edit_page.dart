@@ -78,6 +78,7 @@ class _QuestionEditPageState extends ConsumerState<QuestionEditPage> {
           _hydrateIfNeeded(data);
 
           return ListView(
+            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
             padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
             children: [
               if (data.sourceImageUrl.isNotEmpty) ...[

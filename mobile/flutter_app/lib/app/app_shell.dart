@@ -20,7 +20,7 @@ class AppShell extends ConsumerWidget {
     final draft = ref.watch(questionDraftControllerProvider);
 
     return Scaffold(
-      body: SafeArea(child: child),
+      body: child,
       bottomNavigationBar: NavigationBar(
         selectedIndex: _selectedIndex(),
         destinations: const [

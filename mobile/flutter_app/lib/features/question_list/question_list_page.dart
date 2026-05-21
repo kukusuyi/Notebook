@@ -6,6 +6,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../core/config/effective_api_base_url.dart';
 import '../../core/storage/auth_session_repository.dart';
 import '../../shared/models/question_models.dart';
+import '../../shared/utils/platform_ui.dart';
 import '../question_list/question_repository.dart';
 
 enum _QuestionExportMode {
@@ -198,27 +199,19 @@ class _QuestionListPageState extends ConsumerState<QuestionListPage> {
       return;
     }
 
-    final exportMode = await showModalBottomSheet<_QuestionExportMode>(
+    final exportMode = await showPlatformActionSheet<_QuestionExportMode>(
       context: context,
-      builder: (context) {
-        return SafeArea(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              for (final mode in _QuestionExportMode.values)
-                ListTile(
-                  leading: Icon(
-                    mode == _QuestionExportMode.withAnswers
-                        ? Icons.fact_check_outlined
-                        : Icons.article_outlined,
-                  ),
-                  title: Text(mode.label),
-                  onTap: () => Navigator.of(context).pop(mode),
-                ),
-            ],
+      title: '导出方式',
+      actions: [
+        for (final mode in _QuestionExportMode.values)
+          PlatformActionSheetAction<_QuestionExportMode>(
+            label: mode.label,
+            value: mode,
+            icon: mode == _QuestionExportMode.withAnswers
+                ? Icons.fact_check_outlined
+                : Icons.article_outlined,
           ),
-        );
-      },
+      ],
     );
 
     if (!mounted || exportMode == null) {

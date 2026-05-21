@@ -382,9 +382,9 @@ class _QuestionImageCropPageState extends State<QuestionImageCropPage> {
         normalizedRect.bottom * originalImage.height,
       );
 
-      final cropWidth = srcRect.width.round().clamp(1, originalImage.width) as int;
+      final cropWidth = srcRect.width.round().clamp(1, originalImage.width);
       final cropHeight =
-          srcRect.height.round().clamp(1, originalImage.height) as int;
+          srcRect.height.round().clamp(1, originalImage.height);
       final recorder = ui.PictureRecorder();
       final canvas = Canvas(recorder);
 
