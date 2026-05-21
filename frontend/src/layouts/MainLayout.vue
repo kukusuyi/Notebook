@@ -4,7 +4,7 @@
             <div class="brand">
                 <div class="brand-mark">∫</div>
                 <div>
-                    <h1>Math Notebook</h1>
+                    <h1>题迹 Notebook</h1>
                     <p>把错题整理成可检索、可复盘、可联想的知识资产。</p>
                 </div>
             </div>

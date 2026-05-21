@@ -1,5 +1,5 @@
 [Unit]
-Description=Math Notebook Backend
+Description=题迹 Notebook Backend
 After=network.target mysql.service
 Wants=network.target
 

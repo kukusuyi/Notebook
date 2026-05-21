@@ -86,7 +86,7 @@ class _AuthPageState extends ConsumerState<AuthPage> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Math Notebook',
+                          '题迹 Notebook',
                           style: Theme.of(context)
                               .textTheme
                               .headlineMedium

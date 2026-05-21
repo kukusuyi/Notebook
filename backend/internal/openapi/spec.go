@@ -6,7 +6,7 @@ func BuildSpec() map[string]any {
 	spec := map[string]any{
 		"openapi": "3.0.3",
 		"info": map[string]any{
-			"title":       "Math Notebook Backend API",
+			"title":       "题迹 Notebook Backend API",
 			"description": "错题本后端接口文档。当前文档与已初始化的后端骨架保持一致，便于前端联调和后续逐步补全持久化实现。",
 			"version":     "v1",
 		},
