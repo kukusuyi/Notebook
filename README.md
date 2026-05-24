@@ -211,7 +211,13 @@ npm run dev
 前端默认 API 地址来自：
 
 - `frontend/.env.example`
-- 浏览器本地存储 `math-notebook:api-base-url`
+- 浏览器本地存储 `math-notebook:api-base-url`（仅在开启设置页时生效）
+
+前端“设置”页默认关闭，如需在本地调试时手动覆盖 API 地址，请显式设置：
+
+```dotenv
+VITE_ENABLE_SETTINGS_PAGE=true
+```
 
 ### 4. 启动 Flutter Android 客户端
 

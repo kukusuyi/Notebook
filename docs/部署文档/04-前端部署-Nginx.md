@@ -34,13 +34,25 @@ frontend/.env.production
 
 ```dotenv
 VITE_API_BASE_URL=https://api.example.com
+VITE_ENABLE_SETTINGS_PAGE=false
 ```
 
 如果你选择“同域名 + Nginx 反代 `/api/`”的方式，也可以写：
 
 ```dotenv
 VITE_API_BASE_URL=https://example.com
+VITE_ENABLE_SETTINGS_PAGE=false
 ```
+
+如果你本身就是“前端页面和 API 都挂在同一个 HTTPS 域名”上，也可以直接留空：
+
+```dotenv
+VITE_API_BASE_URL=
+VITE_ENABLE_SETTINGS_PAGE=false
+```
+
+此时前端会自动回退到当前页面所在的 `window.location.origin`。
+默认也不会显示“设置”页，避免用户在生产环境里随意改写 API 地址。
 
 ## 3. 构建前注意点
 
@@ -53,7 +65,15 @@ VITE_API_BASE_URL=https://example.com
 所以生产环境一定要做好两件事：
 
 1. 构建时注入正确的 `VITE_API_BASE_URL`
-2. 不要让浏览器里遗留错误的本地覆盖地址
+2. 将 `VITE_ENABLE_SETTINGS_PAGE=false`，避免暴露前端 API 覆盖入口
+
+补充说明：
+
+- 当 `VITE_ENABLE_SETTINGS_PAGE=false` 时：
+- “设置”页不会出现在侧边导航里
+- 直接访问 `/settings` 会被重定向到 `/dashboard`
+- 请求层也不会再读取浏览器 `localStorage` 中的 `math-notebook:api-base-url`
+- HTTPS 页面下，如果之前遗留的是“同域名的 `http://...` 地址”，即使开关开启，前端也会自动升级为 `https://...`
 
 ## 4. 构建产物
 
