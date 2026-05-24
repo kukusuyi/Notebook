@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 
+import { settingsPageEnabled } from '@/config/features'
 import AuthPage from '@/pages/AuthPage.vue'
 import MainLayout from '@/layouts/MainLayout.vue'
 import DashboardPage from '@/pages/DashboardPage.vue'
@@ -111,6 +112,10 @@ router.beforeEach((to) => {
   if (to.path === '/auth' && token) {
     const redirect = typeof to.query.redirect === 'string' ? to.query.redirect : '/dashboard'
     return redirect
+  }
+
+  if (to.path === '/settings' && !settingsPageEnabled) {
+    return '/dashboard'
   }
 
   return true

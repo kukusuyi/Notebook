@@ -64,6 +64,7 @@ import { ElMessage } from "element-plus";
 import { onMounted } from "vue";
 import { RouterLink, RouterView, useRoute } from "vue-router";
 
+import { settingsPageEnabled } from "@/config/features";
 import { useAuthStore } from "@/stores/auth.store";
 import { useUserStore } from "@/stores/user.store";
 
@@ -77,7 +78,9 @@ const navItems = [
     { label: "手动新增", to: "/questions/create", icon: EditPen },
     { label: "图片上传", to: "/questions/upload", icon: PictureRounded },
     { label: "标签管理", to: "/tags", icon: Connection },
-    { label: "设置", to: "/settings", icon: Setting },
+    ...(settingsPageEnabled
+        ? [{ label: "设置", to: "/settings", icon: Setting }]
+        : []),
 ];
 
 function isNavActive(to: string) {

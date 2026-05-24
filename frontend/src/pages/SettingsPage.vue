@@ -4,7 +4,7 @@
       <div>
         <h2 class="page-title">前端设置</h2>
         <p class="page-subtitle">
-          先保留最关键的联调配置。当前页面以本地存储为主，不依赖专门后端设置接口。
+          仅用于本地联调时临时覆盖接口地址。当前页面以本地存储为主，不依赖专门后端设置接口。
         </p>
       </div>
     </header>
@@ -26,6 +26,7 @@
         <h3>说明</h3>
         <ul class="notes">
           <li>当前请求层会优先读取本地存储里的 API Base URL。</li>
+          <li>留空并保存会清除本地覆盖，重新回退到环境变量或当前站点域名。</li>
           <li>修改后刷新页面即可让新配置生效。</li>
           <li>LaTeX 渲染默认使用 KaTeX 自动识别 `$...$`、`$$...$$`、`\(...\)`、`\[...\]`。</li>
           <li>AI 分析确认页和手动录入页草稿会保存在 `sessionStorage`，关闭标签页后自动失效。</li>
@@ -39,13 +40,20 @@
 import { ElMessage } from 'element-plus'
 import { ref } from 'vue'
 
-const apiBaseURL = ref(
-  window.localStorage.getItem('math-notebook:api-base-url') || 'http://localhost:8080',
-)
+const API_BASE_STORAGE_KEY = 'math-notebook:api-base-url'
+const apiBaseURL = ref(window.localStorage.getItem(API_BASE_STORAGE_KEY) || '')
 
 function saveApiBaseURL() {
-  window.localStorage.setItem('math-notebook:api-base-url', apiBaseURL.value.trim())
-  ElMessage.success('设置已保存，刷新页面后会使用新的 API Base URL')
+  const nextValue = apiBaseURL.value.trim()
+
+  if (nextValue) {
+    window.localStorage.setItem(API_BASE_STORAGE_KEY, nextValue)
+    ElMessage.success('设置已保存，刷新页面后会使用新的 API Base URL')
+    return
+  }
+
+  window.localStorage.removeItem(API_BASE_STORAGE_KEY)
+  ElMessage.success('已清除本地 API 覆盖，刷新页面后将回退到默认配置')
 }
 </script>
 
