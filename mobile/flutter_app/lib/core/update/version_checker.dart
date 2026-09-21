@@ -32,7 +32,8 @@ class VersionChecker {
       final currentVersion = AppVersion.parse(currentVersionStr);
       final latestVersion = AppVersion.parse(latestInfo.version);
 
-      final hasUpdate = currentVersion.isOlderThan(latestVersion);
+      final hasUpdate = latestInfo.apkUrl.isNotEmpty &&
+          currentVersion.isOlderThan(latestVersion);
 
       return VersionCheckResult(
         hasUpdate: hasUpdate,

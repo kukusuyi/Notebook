@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/config/effective_api_base_url.dart';
 import '../utils/remote_url.dart';
+import '../../core/storage/auth_session_repository.dart';
 
 class RemoteImageCard extends ConsumerWidget {
   const RemoteImageCard({
@@ -19,13 +20,19 @@ class RemoteImageCard extends ConsumerWidget {
     final apiBaseUrl = ref.watch(effectiveApiBaseUrlProvider);
     final resolvedUrl = resolveRemoteUrl(imageUrl, apiBaseUrl);
 
+    final token = ref.watch(authSessionRepositoryProvider).readToken();
+    final headers =
+        Uri.tryParse(resolvedUrl)?.origin == Uri.tryParse(apiBaseUrl)?.origin &&
+                token != null
+            ? {'Authorization': 'Bearer $token'}
+            : <String, String>{};
     if (resolvedUrl.isEmpty) {
       return const SizedBox.shrink();
     }
 
     return Card(
       child: InkWell(
-        onTap: () => _openPreview(context, resolvedUrl),
+        onTap: () => _openPreview(context, resolvedUrl, headers),
         borderRadius: BorderRadius.circular(24),
         child: Stack(
           children: [
@@ -35,6 +42,7 @@ class RemoteImageCard extends ConsumerWidget {
                 tag: resolvedUrl,
                 child: Image.network(
                   resolvedUrl,
+                  headers: headers,
                   height: height,
                   width: double.infinity,
                   fit: BoxFit.cover,
@@ -104,14 +112,15 @@ class RemoteImageCard extends ConsumerWidget {
     );
   }
 
-  Future<void> _openPreview(BuildContext context, String imageUrl) {
+  Future<void> _openPreview(
+      BuildContext context, String imageUrl, Map<String, String> headers) {
     return Navigator.of(context).push(
       PageRouteBuilder<void>(
         opaque: false,
         barrierDismissible: true,
         barrierColor: Colors.black.withValues(alpha: 0.88),
         pageBuilder: (context, animation, secondaryAnimation) {
-          return _ImagePreviewPage(imageUrl: imageUrl);
+          return _ImagePreviewPage(imageUrl: imageUrl, headers: headers);
         },
         transitionsBuilder: (context, animation, secondaryAnimation, child) {
           return FadeTransition(
@@ -127,9 +136,11 @@ class RemoteImageCard extends ConsumerWidget {
 class _ImagePreviewPage extends StatelessWidget {
   const _ImagePreviewPage({
     required this.imageUrl,
+    required this.headers,
   });
 
   final String imageUrl;
+  final Map<String, String> headers;
 
   @override
   Widget build(BuildContext context) {
@@ -156,6 +167,7 @@ class _ImagePreviewPage extends StatelessWidget {
                       borderRadius: BorderRadius.circular(24),
                       child: Image.network(
                         imageUrl,
+                        headers: headers,
                         fit: BoxFit.contain,
                       ),
                     ),

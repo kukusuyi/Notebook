@@ -31,8 +31,7 @@ class AppEnvironment {
       defaultValue: '',
     );
 
-    final source =
-        apiBaseUrl.isEmpty ? '未配置默认地址' : 'dart-define=API_BASE_URL';
+    final source = apiBaseUrl.isEmpty ? '未配置默认地址' : 'dart-define=API_BASE_URL';
 
     return AppEnvironment(
       flavor: flavor,
@@ -47,6 +46,11 @@ class AppEnvironment {
       defaultValue: 'dev',
     );
 
+    if (kReleaseMode)
+      return const AppEnvironment(
+          flavor: 'production',
+          defaultApiBaseUrl: '',
+          defaultApiBaseUrlSource: '请填写电脑上显示的局域网地址');
     final fileConfig = await _loadConfigFromAsset(actualConfigAssetPath);
     if (fileConfig != null && fileConfig.apiBaseUrl.trim().isNotEmpty) {
       return AppEnvironment(
@@ -107,6 +111,11 @@ Future<AppEnvironment> _loadRuntimeFallback(String flavor) async {
     );
   }
 
+  if (kReleaseMode)
+    return AppEnvironment(
+        flavor: flavor,
+        defaultApiBaseUrl: '',
+        defaultApiBaseUrlSource: '请填写电脑上显示的局域网地址');
   final runtimeFallback = await _resolveRuntimeFallback();
   return AppEnvironment(
     flavor: flavor,

@@ -21,7 +21,7 @@ class _AuthPageState extends ConsumerState<AuthPage> {
   final _emailController = TextEditingController();
   final _apiUrlController = TextEditingController();
   bool _registerMode = false;
-  bool _apiUrlExpanded = false;
+  bool _apiUrlExpanded = true;
   bool _apiUrlHydrated = false;
   String? _lastShownErrorMessage;
 
@@ -288,10 +288,15 @@ class _AuthPageState extends ConsumerState<AuthPage> {
 
   Future<void> _saveApiUrl(String defaultBaseUrl) async {
     final raw = _apiUrlController.text.trim();
-    final nextValue = raw == defaultBaseUrl ? '' : raw;
-    await ref
-        .read(appSettingsControllerProvider.notifier)
-        .setApiBaseUrlOverride(nextValue);
+    final nextValue = raw;
+    try {
+      await ref
+          .read(appSettingsControllerProvider.notifier)
+          .setApiBaseUrlOverride(nextValue);
+    } catch (e) {
+      if (mounted) _showMessage('连接失败：$e');
+      return;
+    }
 
     if (mounted) {
       _apiUrlHydrated = false;

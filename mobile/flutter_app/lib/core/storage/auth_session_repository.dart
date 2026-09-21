@@ -4,19 +4,23 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../shared/models/auth_models.dart';
 import 'key_value_store.dart';
+import '../config/effective_api_base_url.dart';
 import 'storage_keys.dart';
 
 final authSessionRepositoryProvider = Provider<AuthSessionRepository>((ref) {
-  return AuthSessionRepository(ref.watch(keyValueStoreProvider));
+  return AuthSessionRepository(
+      ref.watch(keyValueStoreProvider), ref.watch(effectiveApiBaseUrlProvider));
 });
 
 class AuthSessionRepository {
-  AuthSessionRepository(this._store);
+  AuthSessionRepository(this._store, [String server = ''])
+      : _key = '${StorageKeys.authSession}:$server';
+  final String _key;
 
   final KeyValueStore _store;
 
   AuthSession? readSession() {
-    final raw = _store.readString(StorageKeys.authSession);
+    final raw = _store.readString(_key);
     if (raw == null || raw.isEmpty) {
       return null;
     }
@@ -30,13 +34,12 @@ class AuthSessionRepository {
 
   Future<void> saveSession(AuthSession session) async {
     await _store.writeString(
-      StorageKeys.authSession,
+      _key,
       jsonEncode(session.toJson()),
     );
   }
 
   Future<void> clearSession() async {
-    await _store.remove(StorageKeys.authSession);
+    await _store.remove(_key);
   }
 }
-

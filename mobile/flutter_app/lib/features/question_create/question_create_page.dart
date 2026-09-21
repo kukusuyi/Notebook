@@ -186,6 +186,9 @@ class _QuestionCreatePageState extends ConsumerState<QuestionCreatePage> {
             ),
           ),
           const SizedBox(height: 16),
+          FilledButton.tonal(
+              onPressed: _submitting ? null : _saveDirectly,
+              child: const Text('直接保存（无需 AI）')),
           Row(
             children: [
               Expanded(
@@ -237,12 +240,40 @@ class _QuestionCreatePageState extends ConsumerState<QuestionCreatePage> {
           chapter: _chapterController.text.trim(),
           questionJson: questionJson,
           flowMode: DraftFlowMode.manual,
-          sourceType: SourceType.manual,
+          sourceType:
+              ref.read(questionDraftControllerProvider)?.sourceImageId != null
+                  ? SourceType.image
+                  : SourceType.manual,
         );
   }
 
+  Future<void> _saveDirectly() async {
+    if (_mode == QuestionCreateMode.json && !_applyJsonToForm(showError: true))
+      return;
+    if (_questionCoreController.text.trim().isEmpty) {
+      _showMessage('请先填写题目主干');
+      return;
+    }
+    _persistDraft();
+    setState(() {
+      _submitting = true;
+    });
+    try {
+      final id = await ref.read(questionFlowServiceProvider).saveCurrentDraft();
+      if (mounted) context.go('/questions/$id');
+    } catch (e) {
+      if (mounted) _showMessage(describeError(e));
+    } finally {
+      if (mounted)
+        setState(() {
+          _submitting = false;
+        });
+    }
+  }
+
   Future<void> _analyze() async {
-    if (_mode == QuestionCreateMode.json && !_applyJsonToForm(showError: true)) {
+    if (_mode == QuestionCreateMode.json &&
+        !_applyJsonToForm(showError: true)) {
       return;
     }
 
@@ -314,8 +345,8 @@ class _QuestionCreatePageState extends ConsumerState<QuestionCreatePage> {
   QuestionJson? _currentQuestionJson() {
     if (_mode == QuestionCreateMode.json) {
       try {
-        final parsed = tryParseQuestionJson(_jsonController.text) ??
-            const QuestionJson();
+        final parsed =
+            tryParseQuestionJson(_jsonController.text) ?? const QuestionJson();
         if (_jsonError != null) {
           setState(() {
             _jsonError = null;
@@ -354,8 +385,8 @@ class _QuestionCreatePageState extends ConsumerState<QuestionCreatePage> {
 
   bool _applyJsonToForm({required bool showError}) {
     try {
-      final parsed = tryParseQuestionJson(_jsonController.text) ??
-          const QuestionJson();
+      final parsed =
+          tryParseQuestionJson(_jsonController.text) ?? const QuestionJson();
       _questionCoreController.text = parsed.questionCore;
       _standardSolutionController.text = parsed.standardSolution;
       _wrongSolutionController.text = parsed.wrongSolution;

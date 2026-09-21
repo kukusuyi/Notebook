@@ -1,6 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'key_value_store.dart';
+import 'package:dio/dio.dart';
+import '../../features/auth/auth_controller.dart';
+import '../../features/question_create/question_draft_controller.dart';
 import 'storage_keys.dart';
 
 class AppSettings {
@@ -42,16 +45,36 @@ class AppSettingsController extends Notifier<AppSettings> {
   }
 
   Future<void> setApiBaseUrlOverride(String value) async {
-    final normalized = value.trim();
-    state = state.copyWith(apiBaseUrlOverride: normalized);
-
-    final store = ref.read(keyValueStoreProvider);
-    if (normalized.isEmpty) {
-      await store.remove(StorageKeys.apiBaseUrl);
-      return;
+    final normalized = value.trim().replaceAll(RegExp(r'/+$'), '');
+    final uri = Uri.tryParse(normalized);
+    if (uri == null ||
+        !['http', 'https'].contains(uri.scheme) ||
+        uri.host.isEmpty ||
+        uri.userInfo.isNotEmpty ||
+        uri.hasQuery ||
+        uri.hasFragment ||
+        (uri.path.isNotEmpty && uri.path != '/')) {
+      throw const FormatException('请输入完整服务地址，例如 http://192.168.1.10:8080');
     }
-
+    final probe = Dio(BaseOptions(
+        connectTimeout: const Duration(seconds: 5),
+        receiveTimeout: const Duration(seconds: 5)));
+    try {
+      final response = await probe.get('$normalized/api/v1/system/status');
+      if (response.data is! Map ||
+          response.data['data']?['version'] != '2.0.0') {
+        throw const FormatException('该地址不是 Notebook 2.0 服务');
+      }
+    } finally {
+      probe.close();
+    }
+    if (normalized == state.apiBaseUrlOverride) return;
+    await ref.read(questionDraftControllerProvider.notifier).flush();
+    await ref.read(authControllerProvider.notifier).logout();
+    final store = ref.read(keyValueStoreProvider);
     await store.writeString(StorageKeys.apiBaseUrl, normalized);
+    state = state.copyWith(apiBaseUrlOverride: normalized);
+    ref.invalidate(questionDraftControllerProvider);
   }
 
   Future<void> setThemeColorSeed(int? colorValue) async {
@@ -69,4 +92,3 @@ class AppSettingsController extends Notifier<AppSettings> {
     await store.writeInt(StorageKeys.themeColorSeed, colorValue);
   }
 }
-

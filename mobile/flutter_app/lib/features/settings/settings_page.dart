@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/config/app_environment.dart';
 import '../../core/storage/app_settings_controller.dart';
 import '../auth/auth_controller.dart';
+import '../../shared/widgets/server_status_card.dart';
 
 const _presetColors = <Color>[
   Color(0xFF0C7A5C), // Green (default)
@@ -40,7 +41,8 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
   Widget build(BuildContext context) {
     final environment = ref.watch(appEnvironmentProvider);
     final settings = ref.watch(appSettingsControllerProvider);
-    _hydrateIfNeeded(environment.defaultApiBaseUrl, settings.apiBaseUrlOverride);
+    _hydrateIfNeeded(
+        environment.defaultApiBaseUrl, settings.apiBaseUrlOverride);
 
     final effectiveBaseUrl = settings.apiBaseUrlOverride.isNotEmpty
         ? settings.apiBaseUrlOverride
@@ -63,7 +65,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    '接口环境',
+                    '电脑连接',
                     style: Theme.of(context).textTheme.titleLarge?.copyWith(
                           fontWeight: FontWeight.w700,
                         ),
@@ -76,7 +78,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                   Text('当前生效：$effectiveBaseUrlLabel'),
                   const SizedBox(height: 8),
                   Text(
-                    '正式包默认地址请修改 ${AppEnvironment.actualConfigAssetPath}；真机联调请改成宿主机局域网地址，设置页覆盖只影响当前设备。',
+                    '填写电脑程序显示的局域网地址。切换电脑会退出当前登录，并隔离各台电脑的草稿。',
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: Theme.of(context).colorScheme.onSurfaceVariant,
                         ),
@@ -85,8 +87,8 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                   TextFormField(
                     controller: _apiBaseUrlController,
                     decoration: const InputDecoration(
-                      labelText: '自定义 API Base URL',
-                      hintText: '留空则使用配置文件里的默认地址',
+                      labelText: '电脑服务地址',
+                      hintText: 'http://192.168.1.10:8080',
                     ),
                   ),
                   const SizedBox(height: 12),
@@ -104,6 +106,8 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
               ),
             ),
           ),
+          const SizedBox(height: 16),
+          const ServerStatusCard(),
           const SizedBox(height: 16),
           Card(
             child: Padding(
@@ -188,10 +192,17 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
 
   Future<void> _save(String defaultBaseUrl) async {
     final raw = _apiBaseUrlController.text.trim();
-    final nextValue = raw == defaultBaseUrl ? '' : raw;
-    await ref
-        .read(appSettingsControllerProvider.notifier)
-        .setApiBaseUrlOverride(nextValue);
+    final nextValue = raw;
+    try {
+      await ref
+          .read(appSettingsControllerProvider.notifier)
+          .setApiBaseUrlOverride(nextValue);
+    } catch (e) {
+      if (mounted)
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('连接失败：$e')));
+      return;
+    }
 
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -231,7 +242,10 @@ class _ColorCircle extends StatelessWidget {
             ? Border.all(color: Colors.black54, width: 3)
             : Border.all(color: Colors.black12, width: 1),
         boxShadow: selected
-            ? [BoxShadow(color: color.withAlpha(128), blurRadius: 8, spreadRadius: 1)]
+            ? [
+                BoxShadow(
+                    color: color.withAlpha(128), blurRadius: 8, spreadRadius: 1)
+              ]
             : null,
       ),
     );

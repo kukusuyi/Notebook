@@ -39,7 +39,7 @@ final authControllerProvider =
 class AuthController extends Notifier<AuthState> {
   @override
   AuthState build() {
-    final session = ref.read(authSessionRepositoryProvider).readSession();
+    final session = ref.watch(authSessionRepositoryProvider).readSession();
     return AuthState(session: session);
   }
 
@@ -49,9 +49,12 @@ class AuthController extends Notifier<AuthState> {
       clearError: true,
     );
 
+    final targetRepository = ref.read(authSessionRepositoryProvider);
     try {
       final session = await ref.read(authRepositoryProvider).login(payload);
-      await ref.read(authSessionRepositoryProvider).saveSession(session);
+      if (!identical(targetRepository, ref.read(authSessionRepositoryProvider)))
+        return;
+      await targetRepository.saveSession(session);
       state = state.copyWith(
         session: session,
         isSubmitting: false,
@@ -71,9 +74,12 @@ class AuthController extends Notifier<AuthState> {
       clearError: true,
     );
 
+    final targetRepository = ref.read(authSessionRepositoryProvider);
     try {
       final session = await ref.read(authRepositoryProvider).register(payload);
-      await ref.read(authSessionRepositoryProvider).saveSession(session);
+      if (!identical(targetRepository, ref.read(authSessionRepositoryProvider)))
+        return;
+      await targetRepository.saveSession(session);
       state = state.copyWith(
         session: session,
         isSubmitting: false,

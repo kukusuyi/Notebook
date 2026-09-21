@@ -16,7 +16,7 @@ class QuestionDraftController extends Notifier<QuestionDraft?> {
 
   @override
   QuestionDraft? build() {
-    final draft = ref.read(questionDraftRepositoryProvider).readDraft();
+    final draft = ref.watch(questionDraftRepositoryProvider).readDraft();
     return _normalizeRecoveredDraft(draft);
   }
 
@@ -155,15 +155,17 @@ class QuestionDraftController extends Notifier<QuestionDraft?> {
 
   void clear() {
     state = null;
+    final repository = ref.read(questionDraftRepositoryProvider);
     _enqueuePersistence(
-      () => ref.read(questionDraftRepositoryProvider).clearDraft(),
+      () => repository.clearDraft(),
     );
   }
 
   void _commit(QuestionDraft draft) {
     state = draft;
+    final repository = ref.read(questionDraftRepositoryProvider);
     _enqueuePersistence(
-      () => ref.read(questionDraftRepositoryProvider).saveDraft(draft),
+      () => repository.saveDraft(draft),
     );
   }
 
@@ -189,9 +191,9 @@ class QuestionDraftController extends Notifier<QuestionDraft?> {
     }
 
     final normalizedDraft = draft.copyWith(status: normalizedStatus);
+    final repository = ref.read(questionDraftRepositoryProvider);
     _enqueuePersistence(
-      () =>
-          ref.read(questionDraftRepositoryProvider).saveDraft(normalizedDraft),
+      () => repository.saveDraft(normalizedDraft),
     );
     return normalizedDraft;
   }

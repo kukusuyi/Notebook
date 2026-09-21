@@ -2,7 +2,7 @@ name: math_notebook_flutter
 description: 题迹 Notebook mobile client built with Flutter.
 publish_to: "none"
 
-version: 1.0.0+1
+version: 2.0.0+20000
 
 environment:
   sdk: ">=3.4.0 <4.0.0"

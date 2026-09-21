@@ -108,9 +108,14 @@ class _QuestionUploadPageState extends ConsumerState<QuestionUploadPage> {
           ),
           const SizedBox(height: 16),
           FilledButton(
-            onPressed: _submitting ? null : _uploadAndRecognize,
+            onPressed: _submitting ? null : () => _uploadAndRecognize(),
             child: Text(_submitting ? '上传并识别中...' : '上传并开始 OCR'),
           ),
+          TextButton(
+              onPressed: _submitting
+                  ? null
+                  : () => _uploadAndRecognize(recognize: false),
+              child: const Text('仅上传图片，手动录题')),
         ],
       ),
     );
@@ -150,8 +155,9 @@ class _QuestionUploadPageState extends ConsumerState<QuestionUploadPage> {
         return;
       }
 
-      final recoveredImage =
-          response.files?.isNotEmpty == true ? response.files!.first : response.file;
+      final recoveredImage = response.files?.isNotEmpty == true
+          ? response.files!.first
+          : response.file;
 
       if (recoveredImage != null) {
         await _openCropper(recoveredImage);
@@ -187,7 +193,8 @@ class _QuestionUploadPageState extends ConsumerState<QuestionUploadPage> {
   }
 
   Future<bool> _confirmReplaceDraft(QuestionDraft draft) async {
-    final draftLabel = draft.flowMode == DraftFlowMode.upload ? '图片草稿' : '手动录入草稿';
+    final draftLabel =
+        draft.flowMode == DraftFlowMode.upload ? '图片草稿' : '手动录入草稿';
     return showPlatformConfirmDialog(
       context: context,
       title: '替换当前草稿',
@@ -198,7 +205,7 @@ class _QuestionUploadPageState extends ConsumerState<QuestionUploadPage> {
     );
   }
 
-  Future<void> _uploadAndRecognize() async {
+  Future<void> _uploadAndRecognize({bool recognize = true}) async {
     final selectedImage = _selectedImage;
     if (selectedImage == null) {
       _showMessage('请先选择图片');
@@ -213,6 +220,19 @@ class _QuestionUploadPageState extends ConsumerState<QuestionUploadPage> {
       final uploaded = await ref
           .read(fileRepositoryProvider)
           .uploadImage(File(selectedImage.path));
+      if (!recognize) {
+        final controller = ref.read(questionDraftControllerProvider.notifier);
+        controller.replaceWithUpload(uploaded);
+        final d = ref.read(questionDraftControllerProvider)!;
+        controller.updateBasicFields(
+            subject: d.subject,
+            chapter: d.chapter,
+            questionJson: d.questionJson,
+            flowMode: DraftFlowMode.manual,
+            sourceType: SourceType.image);
+        if (mounted) context.go('/questions/create');
+        return;
+      }
       await ref
           .read(questionFlowServiceProvider)
           .recognizeUploadedImage(uploaded);

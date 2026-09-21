@@ -24,7 +24,7 @@ void main() {
     );
 
     SharedPreferences.setMockInitialValues({
-      StorageKeys.questionDraft: jsonEncode(processingDraft.toJson()),
+      '${StorageKeys.questionDraft}:': jsonEncode(processingDraft.toJson()),
     });
     final preferences = await SharedPreferences.getInstance();
     final container = ProviderContainer(
@@ -43,7 +43,7 @@ void main() {
     await container.read(questionDraftControllerProvider.notifier).flush();
 
     final persistedDraft = QuestionDraft.fromJson(
-      jsonDecode(preferences.getString(StorageKeys.questionDraft)!)
+      jsonDecode(preferences.getString('${StorageKeys.questionDraft}:')!)
           as Map<String, dynamic>,
     );
     expect(persistedDraft.status, DraftStatus.ocrReviewing);

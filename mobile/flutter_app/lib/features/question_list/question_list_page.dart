@@ -284,7 +284,6 @@ class _QuestionListPageState extends ConsumerState<QuestionListPage> {
 }
 
 class _QuestionListCard extends StatelessWidget {
-  static const double _previewHeight = 76;
 
   const _QuestionListCard({
     required this.item,
