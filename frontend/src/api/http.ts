@@ -1,10 +1,8 @@
 import axios, { AxiosError } from 'axios'
 
-import { settingsPageEnabled } from '@/config/features'
 import type { ApiEnvelope } from '@/types/common'
 import { clearAuthState, getAuthToken } from '@/utils/auth'
 
-const API_BASE_STORAGE_KEY = 'math-notebook:api-base-url'
 const DEV_DEFAULT_API_BASE_URL = 'http://localhost:8080'
 
 function trimTrailingSlash(value: string): string {
@@ -53,19 +51,9 @@ function resolveFallbackBaseURL(): string {
 }
 
 function resolveBaseURL(): string {
-  if (settingsPageEnabled) {
-    const saved = normalizeBaseURL(window.localStorage.getItem(API_BASE_STORAGE_KEY))
-    if (saved) {
-      return saved
-    }
-  }
+  if (import.meta.env.PROD) return window.location.origin
+  return normalizeBaseURL(import.meta.env.VITE_API_BASE_URL) || resolveFallbackBaseURL()
 
-  const configured = normalizeBaseURL(import.meta.env.VITE_API_BASE_URL)
-  if (configured) {
-    return configured
-  }
-
-  return resolveFallbackBaseURL()
 }
 
 export function getApiBaseURL(): string {

@@ -5,6 +5,7 @@
                 <h2 class="page-title">手动新增错题</h2>
             </div>
             <div class="header-actions">
+                <el-button :loading="submitting" @click="saveDirectly">直接保存</el-button>
                 <el-button @click="resetDraft">清空草稿</el-button>
                 <el-button
                     type="primary"
@@ -89,6 +90,7 @@ import { ElMessage } from "element-plus";
 import { computed, onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
 
+import { createQuestion } from "@/api/question.api";
 import { analyzeWrongQuestion } from "@/api/ai.api";
 import AIModelSelector from "@/components/AIModelSelector/index.vue";
 import QuestionForm from "@/components/QuestionForm/index.vue";
@@ -131,6 +133,12 @@ function handleImageUploaded(payload: { image_id: number; image_url: string }) {
     current.source_image_id = payload.image_id;
     current.source_image_url = payload.image_url;
     ElMessage.success("图片已绑定到当前草稿");
+}
+
+async function saveDirectly() {
+ const d=draft.value;if(!d || !d.question_json.question_core.trim() || !jsonValid.value){ElMessage.warning('请填写有效的题目主干');return}
+ submitting.value=true
+ try {const result=await createQuestion({source_type:d.source_type,source_image_id:d.source_image_id,source_image_url:d.source_image_url,subject:d.subject,chapter:d.chapter,question_json:d.question_json,tags:d.tags,semantic_summary:d.semantic_summary||d.question_json.question_core,mistake_summary:d.mistake_summary,difficulty_level:d.difficulty_level,mastery_status:d.mastery_status});draftStore.resetDraft();router.push(`/questions/${result.question_id}`)}catch(e){ElMessage.error(getErrorMessage(e,'保存失败'))}finally{submitting.value=false}
 }
 
 async function analyzeDraft() {

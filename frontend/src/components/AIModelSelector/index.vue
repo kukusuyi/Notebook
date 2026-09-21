@@ -8,6 +8,7 @@
       <el-button text :loading="refreshing" @click="refreshAll">刷新列表</el-button>
     </div>
 
+    <el-alert v-if="!aiStore.loadingProviders && !aiStore.providerOptions.length" title="AI 尚未配置。可以直接保存题目，或请管理员在设置中添加模型服务。" type="info" :closable="false" />
     <div class="selector-grid">
       <el-form-item label="模型厂商" class="field">
         <el-select

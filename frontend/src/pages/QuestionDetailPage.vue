@@ -90,7 +90,7 @@
             :key="item.question_id"
             :item="item"
           />
-          <el-empty v-if="!similarList.length" description="暂未找到相似题" />
+          <el-empty v-if="!similarList.length" :description="similarMessage" />
         </div>
       </section>
     </template>
@@ -106,6 +106,7 @@ import ImagePreviewer from '@/components/ImagePreviewer/index.vue'
 import LatexRenderer from '@/components/LatexRenderer/index.vue'
 import SimilarQuestionCard from '@/components/SimilarQuestionCard/index.vue'
 import TagGroup from '@/components/TagGroup/index.vue'
+import { httpGet } from '@/api/http'
 import { deleteQuestion, findSimilarQuestions, getQuestionDetail } from '@/api/question.api'
 import type { QuestionDetail, SimilarQuestionItem } from '@/types/question'
 import { getErrorMessage } from '@/utils/error'
@@ -115,6 +116,7 @@ const route = useRoute()
 const router = useRouter()
 const loading = ref(false)
 const detail = ref<QuestionDetail | null>(null)
+const similarMessage = ref('暂未找到相似题')
 const similarList = ref<SimilarQuestionItem[]>([])
 
 function getQuestionID() {
@@ -137,6 +139,9 @@ async function loadDetail() {
   loading.value = true
   try {
     detail.value = await getQuestionDetail(getQuestionID())
+    const status=await httpGet<{embedding_enabled:boolean}>('/api/v1/system/status')
+    if(!status.embedding_enabled){similarMessage.value='相似题功能尚未配置，请管理员在设置中添加 Embedding 模型';return}
+    similarMessage.value='暂未找到相似题；新题目的索引可能仍在后台生成'
     const similarResponse = await findSimilarQuestions(getQuestionID(), {
       vector_type: 'semantic',
       limit: 3,

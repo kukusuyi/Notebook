@@ -41,6 +41,7 @@ export function clearStoredAuthUser() {
 }
 
 export function clearAuthState() {
+ void fetch("/api/v1/auth/logout", {method:"POST"}).catch(()=>{})
   clearAuthToken()
   clearStoredAuthUser()
 }

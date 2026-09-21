@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 
 import { settingsPageEnabled } from '@/config/features'
+import SetupPage from '@/pages/SetupPage.vue'
 import AuthPage from '@/pages/AuthPage.vue'
 import MainLayout from '@/layouts/MainLayout.vue'
 import DashboardPage from '@/pages/DashboardPage.vue'
@@ -19,6 +20,7 @@ import { getAuthToken } from '@/utils/auth'
 const router = createRouter({
   history: createWebHistory(),
   routes: [
+ {path:"/setup",component:SetupPage,meta:{public:true,title:"首次启动"}},
     {
       path: '/auth',
       name: 'auth',
@@ -96,7 +98,8 @@ const router = createRouter({
   ],
 })
 
-router.beforeEach((to) => {
+router.beforeEach(async (to) => {
+ try { const res=await fetch("/api/v1/system/status"); const body=await res.json(); if(body.data?.setup_required && to.path!=="/setup") return "/setup"; if(!body.data?.setup_required && to.path==="/setup") return "/auth" } catch { /* normal API errors remain visible */ }
   const token = getAuthToken()
   const isPublic = Boolean(to.meta.public)
 
