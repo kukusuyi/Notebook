@@ -37,6 +37,9 @@ func TestOCRServiceRecognizeUsesLatestPromptFile(t *testing.T) {
 	}()
 
 	tempDir := t.TempDir()
+	originalFS := promptFiles
+	promptFiles = os.DirFS(tempDir)
+	t.Cleanup(func() { promptFiles = originalFS })
 	if err := os.Chdir(tempDir); err != nil {
 		t.Fatalf("chdir temp dir: %v", err)
 	}
@@ -91,6 +94,9 @@ func TestOCRServiceRecognizeFallsBackToStartupPromptWhenPromptFileIsEmpty(t *tes
 	}()
 
 	tempDir := t.TempDir()
+	originalFS := promptFiles
+	promptFiles = os.DirFS(tempDir)
+	t.Cleanup(func() { promptFiles = originalFS })
 	if err := os.Chdir(tempDir); err != nil {
 		t.Fatalf("chdir temp dir: %v", err)
 	}

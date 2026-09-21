@@ -3,9 +3,9 @@ package service
 import (
 	"context"
 	"encoding/json"
-	"fmt"
+	"io/fs"
+	assets "mathnotebook/backend"
 	"net/http"
-	"os"
 	"path/filepath"
 	"runtime"
 	"strings"
@@ -15,6 +15,8 @@ import (
 	apperrors "mathnotebook/backend/internal/pkg/errors"
 	"mathnotebook/backend/internal/pkg/validator"
 )
+
+var promptFiles fs.FS = assets.Files
 
 const ocrPromptRelativePath = "ocr_prompt.md"
 
@@ -174,16 +176,8 @@ func shouldReclassifyWrongSolutionAsStandard(uncertainParts []string) bool {
 }
 
 func loadOCRPrompt() (string, error) {
-	candidates := ocrPromptPathCandidates()
-
-	for _, candidate := range candidates {
-		data, err := os.ReadFile(candidate)
-		if err == nil {
-			return string(data), nil
-		}
-	}
-
-	return "", fmt.Errorf("read ocr prompt: file not found: %s", ocrPromptRelativePath)
+	data, err := fs.ReadFile(promptFiles, "ocr_prompt.md")
+	return string(data), err
 }
 
 func ocrPromptPathCandidates() []string {

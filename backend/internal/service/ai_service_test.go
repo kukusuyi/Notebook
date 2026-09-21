@@ -48,6 +48,9 @@ func TestAIServiceAnalyzeWithProviderUsesDynamicallyDiscoveredChapterPrompt(t *t
 	}()
 
 	tempDir := t.TempDir()
+	originalFS := promptFiles
+	promptFiles = os.DirFS(tempDir)
+	t.Cleanup(func() { promptFiles = originalFS })
 	if err := os.Chdir(tempDir); err != nil {
 		t.Fatalf("chdir temp dir: %v", err)
 	}
@@ -141,6 +144,9 @@ func TestAIServiceAnalyzeWithProviderRejectsUnknownChapterRoute(t *testing.T) {
 	}()
 
 	tempDir := t.TempDir()
+	originalFS := promptFiles
+	promptFiles = os.DirFS(tempDir)
+	t.Cleanup(func() { promptFiles = originalFS })
 	if err := os.Chdir(tempDir); err != nil {
 		t.Fatalf("chdir temp dir: %v", err)
 	}
@@ -194,6 +200,9 @@ func TestAIServiceAnalyzeWithProviderSkipsRouteWhenChapterSpecified(t *testing.T
 	}()
 
 	tempDir := t.TempDir()
+	originalFS := promptFiles
+	promptFiles = os.DirFS(tempDir)
+	t.Cleanup(func() { promptFiles = originalFS })
 	if err := os.Chdir(tempDir); err != nil {
 		t.Fatalf("chdir temp dir: %v", err)
 	}
@@ -261,6 +270,9 @@ func TestAIServiceListChapters(t *testing.T) {
 	}()
 
 	tempDir := t.TempDir()
+	originalFS := promptFiles
+	promptFiles = os.DirFS(tempDir)
+	t.Cleanup(func() { promptFiles = originalFS })
 	if err := os.Chdir(tempDir); err != nil {
 		t.Fatalf("chdir temp dir: %v", err)
 	}

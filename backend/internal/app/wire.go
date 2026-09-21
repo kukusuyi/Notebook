@@ -12,23 +12,17 @@ import (
 	aiinfra "mathnotebook/backend/internal/infra/ai"
 	"mathnotebook/backend/internal/infra/ocr"
 	"mathnotebook/backend/internal/infra/oss"
-	qdrantinfra "mathnotebook/backend/internal/infra/qdrant"
 	"mathnotebook/backend/internal/repository"
 	"mathnotebook/backend/internal/service"
 )
 
 func BuildHTTPHandler(cfg config.Config, appLogger *slog.Logger, db *sql.DB) (http.Handler, error) {
-	if err := ensureDefaultUser(db, cfg.DefaultUser); err != nil {
-		return nil, err
-	}
+	questionRepo := repository.NewSQLiteQuestionRepository(db)
+	tagRepo := repository.NewSQLiteTagRepository(db)
+	fileRepo := repository.NewSQLiteFileRepository(db)
 
-	questionRepo := repository.NewMySQLQuestionRepository(db)
-	tagRepo := repository.NewMySQLTagRepository(db)
-	fileRepo := repository.NewMySQLFileRepository(db)
-	vectorRepo := repository.NewMySQLVectorRepository(db)
-
-	userRepo := repository.NewMySQLUserRepository(db)
-	aiAnalysisRecordRepo := repository.NewMySQLAIAnalysisRecordRepository(db)
+	userRepo := repository.NewSQLiteUserRepository(db)
+	aiAnalysisRecordRepo := repository.NewSQLiteAIAnalysisRecordRepository(db)
 
 	authService := service.NewAuthService(userRepo, cfg.JWT, cfg.Auth)
 	userService := service.NewUserService(userRepo)
@@ -46,7 +40,7 @@ func BuildHTTPHandler(cfg config.Config, appLogger *slog.Logger, db *sql.DB) (ht
 	if cfg.ImageOcr.APIKey != "" {
 		ocrClient = ocr.NewQwenOCRClientWithLogger(cfg.ImageOcr.APIKey, cfg.ImageOcr.Model, appLogger)
 	}
-	ocrService, err := service.NewOCRService(ocrClient, cfg.DefaultUser.ID)
+	ocrService, err := service.NewOCRService(ocrClient, 0)
 	if err != nil {
 		return nil, err
 	}
@@ -63,12 +57,7 @@ func BuildHTTPHandler(cfg config.Config, appLogger *slog.Logger, db *sql.DB) (ht
 	if err != nil {
 		return nil, err
 	}
-	embeddingClient, err := aiinfra.NewEmbeddingClient(cfg.EmbeddingModel)
-	if err != nil {
-		return nil, err
-	}
-	qdrantClient := qdrantinfra.NewClient(cfg.Vector)
-	vectorService := service.NewVectorService(cfg.Vector, vectorRepo, embeddingClient, qdrantClient)
+	vectorService := &service.VectorService{Local: &service.LocalVector{DB: db, Config: func() config.EmbeddingModelConfig { return cfg.EmbeddingModel }}}
 	questionService := service.NewQuestionService(questionRepo, fileService, tagService, vectorService)
 	mobileService := service.NewMobileService(cfg.MobileVersion, cfg.File)
 

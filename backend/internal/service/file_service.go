@@ -7,11 +7,8 @@ import (
 	"io"
 	"mime"
 	"mime/multipart"
-	"net"
 	"net/http"
-	"net/url"
 	"path/filepath"
-	"strconv"
 	"strings"
 	"time"
 
@@ -62,12 +59,11 @@ func (s *FileService) Upload(
 		return dto.FileUploadResponse{}, err
 	}
 
-	objectKey := fmt.Sprintf("wrong-question/%d%s", time.Now().UnixNano(), resolveObjectExt(fileHeader.Filename, contentType))
+	objectKey := fmt.Sprintf("wrong-question/%s%s", config.RandomSecret(), resolveObjectExt(fileHeader.Filename, contentType))
 	fileURL, err := s.storage.Upload(ctx, objectKey, uploadReader, fileHeader.Size, contentType)
 	if err != nil {
 		return dto.FileUploadResponse{}, apperrors.New(http.StatusInternalServerError, 50001, "上传图片到对象存储失败")
 	}
-	fileURL = s.resolvePublicFileURL(fileURL, requestScheme, requestHost)
 
 	record := model.FileRecord{
 		UserID:          userID,
@@ -96,119 +92,16 @@ func (s *FileService) Upload(
 	}, nil
 }
 
-func (s *FileService) resolvePublicFileURL(rawURL, requestScheme, requestHost string) string {
-	if !shouldAutoResolvePublicURL(s.appEnv, s.config) {
-		return rawURL
-	}
-
-	trimmedHost := strings.TrimSpace(requestHost)
-	if trimmedHost == "" {
-		return rawURL
-	}
-
-	parsedURL, err := url.Parse(strings.TrimSpace(rawURL))
-	if err != nil || parsedURL.Host == "" {
-		return rawURL
-	}
-
-	if !isLoopbackHost(parsedURL.Hostname()) {
-		return rawURL
-	}
-
-	hostName := hostWithoutPort(trimmedHost)
-	if hostName == "" {
-		return rawURL
-	}
-
-	if requestScheme != "" {
-		parsedURL.Scheme = requestScheme
-	}
-
-	port := parsedURL.Port()
-	if port != "" {
-		parsedURL.Host = net.JoinHostPort(hostName, port)
-	} else {
-		parsedURL.Host = hostName
-	}
-
-	return parsedURL.String()
-}
-
-func shouldAutoResolvePublicURL(appEnv string, cfg config.FileConfig) bool {
-	if !isDevelopmentEnv(appEnv) {
-		return false
-	}
-
-	baseURL := strings.TrimSpace(cfg.PublicBaseURL())
-	if baseURL == "" {
-		return true
-	}
-
-	parsedURL, err := url.Parse(baseURL)
-	if err != nil {
-		return false
-	}
-
-	return isLoopbackHost(parsedURL.Hostname())
-}
-
-func isDevelopmentEnv(appEnv string) bool {
-	switch strings.ToLower(strings.TrimSpace(appEnv)) {
-	case "", "local", "dev", "development":
-		return true
-	default:
-		return false
-	}
-}
-
-func isLoopbackHost(host string) bool {
-	trimmed := strings.TrimSpace(host)
-	if trimmed == "" {
-		return false
-	}
-
-	switch strings.ToLower(trimmed) {
-	case "localhost", "127.0.0.1", "::1":
-		return true
-	}
-
-	ip := net.ParseIP(trimmed)
-	return ip != nil && ip.IsLoopback()
-}
-
-func hostWithoutPort(rawHost string) string {
-	trimmed := strings.TrimSpace(rawHost)
-	if trimmed == "" {
-		return ""
-	}
-
-	if host, _, err := net.SplitHostPort(trimmed); err == nil {
-		return host
-	}
-
-	if strings.Count(trimmed, ":") > 1 {
-		return strings.Trim(trimmed, "[]")
-	}
-
-	if strings.Count(trimmed, ":") == 1 {
-		if host, port, err := net.SplitHostPort(trimmed); err == nil && port != "" {
-			return host
-		}
-		if _, err := strconv.Atoi(strings.Split(trimmed, ":")[1]); err == nil {
-			return strings.Split(trimmed, ":")[0]
-		}
-	}
-
-	return trimmed
-}
-
 func (s *FileService) BindQuestion(ctx context.Context, imageID, questionID int64) error {
 	userID, err := RequireUserID(ctx)
 	if err != nil {
 		return err
 	}
 
-	record, ok := s.repo.GetByID(imageID)
+	record, ok, err := s.repo.GetByID(imageID)
+	if err != nil {
+		return err
+	}
 	if !ok {
 		return apperrors.New(http.StatusBadRequest, 40001, "source_image_id 不存在")
 	}
@@ -249,4 +142,19 @@ func resolveObjectExt(fileName, contentType string) string {
 	}
 
 	return ".img"
+}
+
+func (s *FileService) OwnedImageURL(ctx context.Context, id int64) (string, error) {
+	uid, err := RequireUserID(ctx)
+	if err != nil {
+		return "", err
+	}
+	rec, ok, err := s.repo.GetByID(id)
+	if err != nil {
+		return "", err
+	}
+	if !ok || rec.UserID != uid {
+		return "", apperrors.New(404, 40401, "图片不存在")
+	}
+	return rec.FileURL, nil
 }

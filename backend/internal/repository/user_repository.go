@@ -13,15 +13,15 @@ type UserRepository interface {
 	GetByID(id int64) (model.User, bool, error)
 }
 
-type MySQLUserRepository struct {
+type SQLiteUserRepository struct {
 	db *sql.DB
 }
 
-func NewMySQLUserRepository(db *sql.DB) *MySQLUserRepository {
-	return &MySQLUserRepository{db: db}
+func NewSQLiteUserRepository(db *sql.DB) *SQLiteUserRepository {
+	return &SQLiteUserRepository{db: db}
 }
 
-func (r *MySQLUserRepository) Create(user model.User) (model.User, error) {
+func (r *SQLiteUserRepository) Create(user model.User) (model.User, error) {
 	result, err := r.db.Exec(
 		"INSERT INTO `user` (username, email, password_hash, role) VALUES (?, ?, ?, ?)",
 		user.Username, user.Email, user.PasswordHash, user.Role,
@@ -39,19 +39,19 @@ func (r *MySQLUserRepository) Create(user model.User) (model.User, error) {
 	return user, nil
 }
 
-func (r *MySQLUserRepository) GetByUsername(username string) (model.User, bool, error) {
+func (r *SQLiteUserRepository) GetByUsername(username string) (model.User, bool, error) {
 	return r.getOne("SELECT id, username, email, password_hash, role, created_at, updated_at FROM `user` WHERE username = ?", username)
 }
 
-func (r *MySQLUserRepository) GetByEmail(email string) (model.User, bool, error) {
+func (r *SQLiteUserRepository) GetByEmail(email string) (model.User, bool, error) {
 	return r.getOne("SELECT id, username, email, password_hash, role, created_at, updated_at FROM `user` WHERE email = ?", email)
 }
 
-func (r *MySQLUserRepository) GetByID(id int64) (model.User, bool, error) {
+func (r *SQLiteUserRepository) GetByID(id int64) (model.User, bool, error) {
 	return r.getOne("SELECT id, username, email, password_hash, role, created_at, updated_at FROM `user` WHERE id = ?", id)
 }
 
-func (r *MySQLUserRepository) getOne(query string, arg any) (model.User, bool, error) {
+func (r *SQLiteUserRepository) getOne(query string, arg any) (model.User, bool, error) {
 	row := r.db.QueryRow(query, arg)
 
 	var user model.User

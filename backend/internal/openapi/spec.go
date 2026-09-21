@@ -8,10 +8,10 @@ func BuildSpec() map[string]any {
 		"info": map[string]any{
 			"title":       "题迹 Notebook Backend API",
 			"description": "错题本后端接口文档。当前文档与已初始化的后端骨架保持一致，便于前端联调和后续逐步补全持久化实现。",
-			"version":     "v1",
+			"version":     "2.0.0",
 		},
 		"servers": []map[string]any{
-			{"url": "http://localhost:8080"},
+			{"url": "/"},
 		},
 		"tags": []map[string]any{
 			{"name": "System", "description": "系统与健康检查"},
@@ -32,6 +32,7 @@ func BuildSpec() map[string]any {
 		},
 	}
 
+	addLocalPaths(paths)
 	applySecurity(paths)
 
 	return spec
@@ -781,7 +782,7 @@ func applySecurity(paths map[string]any) {
 	}
 
 	for path, methods := range paths {
-		if publicPathSet[path] {
+		if publicPathSet[path] || path == "/api/v1/system/status" || path == "/api/v1/system/setup" || path == "/api/v1/auth/logout" {
 			continue
 		}
 		for _, op := range methods.(map[string]any) {

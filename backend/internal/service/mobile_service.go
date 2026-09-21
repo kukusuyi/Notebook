@@ -1,9 +1,6 @@
 package service
 
 import (
-	"fmt"
-	"strings"
-
 	"mathnotebook/backend/internal/config"
 	"mathnotebook/backend/internal/domain/dto"
 )
@@ -31,19 +28,4 @@ func (s *MobileService) GetLatestVersion() dto.MobileVersionResponse {
 	}
 }
 
-func (s *MobileService) buildAPKURL() string {
-	if s.versionConfig.APKFilename == "" {
-		return ""
-	}
-
-	publicBaseURL := strings.TrimRight(s.fileConfig.PublicBaseURL(), "/")
-	if publicBaseURL == "" {
-		return ""
-	}
-
-	if config.NormalizeStorageProvider(s.fileConfig.StorageProvider) == "lightcos" {
-		return fmt.Sprintf("%s/apk/%s", publicBaseURL, s.versionConfig.APKFilename)
-	}
-
-	return fmt.Sprintf("%s/%s/apk/%s", publicBaseURL, s.fileConfig.DefaultBucket, s.versionConfig.APKFilename)
-}
+func (s *MobileService) buildAPKURL() string { return s.versionConfig.DownloadURL }

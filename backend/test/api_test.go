@@ -15,13 +15,12 @@ import (
 	"mathnotebook/backend/internal/app"
 	"mathnotebook/backend/internal/config"
 	"mathnotebook/backend/internal/domain/dto"
-	"mathnotebook/backend/internal/infra/mysql"
+	"mathnotebook/backend/internal/infra/sqlite"
 )
 
 var (
 	testServer         *httptest.Server
 	mockProviderServer *httptest.Server
-	mockQdrantServer   *httptest.Server
 	baseURL            string
 	testToken          string
 	testUser           = fmt.Sprintf("apitest_%d", time.Now().UnixNano())
@@ -58,11 +57,16 @@ func TestMain(m *testing.M) {
 			http.NotFound(w, r)
 		}
 	}))
-	mockQdrantServer = newMockQdrantServer()
 
-	os.Setenv("DB_PASSWORD", "test-db-password")
-	os.Setenv("CONFIG_PATH", "../configs/config.yaml")
-	cfg := config.Load()
+	dir, err := os.MkdirTemp("", "notebook-api-test-*")
+	if err != nil {
+		panic(err)
+	}
+	cfg, err := config.LoadLocal(dir)
+	if err != nil {
+		panic(err)
+	}
+	cfg.Auth.EnableRegistration = true
 	cfg.App.Port = 0
 	cfg.ImageOcr.Name = "mockai"
 	cfg.ImageOcr.Model = "mock-model"
@@ -81,10 +85,8 @@ func TestMain(m *testing.M) {
 		Model:        "mock-embedding",
 		APIKey:       "test-key",
 	}
-	cfg.Vector.QdrantURL = mockQdrantServer.URL
-	cfg.Vector.CollectionName = "wrong_question_vectors"
 
-	db, err := mysql.Open(cfg.DB)
+	db, err := sqlite.Open(dir)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "open db: %v\n", err)
 		os.Exit(1)
@@ -103,8 +105,8 @@ func TestMain(m *testing.M) {
 
 	testServer.Close()
 	mockProviderServer.Close()
-	mockQdrantServer.Close()
 	db.Close()
+	os.RemoveAll(dir)
 	os.Exit(code)
 }
 
@@ -814,8 +816,8 @@ func TestFileUpload(t *testing.T) {
 	if data.ImageID == 0 {
 		t.Error("image_id is 0")
 	}
-	if !strings.Contains(data.ImageURL, "/wrong-question-images/wrong-question/") {
-		t.Errorf("image_url=%q is not a MinIO object URL", data.ImageURL)
+	if !strings.Contains(data.ImageURL, "/api/v1/files/content/wrong-question/") {
+		t.Errorf("image_url=%q is not a local file URL", data.ImageURL)
 	}
 }
 

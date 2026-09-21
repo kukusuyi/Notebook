@@ -94,8 +94,6 @@ func (c *QwenOCRClient) Recognize(ctx context.Context, imageURL string, prompt s
 	c.logger.Info(
 		"sending OCR prompt to provider",
 		"model", c.model,
-		"image_url", imageURL,
-		"prompt", prompt,
 	)
 
 	imageContent, err := c.buildImageContent(ctx, imageURL)

@@ -10,11 +10,10 @@ import (
 )
 
 func TestEmbeddingClient(t *testing.T) {
-	if err := os.Setenv("CONFIG_PATH", "../../../configs/config.yaml"); err != nil {
-		t.Fatalf("Failed to set CONFIG_PATH: %v", err)
+	cfg := config.Config{EmbeddingModel: config.EmbeddingModelConfig{ProviderType: "openai_compatible", BaseURL: os.Getenv("EMBEDDING_BASE_URL"), Model: os.Getenv("EMBEDDING_MODEL"), APIKey: os.Getenv("EMBEDDING_API_KEY")}}
+	if cfg.EmbeddingModel.APIKey == "" {
+		t.Skip("live provider test: EMBEDDING_API_KEY not configured")
 	}
-
-	cfg := config.Load()
 
 	client, err := NewEmbeddingClient(cfg.EmbeddingModel)
 	if err != nil {

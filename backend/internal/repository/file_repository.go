@@ -8,7 +8,7 @@ import (
 
 type FileRepository interface {
 	Create(record model.FileRecord) (model.FileRecord, error)
-	GetByID(id int64) (model.FileRecord, bool)
+	GetByID(id int64) (model.FileRecord, bool, error)
 	BindQuestion(imageID, questionID int64) error
 }
 
@@ -37,16 +37,16 @@ func (r *InMemoryFileRepository) Create(record model.FileRecord) (model.FileReco
 	return cloneFileRecord(copyValue), nil
 }
 
-func (r *InMemoryFileRepository) GetByID(id int64) (model.FileRecord, bool) {
+func (r *InMemoryFileRepository) GetByID(id int64) (model.FileRecord, bool, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 
 	item, ok := r.items[id]
 	if !ok {
-		return model.FileRecord{}, false
+		return model.FileRecord{}, false, nil
 	}
 
-	return cloneFileRecord(*item), true
+	return cloneFileRecord(*item), true, nil
 }
 
 func (r *InMemoryFileRepository) BindQuestion(imageID, questionID int64) error {

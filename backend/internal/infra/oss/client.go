@@ -14,11 +14,9 @@ type ObjectStore interface {
 }
 
 func NewClient(cfg config.FileConfig) (ObjectStore, error) {
-	switch config.NormalizeStorageProvider(cfg.StorageProvider) {
-	case "oss", "minio", "":
-		return newMinIOClient(cfg)
-	case "lightcos":
-		return newLightCOSClient(cfg)
+	switch cfg.StorageProvider {
+	case "local":
+		return &LocalStore{Root: cfg.Root}, nil
 	default:
 		return nil, fmt.Errorf("unsupported file provider: %s", cfg.StorageProvider)
 	}

@@ -22,3 +22,12 @@ frontend/dist.tar.gz
 **/*.iml
 **/android/local.properties
 mobile/flutter_app/config/app_config.json
+
+/dist/
+/desktop/node_modules/
+/desktop/resources/
+/backend/web/*
+!/backend/web/.gitkeep
+*.jks
+
+**/android/key.properties

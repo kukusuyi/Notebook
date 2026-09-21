@@ -38,6 +38,15 @@ func NewQuestionService(
 }
 
 func (s *QuestionService) Create(ctx context.Context, req dto.CreateWrongQuestionRequest) (dto.CreateWrongQuestionResponse, error) {
+	if req.SourceImageID != nil {
+		u, err := s.fileService.OwnedImageURL(ctx, *req.SourceImageID)
+		if err != nil {
+			return dto.CreateWrongQuestionResponse{}, err
+		}
+		req.SourceImageURL = u
+	} else {
+		req.SourceImageURL = ""
+	}
 	if err := validateCreateQuestion(req); err != nil {
 		return dto.CreateWrongQuestionResponse{}, err
 	}
@@ -75,12 +84,6 @@ func (s *QuestionService) Create(ctx context.Context, req dto.CreateWrongQuestio
 	if err != nil {
 		_ = s.tagService.Detach(userID, tags)
 		return dto.CreateWrongQuestionResponse{}, err
-	}
-
-	if created.SourceImageID != nil {
-		if err := s.fileService.BindQuestion(ctx, *created.SourceImageID, created.ID); err != nil {
-			return dto.CreateWrongQuestionResponse{}, err
-		}
 	}
 
 	if err := s.vectorService.Upsert(created); err != nil {
@@ -223,6 +226,15 @@ func (s *QuestionService) Export(ctx context.Context, ids []int64) ([]dto.Questi
 }
 
 func (s *QuestionService) Update(ctx context.Context, id int64, req dto.UpdateWrongQuestionRequest) (dto.UpdateWrongQuestionResponse, error) {
+	if req.SourceImageID != nil {
+		u, err := s.fileService.OwnedImageURL(ctx, *req.SourceImageID)
+		if err != nil {
+			return dto.UpdateWrongQuestionResponse{}, err
+		}
+		req.SourceImageURL = u
+	} else {
+		req.SourceImageURL = ""
+	}
 	if err := validateUpdateQuestion(req); err != nil {
 		return dto.UpdateWrongQuestionResponse{}, err
 	}
@@ -258,12 +270,6 @@ func (s *QuestionService) Update(ctx context.Context, id int64, req dto.UpdateWr
 	updated, err := s.repo.Update(current)
 	if err != nil {
 		return dto.UpdateWrongQuestionResponse{}, err
-	}
-
-	if updated.SourceImageID != nil {
-		if err := s.fileService.BindQuestion(ctx, *updated.SourceImageID, updated.ID); err != nil {
-			return dto.UpdateWrongQuestionResponse{}, err
-		}
 	}
 
 	if err := s.vectorService.Upsert(updated); err != nil {
@@ -405,9 +411,7 @@ func validateCreateQuestion(req dto.CreateWrongQuestionRequest) error {
 	if err := validator.RequireString(req.QuestionJSON.QuestionCore, "question_json.question_core"); err != nil {
 		return err
 	}
-	if err := validator.RequireString(req.SemanticSummary, "semantic_summary"); err != nil {
-		return err
-	}
+
 	if err := validator.AllowEnum(req.MasteryStatus, "mastery_status", enum.IsValidMasteryStatus); err != nil {
 		return err
 	}
@@ -430,9 +434,7 @@ func validateUpdateQuestion(req dto.UpdateWrongQuestionRequest) error {
 	if err := validator.RequireString(req.QuestionJSON.QuestionCore, "question_json.question_core"); err != nil {
 		return err
 	}
-	if err := validator.RequireString(req.SemanticSummary, "semantic_summary"); err != nil {
-		return err
-	}
+
 	if err := validator.AllowEnum(req.MasteryStatus, "mastery_status", enum.IsValidMasteryStatus); err != nil {
 		return err
 	}

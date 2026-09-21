@@ -10,15 +10,15 @@ type AIAnalysisRecordRepository interface {
 	Create(record model.AIAnalysisRecord) (model.AIAnalysisRecord, error)
 }
 
-type MySQLAIAnalysisRecordRepository struct {
+type SQLiteAIAnalysisRecordRepository struct {
 	db *sql.DB
 }
 
-func NewMySQLAIAnalysisRecordRepository(db *sql.DB) *MySQLAIAnalysisRecordRepository {
-	return &MySQLAIAnalysisRecordRepository{db: db}
+func NewSQLiteAIAnalysisRecordRepository(db *sql.DB) *SQLiteAIAnalysisRecordRepository {
+	return &SQLiteAIAnalysisRecordRepository{db: db}
 }
 
-func (r *MySQLAIAnalysisRecordRepository) Create(record model.AIAnalysisRecord) (model.AIAnalysisRecord, error) {
+func (r *SQLiteAIAnalysisRecordRepository) Create(record model.AIAnalysisRecord) (model.AIAnalysisRecord, error) {
 	result, err := r.db.Exec(
 		`INSERT INTO ai_analysis_record
 		(user_id, question_id, provider_name, model_name, analysis_type, input_question_json, output_tags_json, semantic_summary, mistake_summary, status, error_message)

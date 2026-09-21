@@ -12,12 +12,12 @@ import (
 var errMissingToken = apperrors.New(http.StatusUnauthorized, 40100, "缺少认证令牌")
 
 var publicPaths = map[string]bool{
-	"/healthz":                          true,
-	"/docs":                             true,
-	"/docs/openapi.json":                true,
-	"/api/v1/auth/register":             true,
-	"/api/v1/auth/login":                true,
-	"/api/v1/mobile/latest-version":     true,
+	"/healthz":                      true,
+	"/docs":                         true,
+	"/docs/openapi.json":            true,
+	"/api/v1/auth/register":         true,
+	"/api/v1/auth/login":            true,
+	"/api/v1/mobile/latest-version": true,
 }
 
 func Auth(authService *service.AuthService) func(http.Handler) http.Handler {
@@ -40,6 +40,9 @@ func Auth(authService *service.AuthService) func(http.Handler) http.Handler {
 				return
 			}
 
+			if strings.HasPrefix(r.Header.Get("Authorization"), "Bearer ") {
+				http.SetCookie(w, &http.Cookie{Name: "notebook_session", Value: tokenString, Path: "/", HttpOnly: true, SameSite: http.SameSiteStrictMode, Secure: r.TLS != nil})
+			}
 			ctx := service.SetUserID(r.Context(), userID)
 			next.ServeHTTP(w, r.WithContext(ctx))
 		})
@@ -62,6 +65,9 @@ func readBearerToken(r *http.Request) (string, bool) {
 		}
 	}
 
+	if c, err := r.Cookie("notebook_session"); err == nil && c.Value != "" {
+		return c.Value, true
+	}
 	return "", false
 }
 

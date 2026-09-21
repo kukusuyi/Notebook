@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io/fs"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -533,38 +534,24 @@ func stripAnalyzeMarkdownJSON(s string) string {
 }
 
 func loadChapterRouterPrompt() (string, error) {
-	candidates := chapterRouterPromptPathCandidates()
-
-	for _, candidate := range candidates {
-		data, err := os.ReadFile(candidate)
-		if err == nil {
-			content := strings.TrimSpace(string(data))
-			if content == "" {
-				continue
-			}
-			return string(data), nil
-		}
-	}
-
-	return "", fmt.Errorf("read chapter router prompt: file not found: %s", chapterRouterPromptRelativePath)
+	data, err := fs.ReadFile(promptFiles, "prompts/chapter_router.md")
+	return string(data), err
 }
 
 func discoverAnalyzeChapterPrompts() ([]analyzeChapterPrompt, error) {
-	candidates := analyzeChapterPromptDirCandidates()
-	var lastErr error
-
-	for _, candidate := range candidates {
-		prompts, err := loadAnalyzeChapterPromptsFromDir(candidate)
-		if err == nil {
-			return prompts, nil
+	entries, err := fs.ReadDir(promptFiles, "prompts/chapters")
+	if err != nil {
+		return nil, err
+	}
+	var result []analyzeChapterPrompt
+	for _, e := range entries {
+		data, err := fs.ReadFile(promptFiles, "prompts/chapters/"+e.Name())
+		if err != nil {
+			return nil, err
 		}
-		lastErr = err
+		result = append(result, analyzeChapterPrompt{Name: strings.TrimSuffix(e.Name(), ".md"), Path: e.Name(), Content: string(data)})
 	}
-
-	if lastErr != nil {
-		return nil, fmt.Errorf("discover chapter prompts: %w", lastErr)
-	}
-	return nil, fmt.Errorf("discover chapter prompts: directory not found: %s", analyzeChapterPromptDirRelativeDir)
+	return result, nil
 }
 
 func loadAnalyzeChapterPromptsFromDir(dir string) ([]analyzeChapterPrompt, error) {
