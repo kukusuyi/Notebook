@@ -1,0 +1,6 @@
+{
+  "name":"notebook-desktop","version":"2.0.0","private":true,"description":"题迹 Notebook — local-first study notebook","author":"Notebook contributors","main":"main.cjs",
+  "scripts":{"start":"electron .","pack":"electron-builder --dir","dist":"electron-builder"},
+  "devDependencies":{"electron":"^41.0.0","electron-builder":"^26.0.12"},
+  "build":{"appId":"com.mathnotebook.desktop","productName":"Notebook","files":["main.cjs"],"extraResources":[{"from":"resources/","to":"backend","filter":["notebook-server*"]}],"directories":{"output":"../dist/desktop"},"win":{"target":"portable","artifactName":"Notebook-${version}-windows-${arch}-${env.NOTEBOOK_RELEASE_KIND}.exe"},"mac":{"target":"zip","category":"public.app-category.education","artifactName":"Notebook-${version}-macos-${arch}-${env.NOTEBOOK_RELEASE_KIND}.zip"}}
+}
