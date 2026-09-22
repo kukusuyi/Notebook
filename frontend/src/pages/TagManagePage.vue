@@ -3,7 +3,7 @@
         <header class="page-header">
             <div>
                 <h2 class="page-title">标签管理</h2>
-                <p class="page-subtitle">当前提供列表、筛选、创建和删除</p>
+                <p class="page-subtitle">用知识点、题型和错因，让复习更有方向。</p>
             </div>
             <el-button type="primary" @click="createDialogVisible = true"
                 >新增标签</el-button
@@ -31,7 +31,7 @@
         </section>
 
         <section class="paper-card table-card">
-            <el-table :data="tags" v-loading="loading">
+            <div v-if="isMobile" class="mobile-tags"><article v-for="tag in tags" :key="tag.tag_id"><div><strong>{{tag.tag_name}}</strong><p class="meta-text">使用 {{tag.usage_count}} 次 · {{tag.is_active?'启用':'停用'}}</p></div><el-button text type="danger" @click="removeTag(tag.tag_id)">删除</el-button></article><el-empty v-if="!tags.length" description="还没有标签"/></div><el-table v-else :data="tags" v-loading="loading">
                 <el-table-column prop="tag_id" label="ID" width="90" />
                 <el-table-column prop="tag_name" label="标签名称" />
                 <el-table-column prop="tag_type" label="标签类型" width="160" />
@@ -43,7 +43,7 @@
                 <el-table-column label="状态" width="120">
                     <template #default="{ row }">
                         <el-tag :type="row.is_active ? 'success' : 'info'">
-                            {{ row.is_active ? "active" : "inactive" }}
+                            {{ row.is_active ? "启用" : "停用" }}
                         </el-tag>
                     </template>
                 </el-table-column>
@@ -88,6 +88,8 @@
 </template>
 
 <script setup lang="ts">
+import {useViewport} from "@/composables/useViewport";
+const isMobile=useViewport();
 import { ElMessage, ElMessageBox } from "element-plus";
 import { onMounted, reactive, ref } from "vue";
 
@@ -162,6 +164,7 @@ onMounted(loadTags);
 </script>
 
 <style scoped>
+.mobile-tags article{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px 0;border-bottom:1px solid var(--line)}
 .filter-card,
 .table-card {
     padding: 20px;

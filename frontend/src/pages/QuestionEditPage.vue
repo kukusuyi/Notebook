@@ -4,10 +4,10 @@
       <div>
         <h2 class="page-title">编辑错题</h2>
         <p class="page-subtitle">
-          编辑页直接对正式错题做更新。向量和 payload 的重新维护交给后端根据字段变更自动处理。
+          完善题目、解法和标签。保存后会在后台更新相似题索引。
         </p>
       </div>
-      <div class="header-actions" v-if="draft">
+      <div class="edit-action-bar" v-if="draft">
         <el-button @click="goBack">返回详情</el-button>
         <el-button type="primary" :loading="saving" @click="saveChanges">保存修改</el-button>
       </div>
@@ -24,7 +24,7 @@
       <div class="upload-head">
         <h3>替换绑定图片</h3>
         <p class="page-subtitle">
-          重新上传后会覆盖当前错题的 `source_image_id` 与 `source_image_url`。
+          上传新图片替换原图，保存修改后生效。
         </p>
       </div>
       <UploadPanel
@@ -41,9 +41,9 @@
 </template>
 
 <script setup lang="ts">
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import { onMounted, ref } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { onBeforeRouteLeave, useRoute, useRouter } from 'vue-router'
 
 import QuestionForm from '@/components/QuestionForm/index.vue'
 import UploadPanel from '@/components/UploadPanel/index.vue'
@@ -58,6 +58,11 @@ const router = useRouter()
 const draft = ref<QuestionDraft | null>(null)
 const loading = ref(false)
 const saving = ref(false)
+let savedSnapshot = ""
+onBeforeRouteLeave(async () => {
+ if(!draft.value || JSON.stringify(draft.value)===savedSnapshot)return true
+ try {await ElMessageBox.confirm("尚未保存修改，确认离开？", "放弃修改", {confirmButtonText:"放弃并离开",cancelButtonText:"继续编辑"});return true}catch{return false}
+})
 const tagStore = useTagStore()
 
 function getQuestionID() {
@@ -104,6 +109,7 @@ async function loadDetail() {
       flow_mode: 'manual',
       status: 'saved',
     }
+    savedSnapshot = JSON.stringify(draft.value)
   } catch (error) {
     ElMessage.error(getErrorMessage(error, '错题编辑数据加载失败'))
   } finally {
@@ -132,6 +138,7 @@ async function saveChanges() {
   saving.value = true
   try {
     await updateQuestion(getQuestionID(), payload)
+    savedSnapshot = JSON.stringify(draft.value)
     ElMessage.success('错题更新成功')
     router.push(`/questions/${getQuestionID()}`)
   } catch (error) {

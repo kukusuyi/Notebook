@@ -7,10 +7,10 @@
           这一页是正式入库前的最后一道人工确认。OCR 结果、标签和摘要都允许改，改完再保存。
         </p>
       </div>
-      <div class="header-actions" v-if="draft">
+      <div class="edit-action-bar" v-if="draft">
         <el-button :loading="reanalyzing" @click="reanalyze">重新分析</el-button>
         <el-button @click="discardDraft">放弃本次结果</el-button>
-        <el-button type="primary" :loading="saving" @click="saveDraft">保存正式错题</el-button>
+        <el-button type="primary" :loading="saving" @click="saveDraft">确认并保存错题</el-button>
       </div>
     </header>
 
@@ -30,7 +30,7 @@
 
         <div v-if="draft.ocr_context" class="paper-card ocr-card">
           <h3>OCR 提示</h3>
-          <p class="meta-text">这部分只作为用户确认与 AI 分析上下文，不会写入正式错题主表。</p>
+          <p class="meta-text">请检查识别不确定的内容。</p>
           <el-alert
             :title="`识别置信度：${draft.ocr_context.ocr_confidence}`"
             type="warning"
@@ -45,7 +45,7 @@
               {{ item }}
             </span>
             <span v-if="!draft.ocr_context.uncertain_parts.length" class="meta-text">
-              当前没有 uncertain_parts。
+              没有需要特别检查的片段。
             </span>
           </div>
         </div>
@@ -96,8 +96,8 @@ const modelName = computed({
 })
 
 function discardDraft() {
-  draftStore.resetDraft()
-  router.push('/questions')
+  draftStore.discardAnalysis()
+  router.push('/questions/create')
 }
 
 async function reanalyze() {
@@ -231,9 +231,9 @@ onMounted(async () => {
 }
 
 .uncertain-pill {
-  background: rgba(192, 103, 44, 0.1);
+  background: var(--primary-soft);
   color: var(--accent);
-  border-color: rgba(192, 103, 44, 0.16);
+  border-color: var(--primary-soft);
 }
 
 @media (max-width: 1080px) {

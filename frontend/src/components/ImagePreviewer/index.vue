@@ -26,7 +26,7 @@ defineProps<{
 .image-el {
   width: 100%;
   min-height: 280px;
-  background: linear-gradient(180deg, #f8f4ed, #efe7d9);
+  background: var(--primary-soft);
 }
 
 .empty-state {

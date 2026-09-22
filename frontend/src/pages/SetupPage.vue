@@ -1,5 +1,5 @@
 <template>
-  <main class="page-shell" style="max-width:560px;margin:48px auto">
+  <main class="page-shell" style="max-width:560px;margin:48px auto;padding:0 16px">
     <section class="paper-card" style="padding:28px">
       <h1>欢迎使用题迹 2.0</h1><p>数据保存在这台电脑上。创建管理员账户后，就可以连接手机使用。</p>
       <el-alert v-if="error" :title="error" type="error" :closable="false" role="alert" />

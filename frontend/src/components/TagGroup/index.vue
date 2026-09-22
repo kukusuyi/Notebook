@@ -37,7 +37,7 @@ const displayGroups = computed(() => [
   { key: 'problem_type' as const, label: '题型', items: props.tags.problem_type },
   { key: 'method' as const, label: '解法', items: props.tags.method },
   { key: 'mistake_reason' as const, label: '错因', items: props.tags.mistake_reason },
-])
+].filter(group=>group.items.length))
 </script>
 
 <style scoped>
@@ -71,26 +71,26 @@ const displayGroups = computed(() => [
 }
 
 .knowledge_points {
-  background: rgba(30, 77, 63, 0.1);
-  border-color: rgba(30, 77, 63, 0.16);
+  background: var(--primary-soft);
+  border-color: var(--primary-soft);
   color: var(--primary);
 }
 
 .problem_type {
-  background: rgba(192, 103, 44, 0.1);
-  border-color: rgba(192, 103, 44, 0.16);
+  background: var(--primary-soft);
+  border-color: var(--primary-soft);
   color: var(--accent);
 }
 
 .method {
-  background: rgba(37, 99, 235, 0.1);
-  border-color: rgba(37, 99, 235, 0.16);
-  color: #2356c7;
+  background: var(--primary-soft);
+  border-color: var(--primary-soft);
+  color: var(--primary);
 }
 
 .mistake_reason {
-  background: rgba(196, 61, 61, 0.1);
-  border-color: rgba(196, 61, 61, 0.16);
-  color: #b84141;
+  background: var(--danger-soft);
+  border-color: var(--danger-soft);
+  color: var(--el-color-danger);
 }
 </style>

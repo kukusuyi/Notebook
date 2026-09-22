@@ -2,26 +2,18 @@
     <div class="page-shell">
         <header class="page-header">
             <div>
-                <h2 class="page-title">错题仪表盘</h2>
+                <h2 class="page-title">学习概览</h2>
                 <p class="page-subtitle">
-                    这里汇总最近录入、掌握状态和高频错因，方便你从“收集”切到“复盘”。
+                    从最近的一道错题开始，把不熟悉的知识变成自己的。
                 </p>
             </div>
-            <div class="top-actions">
-                <RouterLink to="/questions/create">
-                    <el-button type="primary">手动录入</el-button>
-                </RouterLink>
-                <RouterLink to="/questions/upload">
-                    <el-button plain>上传识别</el-button>
-                </RouterLink>
-                <RouterLink to="/questions">
-                    <el-button plain>查看题库</el-button>
-                </RouterLink>
-            </div>
+
         </header>
 
+        <section v-if="draftStore.currentDraft" class="paper-card resume-card"><div><h3>继续上次的整理</h3><p class="meta-text">{{draftStore.currentDraft.question_json.question_core||'有一份尚未完成的草稿'}}</p></div><RouterLink :to="draftStore.currentDraft.flow_mode==='upload'?'/questions/upload':'/questions/create'"><el-button>继续草稿</el-button></RouterLink></section>
         <section class="stats-grid">
-            <article
+            <button
+                type="button"
                 v-for="card in statsCards"
                 :key="card.label"
                 class="paper-card stat-card"
@@ -30,103 +22,11 @@
             >
                 <div class="meta-row">
                     <span class="meta-text">{{ card.label }}</span>
-                    <span v-if="card.badge" class="stat-badge">{{ card.badge }}</span>
+
                 </div>
                 <strong>{{ card.value }}</strong>
                 <p>{{ card.description }}</p>
-            </article>
-        </section>
-
-        <section class="insight-grid">
-            <div class="paper-card section-card">
-                <div class="section-title-row">
-                    <div>
-                        <h3>掌握状态分布</h3>
-                        <p class="meta-text">点击任一状态可直达对应筛选列表。</p>
-                    </div>
-                </div>
-
-                <div v-if="loading" class="loading-block">
-                    <el-skeleton :rows="3" animated />
-                </div>
-                <div v-else class="distribution-list">
-                    <button
-                        v-for="item in summary.mastery_distribution"
-                        :key="item.type"
-                        class="distribution-item"
-                        type="button"
-                        @click="goMasteryFilter(item.type)"
-                    >
-                        <div class="distribution-head">
-                            <span>{{ formatMasteryStatus(item.type) }}</span>
-                            <strong>{{ item.count }}</strong>
-                        </div>
-                        <div class="distribution-track">
-                            <span
-                                class="distribution-fill mastery-fill"
-                                :style="{ width: `${resolveDistributionWidth(summary.mastery_distribution, item.count)}%` }"
-                            ></span>
-                        </div>
-                    </button>
-                </div>
-            </div>
-
-            <div class="paper-card section-card">
-                <div class="section-title-row">
-                    <div>
-                        <h3>来源分布</h3>
-                        <p class="meta-text">快速定位图片题、手动录入题和导入题。</p>
-                    </div>
-                </div>
-
-                <div v-if="loading" class="loading-block">
-                    <el-skeleton :rows="3" animated />
-                </div>
-                <div v-else class="distribution-list">
-                    <button
-                        v-for="item in summary.source_distribution"
-                        :key="item.type"
-                        class="distribution-item"
-                        type="button"
-                        @click="goSourceFilter(item.type)"
-                    >
-                        <div class="distribution-head">
-                            <span>{{ formatSourceType(item.type) }}</span>
-                            <strong>{{ item.count }}</strong>
-                        </div>
-                        <div class="distribution-track accent-track">
-                            <span
-                                class="distribution-fill source-fill"
-                                :style="{ width: `${resolveDistributionWidth(summary.source_distribution, item.count)}%` }"
-                            ></span>
-                        </div>
-                    </button>
-                </div>
-            </div>
-
-            <div class="paper-card section-card quick-card">
-                <div class="section-title-row">
-                    <div>
-                        <h3>快捷入口</h3>
-                        <p class="meta-text">把最常用的动作放在首页，减少来回切换。</p>
-                    </div>
-                </div>
-
-                <div class="quick-actions">
-                    <button class="quick-action primary-action" type="button" @click="goQuestionFilter({ mastery_status: 'unmastered' })">
-                        <span>进入待掌握列表</span>
-                        <small>优先处理还没吃透的题目</small>
-                    </button>
-                    <button class="quick-action" type="button" @click="router.push('/questions/upload')">
-                        <span>继续上传识别</span>
-                        <small>把纸面错题尽快沉淀进系统</small>
-                    </button>
-                    <button class="quick-action" type="button" @click="router.push('/tags')">
-                        <span>整理标签体系</span>
-                        <small>统一知识点与错因命名口径</small>
-                    </button>
-                </div>
-            </div>
+            </button>
         </section>
 
         <section class="content-grid">
@@ -210,10 +110,81 @@
                 </div>
             </div>
         </section>
+        <section class="insight-grid">
+            <div class="paper-card section-card">
+                <div class="section-title-row">
+                    <div>
+                        <h3>掌握状态分布</h3>
+                        <p class="meta-text">点击任一状态可直达对应筛选列表。</p>
+                    </div>
+                </div>
+
+                <div v-if="loading" class="loading-block">
+                    <el-skeleton :rows="3" animated />
+                </div>
+                <div v-else class="distribution-list">
+                    <button
+                        v-for="item in summary.mastery_distribution"
+                        :key="item.type"
+                        class="distribution-item"
+                        type="button"
+                        @click="goMasteryFilter(item.type)"
+                    >
+                        <div class="distribution-head">
+                            <span>{{ formatMasteryStatus(item.type) }}</span>
+                            <strong>{{ item.count }}</strong>
+                        </div>
+                        <div class="distribution-track">
+                            <span
+                                class="distribution-fill mastery-fill"
+                                :style="{ width: `${resolveDistributionWidth(summary.mastery_distribution, item.count)}%` }"
+                            ></span>
+                        </div>
+                    </button>
+                </div>
+            </div>
+
+            <div class="paper-card section-card">
+                <div class="section-title-row">
+                    <div>
+                        <h3>来源分布</h3>
+                        <p class="meta-text">快速定位图片题、手动录入题和导入题。</p>
+                    </div>
+                </div>
+
+                <div v-if="loading" class="loading-block">
+                    <el-skeleton :rows="3" animated />
+                </div>
+                <div v-else class="distribution-list">
+                    <button
+                        v-for="item in summary.source_distribution"
+                        :key="item.type"
+                        class="distribution-item"
+                        type="button"
+                        @click="goSourceFilter(item.type)"
+                    >
+                        <div class="distribution-head">
+                            <span>{{ formatSourceType(item.type) }}</span>
+                            <strong>{{ item.count }}</strong>
+                        </div>
+                        <div class="distribution-track accent-track">
+                            <span
+                                class="distribution-fill source-fill"
+                                :style="{ width: `${resolveDistributionWidth(summary.source_distribution, item.count)}%` }"
+                            ></span>
+                        </div>
+                    </button>
+                </div>
+            </div>
+
+        </section>
+
     </div>
 </template>
 
 <script setup lang="ts">
+import {useDraftStore} from "@/stores/draft.store";
+const draftStore=useDraftStore();
 import { ElMessage } from "element-plus";
 import { computed, onMounted, ref } from "vue";
 import { RouterLink, useRouter } from "vue-router";
@@ -355,6 +326,7 @@ onMounted(loadData);
 </script>
 
 <style scoped>
+.resume-card{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:24px}.resume-card p{max-width:560px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
 .top-actions {
     display: flex;
     gap: 12px;
@@ -381,7 +353,7 @@ onMounted(loadData);
 
 .stat-card.clickable:hover {
     transform: translateY(-2px);
-    border-color: rgba(30, 77, 63, 0.18);
+    border-color: var(--primary-soft);
 }
 
 .meta-row {
@@ -397,7 +369,7 @@ onMounted(loadData);
     min-height: 24px;
     padding: 0 10px;
     border-radius: 999px;
-    background: rgba(30, 77, 63, 0.08);
+    background: var(--primary-soft);
     color: var(--primary);
     font-size: 11px;
     font-weight: 700;
@@ -472,7 +444,7 @@ onMounted(loadData);
     padding: 14px 16px;
     border-radius: 16px;
     border: 1px solid var(--line);
-    background: rgba(255, 255, 255, 0.38);
+    background: var(--paper-bg);
     cursor: pointer;
     transition:
         transform 0.18s ease,
@@ -484,7 +456,7 @@ onMounted(loadData);
 .quick-action:hover,
 .tag-rank-item:hover {
     transform: translateY(-1px);
-    border-color: rgba(30, 77, 63, 0.18);
+    border-color: var(--primary-soft);
 }
 
 .distribution-head {
@@ -498,11 +470,11 @@ onMounted(loadData);
     overflow: hidden;
     height: 10px;
     border-radius: 999px;
-    background: rgba(30, 77, 63, 0.08);
+    background: var(--primary-soft);
 }
 
 .accent-track {
-    background: rgba(192, 103, 44, 0.12);
+    background: var(--primary-soft);
 }
 
 .distribution-fill {
@@ -512,16 +484,15 @@ onMounted(loadData);
 }
 
 .mastery-fill {
-    background: linear-gradient(90deg, #1e4d3f, #3d7d6b);
+    background: var(--primary-soft);
 }
 
 .source-fill {
-    background: linear-gradient(90deg, #c0672c, #d4934c);
+    background: var(--primary-soft);
 }
 
 .quick-card {
     background:
-        radial-gradient(circle at top right, rgba(192, 103, 44, 0.14), transparent 45%),
         var(--paper-bg);
 }
 
@@ -529,9 +500,9 @@ onMounted(loadData);
     display: grid;
     gap: 4px;
     padding: 16px;
-    border-radius: 18px;
+    border-radius: 12px;
     border: 1px solid var(--line);
-    background: rgba(255, 255, 255, 0.5);
+    background: var(--paper-bg);
     cursor: pointer;
     transition:
         transform 0.18s ease,
@@ -548,8 +519,8 @@ onMounted(loadData);
 }
 
 .primary-action {
-    border-color: rgba(30, 77, 63, 0.22);
-    background: rgba(30, 77, 63, 0.08);
+    border-color: var(--primary-soft);
+    background: var(--primary-soft);
 }
 
 .tag-rank-grid {
@@ -574,8 +545,8 @@ onMounted(loadData);
     align-items: center;
     padding: 12px 14px;
     border-radius: 14px;
-    border: 1px solid rgba(30, 77, 63, 0.12);
-    background: rgba(30, 77, 63, 0.05);
+    border: 1px solid var(--primary-soft);
+    background: var(--primary-soft);
     cursor: pointer;
     transition:
         transform 0.18s ease,
@@ -583,8 +554,8 @@ onMounted(loadData);
 }
 
 .danger-item {
-    border-color: rgba(192, 103, 44, 0.14);
-    background: rgba(192, 103, 44, 0.08);
+    border-color: var(--primary-soft);
+    background: var(--primary-soft);
 }
 
 @media (max-width: 1280px) {
@@ -608,4 +579,7 @@ onMounted(loadData);
         grid-template-columns: 1fr;
     }
 }
+
+.stats-grid .stat-card{text-align:left;color:var(--text-main);font:inherit}.insight-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.distribution-fill{background:var(--primary)}
+@media(max-width:767px){.stat-card:nth-child(n+4){display:none}.stat-card:nth-child(3){grid-column:span 2}.stats-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:12px}.stat-card{padding:16px}.stat-card p{display:none}.stat-card strong{font-size:28px}.content-grid{grid-template-columns:minmax(0,1fr)}.tag-rank-grid{grid-template-columns:minmax(0,1fr)}}
 </style>

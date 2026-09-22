@@ -140,13 +140,9 @@ onBeforeUnmount(() => {
 }
 
 :deep(.upload-inner .el-upload-dragger) {
-    border-radius: 20px;
-    border: 1px dashed rgba(30, 77, 63, 0.25);
-    background: linear-gradient(
-        180deg,
-        rgba(30, 77, 63, 0.05),
-        rgba(192, 103, 44, 0.04)
-    );
+    border-radius: 12px;
+    border: 1px dashed var(--primary-soft);
+    background: var(--primary-soft);
 }
 
 .upload-icon {
@@ -156,7 +152,7 @@ onBeforeUnmount(() => {
 
 .preview-zone {
     margin-top: 18px;
-    border-radius: 18px;
+    border-radius: 12px;
     overflow: hidden;
     border: 1px solid var(--line);
 }
@@ -164,7 +160,7 @@ onBeforeUnmount(() => {
 .preview-image {
     width: 100%;
     max-height: 420px;
-    background: #f7f3ea;
+    background: var(--app-bg);
 }
 .preview-state {
     min-height: 240px;

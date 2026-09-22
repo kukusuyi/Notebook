@@ -1,92 +1,17 @@
 <template>
-    <div class="page-shell">
-        <header class="page-header">
-            <div>
-                <h2 class="page-title">手动新增错题</h2>
-            </div>
-            <div class="header-actions">
-                <el-button :loading="submitting" @click="saveDirectly">直接保存</el-button>
-                <el-button @click="resetDraft">清空草稿</el-button>
-                <el-button
-                    type="primary"
-                    :loading="submitting"
-                    @click="analyzeDraft"
-                >
-                    继续 AI 分析
-                </el-button>
-            </div>
-        </header>
-
-        <section class="paper-card mode-card">
-            <div class="mode-row">
-                <el-radio-group v-model="editorMode">
-                    <el-radio-button label="form">表单模式</el-radio-button>
-                    <el-radio-button label="json">JSON 模式</el-radio-button>
-                </el-radio-group>
-            </div>
-        </section>
-
-        <AIModelSelector
-            v-if="draft"
-            v-model:provider-name="providerName"
-            v-model:model-name="modelName"
-        />
-
-        <QuestionForm
-            v-if="draft && editorMode === 'form'"
-            :model="draft"
-            :tag-options="tagStore.groupedOptions"
-        />
-
-        <section v-else-if="draft" class="json-mode-grid">
-            <QuestionJsonEditor
-                v-model="draft.question_json"
-                @validation-change="jsonValid = $event"
-            />
-            <div class="paper-card side-card">
-                <div class="side-head">
-                    <h3>可选图片绑定</h3>
-                    <p class="meta-text">
-                        先上传到文件服务，后续保存正式错题时自动带上图片信息。
-                    </p>
-                </div>
-                <UploadPanel
-                    :uploaded-image="
-                        draft
-                            ? {
-                                  image_id: draft.source_image_id,
-                                  image_url: draft.source_image_url,
-                              }
-                            : undefined
-                    "
-                    @success="handleImageUploaded"
-                />
-            </div>
-        </section>
-
-        <section
-            v-if="draft && editorMode === 'form'"
-            class="paper-card upload-card"
-        >
-            <div class="side-head">
-                <h3>可选图片绑定</h3>
-                <p class="meta-text">
-                    上传成功后会自动写入 `图片 ID` 与 `图片 URL`。
-                </p>
-            </div>
-            <UploadPanel
-                :uploaded-image="{
-                    image_id: draft.source_image_id,
-                    image_url: draft.source_image_url,
-                }"
-                @success="handleImageUploaded"
-            />
-        </section>
-    </div>
+ <div class="page-shell editor-page">
+  <header class="page-header"><div><h2 class="page-title">整理错题</h2><p class="page-subtitle">写下题目与思路，先保存，再慢慢完善。</p></div><div class="header-actions"><el-button text @click="router.push('/questions/upload')">改用图片录入</el-button><el-dropdown><el-button text>更多</el-button><template #dropdown><el-dropdown-menu><el-dropdown-item @click="advanced=!advanced">高级编辑</el-dropdown-item><el-dropdown-item @click="resetDraft">清空草稿</el-dropdown-item></el-dropdown-menu></template></el-dropdown></div></header>
+  <el-alert v-if="errorMessage" :title="errorMessage" type="error" :closable="false" role="alert"/>
+  <section v-if="advanced" class="paper-card mode-card"><el-radio-group v-model="editorMode"><el-radio-button label="form">表单编辑</el-radio-button><el-radio-button label="json">JSON 编辑</el-radio-button></el-radio-group></section>
+  <QuestionForm v-if="draft && editorMode==='form'" :model="draft" :tag-options="tagStore.groupedOptions"/>
+  <QuestionJsonEditor v-else-if="draft" v-model="draft.question_json" @validation-change="jsonValid=$event"/>
+  <el-collapse class="paper-card upload-card"><el-collapse-item title="附上原图（可选）" name="image"><UploadPanel :uploaded-image="draft?{image_id:draft.source_image_id,image_url:draft.source_image_url}:undefined" @success="handleImageUploaded"/></el-collapse-item></el-collapse>
+  <div class="edit-action-bar"><el-button :disabled="submitting" @click="showAI=true">AI 辅助分析</el-button><el-button type="primary" :loading="submitting" @click="saveDirectly">保存错题</el-button></div>
+  <el-dialog v-model="showAI" title="AI 辅助分析" width="560px"><p class="meta-text">分析结果将先供你检查，不会直接保存到题库。</p><AIModelSelector v-if="draft" v-model:provider-name="providerName" v-model:model-name="modelName"/><template #footer><el-button @click="showAI=false">返回编辑</el-button><el-button type="primary" :loading="submitting" @click="analyzeDraft">生成分析建议</el-button></template></el-dialog>
+ </div>
 </template>
-
 <script setup lang="ts">
-import { ElMessage } from "element-plus";
+import { ElMessage, ElMessageBox } from "element-plus";
 import { computed, onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
 
@@ -114,6 +39,9 @@ const providerName = computed({
         draftStore.updateAIModelSelection(value, draft.value?.model_name || "");
     },
 });
+const showAI = ref(false);
+const advanced = ref(false);
+const errorMessage = ref("");
 const modelName = computed({
     get: () => draft.value?.model_name || "",
     set: (value: string) => {
@@ -124,8 +52,8 @@ const modelName = computed({
     },
 });
 
-function resetDraft() {
-    draftStore.initializeDraft("manual");
+async function resetDraft() {
+ try { await ElMessageBox.confirm('这会清空正在整理的内容。','清空草稿',{type:'warning'}); draftStore.initializeDraft("manual"); } catch {}
 }
 
 function handleImageUploaded(payload: { image_id: number; image_url: string }) {
@@ -136,12 +64,15 @@ function handleImageUploaded(payload: { image_id: number; image_url: string }) {
 }
 
 async function saveDirectly() {
+ if(submitting.value)return;
  const d=draft.value;if(!d || !d.question_json.question_core.trim() || !jsonValid.value){ElMessage.warning('请填写有效的题目主干');return}
  submitting.value=true
- try {const result=await createQuestion({source_type:d.source_type,source_image_id:d.source_image_id,source_image_url:d.source_image_url,subject:d.subject,chapter:d.chapter,question_json:d.question_json,tags:d.tags,semantic_summary:d.semantic_summary||d.question_json.question_core,mistake_summary:d.mistake_summary,difficulty_level:d.difficulty_level,mastery_status:d.mastery_status});draftStore.resetDraft();router.push(`/questions/${result.question_id}`)}catch(e){ElMessage.error(getErrorMessage(e,'保存失败'))}finally{submitting.value=false}
+ try {const result=await createQuestion({source_type:d.source_type,source_image_id:d.source_image_id,source_image_url:d.source_image_url,subject:d.subject,chapter:d.chapter,question_json:d.question_json,tags:d.tags,semantic_summary:d.semantic_summary||d.question_json.question_core,mistake_summary:d.mistake_summary,difficulty_level:d.difficulty_level,mastery_status:d.mastery_status});draftStore.resetDraft();router.push(`/questions/${result.question_id}`)}catch(e){errorMessage.value=getErrorMessage(e,'保存失败')}finally{submitting.value=false}
 }
 
 async function analyzeDraft() {
+    if(submitting.value)return;
+    errorMessage.value="";
     const current = draft.value;
     if (!current) {
         return;
@@ -153,12 +84,12 @@ async function analyzeDraft() {
     }
 
     if (!current.question_json.question_core.trim()) {
-        ElMessage.warning("question_core 不能为空");
+        ElMessage.warning("请先填写题目内容");
         return;
     }
 
     if (!current.subject.trim()) {
-        ElMessage.warning("subject 不能为空");
+        ElMessage.warning("请填写学科");
         return;
     }
 
@@ -180,19 +111,14 @@ async function analyzeDraft() {
         draftStore.applyAnalysis(result);
         router.push("/questions/ai-review");
     } catch (error) {
-        ElMessage.error(getErrorMessage(error, "AI 分析失败"));
+        errorMessage.value=getErrorMessage(error, "AI 分析失败，请重试；你的内容已保留。");
     } finally {
         submitting.value = false;
     }
 }
 
 onMounted(async () => {
-    if (
-        !draftStore.currentDraft ||
-        draftStore.currentDraft.flow_mode !== "manual"
-    ) {
-        draftStore.initializeDraft("manual");
-    }
+    draftStore.ensureDraft("manual");
 
     try {
         await tagStore.fetchTags();
@@ -202,38 +128,4 @@ onMounted(async () => {
 });
 </script>
 
-<style scoped>
-.header-actions,
-.mode-row {
-    display: flex;
-    gap: 12px;
-    flex-wrap: wrap;
-    align-items: center;
-}
-
-.mode-card,
-.upload-card,
-.side-card {
-    padding: 20px;
-}
-
-.json-mode-grid {
-    display: grid;
-    grid-template-columns: minmax(0, 1.1fr) minmax(280px, 0.9fr);
-    gap: 20px;
-}
-
-.side-head h3 {
-    margin: 0;
-}
-
-.side-head p {
-    margin: 8px 0 16px;
-}
-
-@media (max-width: 1080px) {
-    .json-mode-grid {
-        grid-template-columns: 1fr;
-    }
-}
-</style>
+<style scoped>.editor-page{max-width:1100px}.mode-card,.upload-card{padding:16px 24px}.header-actions{display:flex;gap:8px;flex-wrap:wrap}</style>

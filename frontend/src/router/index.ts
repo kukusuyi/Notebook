@@ -15,10 +15,13 @@ import SettingsPage from '@/pages/SettingsPage.vue'
 import SimilarQuestionPage from '@/pages/SimilarQuestionPage.vue'
 import TagManagePage from '@/pages/TagManagePage.vue'
 
+import { ElMessageBox } from 'element-plus'
+import { useDraftStore } from '@/stores/draft.store'
 import { getAuthToken } from '@/utils/auth'
 
 const router = createRouter({
   history: createWebHistory(),
+  scrollBehavior:(_to,_from,saved)=>saved||{top:0},
   routes: [
  {path:"/setup",component:SetupPage,meta:{public:true,title:"首次启动"}},
     {
@@ -37,7 +40,7 @@ const router = createRouter({
           path: 'dashboard',
           name: 'dashboard',
           component: DashboardPage,
-          meta: { title: '仪表盘' },
+          meta: { title: '学习概览' },
         },
         {
           path: 'questions',
@@ -98,7 +101,14 @@ const router = createRouter({
   ],
 })
 
-router.beforeEach(async (to) => {
+router.beforeEach(async (to,from) => {
+ const editors=['/questions/create','/questions/upload','/questions/ai-review']
+ const draft=useDraftStore()
+ if(editors.includes(from.path)&&!editors.includes(to.path)&&draft.currentDraft&&(draft.currentDraft.question_json.question_core||draft.currentDraft.source_image_id)){
+  try{await ElMessageBox.confirm('离开后可从学习概览继续整理。','保留这份草稿？',{confirmButtonText:'保留并离开',cancelButtonText:'放弃草稿',distinguishCancelAndClose:true})}
+  catch(action){if(action==='cancel')draft.resetDraft();else return false}
+ }
+
  try { const res=await fetch("/api/v1/system/status"); const body=await res.json(); if(body.data?.setup_required && to.path!=="/setup") return "/setup"; if(!body.data?.setup_required && to.path==="/setup") return "/auth" } catch { /* normal API errors remain visible */ }
   const token = getAuthToken()
   const isPublic = Boolean(to.meta.public)

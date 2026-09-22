@@ -3,7 +3,7 @@
         <section class="paper-card form-card">
             <div class="section-head">
                 <h3>题目基础信息</h3>
-                <p>先整理标准错题 JSON，再补充学科、章节和图片绑定信息。</p>
+                <p>先写下题目，解法与分类可以稍后完善。</p>
             </div>
 
             <el-form label-position="top">
@@ -34,6 +34,7 @@
                     />
                 </el-form-item>
 
+                <details class="secondary-fields"><summary>分类与掌握状态</summary>
                 <div class="form-row">
                     <el-form-item label="学科" class="grow">
                         <el-input
@@ -81,32 +82,18 @@
                     </el-form-item>
                 </div>
 
-                <el-form-item label="图片 URL">
-                    <el-input
-                        v-model="model.source_image_url"
-                        placeholder="上传成功后自动填充"
-                    />
-                </el-form-item>
-
-                <el-form-item label="图片 ID">
-                    <el-input
-                        :model-value="model.source_image_id ? String(model.source_image_id) : ''"
-                        placeholder="上传成功后自动填充"
-                        readonly
-                    />
-                </el-form-item>
-
+                </details>
                 <template v-if="showAnalysisFields">
                     <div class="section-divider"></div>
 
                     <div class="section-head compact">
-                        <h3>AI 分析结果</h3>
+                        <h3>标签与总结</h3>
                         <p>
                             标签与摘要都允许用户确认、修改，再保存到正式错题。
                         </p>
                     </div>
 
-                    <el-form-item label="语义摘要 semantic_summary">
+                    <el-form-item label="题目摘要">
                         <el-input
                             v-model="model.semantic_summary"
                             type="textarea"
@@ -114,7 +101,7 @@
                         />
                     </el-form-item>
 
-                    <el-form-item label="错因摘要 mistake_summary">
+                    <el-form-item label="错因总结">
                         <el-input
                             v-model="model.mistake_summary"
                             type="textarea"
@@ -200,7 +187,7 @@
             </el-form>
         </section>
 
-        <section class="preview-column">
+        <details class="preview-column"><summary>展开内容预览</summary>
             <div class="preview-stack">
                 <div class="paper-card preview-card">
                     <div class="preview-head">题目预览</div>
@@ -231,7 +218,7 @@
                     <ImagePreviewer :src="model.source_image_url" />
                 </div>
             </div>
-        </section>
+        </details>
     </div>
 </template>
 
@@ -328,4 +315,7 @@ withDefaults(
         grid-template-columns: 1fr;
     }
 }
+
+.preview-column>summary{cursor:pointer;min-height:44px;padding:12px 0;font-weight:600}
+.secondary-fields summary{cursor:pointer;min-height:44px;padding:12px 0;font-weight:600}.secondary-fields[open] summary{margin-bottom:16px}
 </style>

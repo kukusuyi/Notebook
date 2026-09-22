@@ -101,7 +101,7 @@ function formatValue() {
 }
 
 .error-text {
-  color: #b84141;
+  color: var(--el-color-danger);
   font-size: 13px;
 }
 </style>

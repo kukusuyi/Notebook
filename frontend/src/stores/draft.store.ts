@@ -119,8 +119,13 @@ export const useDraftStore = defineStore('draft', () => {
     draft.status = 'image_uploaded'
   }
 
+  function discardAnalysis() {
+    const raw=window.sessionStorage.getItem(STORAGE_KEY+':before-analysis')
+    if(raw){try{currentDraft.value=JSON.parse(raw)}catch{};window.sessionStorage.removeItem(STORAGE_KEY+':before-analysis')}
+  }
   function applyAnalysis(result: AnalyzeWrongQuestionResponse) {
     const draft = ensureDraft()
+    if(!window.sessionStorage.getItem(STORAGE_KEY+':before-analysis'))window.sessionStorage.setItem(STORAGE_KEY+':before-analysis',JSON.stringify(draft))
     currentDraft.value = {
       ...draft,
       chapter: result.chapter || draft.chapter,
@@ -136,6 +141,7 @@ export const useDraftStore = defineStore('draft', () => {
 
   function resetDraft() {
     currentDraft.value = null
+    window.sessionStorage.removeItem(STORAGE_KEY+':before-analysis')
     window.sessionStorage.removeItem(STORAGE_KEY)
   }
 
@@ -172,6 +178,7 @@ export const useDraftStore = defineStore('draft', () => {
     updateAIModelSelection,
     setUploadedImage,
     applyAnalysis,
+    discardAnalysis,
     updateChapterSelection,
     resetDraft,
   }

@@ -1,155 +1,8 @@
-<template>
-    <div class="page-shell">
-        <header class="page-header">
-            <div>
-                <h2 class="page-title">图片上传与 OCR 识别</h2>
-                <p class="page-subtitle">
-                    这个流程现在遵循“上传图片 → OCR → OCR 结果确认 → AI 分析 →
-                    用户确认 → 保存正式错题”。
-                </p>
-            </div>
-        </header>
-
-        <section class="paper-card step-card">
-            <el-steps :active="activeStep" finish-status="success">
-                <el-step title="上传图片" />
-                <el-step title="OCR 识别" />
-                <el-step title="OCR 确认" />
-                <el-step title="AI 分析" />
-                <el-step title="确认保存" />
-            </el-steps>
-        </section>
-
-        <div class="upload-layout">
-            <div class="left-column">
-                <UploadPanel
-                    :uploaded-image="
-                        draft
-                            ? {
-                                  image_id: draft.source_image_id,
-                                  image_url: draft.source_image_url,
-                              }
-                            : undefined
-                    "
-                    @success="handleUploadSuccess"
-                />
-            </div>
-
-            <div class="right-column">
-                <div class="paper-card status-panel">
-                    <h3>当前状态</h3>
-                    <p class="meta-text">
-                        上传不会自动创建错题。只有在 AI
-                        分析确认页点击保存后，才会真正写入数据库。
-                    </p>
-
-                    <el-descriptions :column="1" border>
-                        <el-descriptions-item label="图片 ID">
-                            {{ draft?.source_image_id || "--" }}
-                        </el-descriptions-item>
-                        <el-descriptions-item label="图片 URL">
-                            <span class="mono-text url-text">{{
-                                draft?.source_image_url || "--"
-                            }}</span>
-                        </el-descriptions-item>
-                        <el-descriptions-item label="草稿状态">
-                            {{ draft?.status || "draft" }}
-                        </el-descriptions-item>
-                    </el-descriptions>
-
-                    <div class="status-actions">
-                        <el-button
-                            type="primary"
-                            class="status-action-button"
-                            :disabled="!draft?.source_image_id"
-                            :loading="processing"
-                            @click="runOCR"
-                        >
-                            {{
-                                hasOCRResult ? "重新 OCR 识别" : "开始 OCR 识别"
-                            }}
-                        </el-button>
-                        <el-button
-                            v-if="draft?.status === 'ocr_reviewing'"
-                            type="success"
-                            class="status-action-button"
-                            :loading="processing"
-                            @click="runAnalysis"
-                        >
-                            确认 OCR 结果并继续 AI 分析
-                        </el-button>
-                        <el-button
-                            v-if="draft?.status === 'ai_reviewing'"
-                            type="success"
-                            class="status-action-button"
-                            @click="router.push('/questions/ai-review')"
-                        >
-                            前往最终确认页
-                        </el-button>
-                        <el-button
-                            class="status-action-button secondary-action"
-                            @click="resetUploadDraft"
-                        >
-                            重新开始
-                        </el-button>
-                    </div>
-
-                    <div v-if="draft?.ocr_context" class="ocr-tip">
-                        <div class="meta-text">OCR 识别结果预告</div>
-                        <div>
-                            置信度：{{ draft.ocr_context.ocr_confidence }}
-                        </div>
-                        <div>
-                            不确定片段：
-                            {{
-                                draft.ocr_context.uncertain_parts.length
-                                    ? draft.ocr_context.uncertain_parts.join(
-                                          " / ",
-                                      )
-                                    : "无"
-                            }}
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <section
-            v-if="draft && draft.status === 'ocr_reviewing'"
-            class="ocr-review-section"
-        >
-            <div class="paper-card review-intro">
-                <h3>OCR 结果确认</h3>
-                <p class="meta-text">
-                    先检查 OCR
-                    提取出的题目内容。这里支持像手动新增一样边看边改，确认无误后再继续
-                    AI 分析。
-                </p>
-            </div>
-
-            <div class="paper-card model-selector-panel">
-                <h4>选择分析模型</h4>
-                <p class="meta-text">
-                    OCR
-                    内容确认无误后，选择下一步用于错误原因分析与建议生成的模型。
-                </p>
-                <AIModelSelector
-                    v-model:provider-name="providerName"
-                    v-model:model-name="modelName"
-                />
-            </div>
-
-            <QuestionForm
-                :model="draft"
-                lock-source-type
-                :chapter-options="aiStore.chapterOptionsWithAuto"
-                chapter-placeholder="请选择章节或保持自动判断"
-                @chapter-change="handleChapterChange"
-            />
-        </section>
-    </div>
-</template>
-
+<template><div class="page-shell upload-page"><header class="page-header"><div><h2 class="page-title">从图片开始</h2><p class="page-subtitle">上传一道题，识别文字或直接手动整理。</p></div><el-button text @click="router.push('/questions/create')">改用手动录入</el-button></header>
+ <el-alert v-if="errorMessage" :title="errorMessage" type="error" :closable="false"/>
+ <div class="upload-layout"><UploadPanel :uploaded-image="draft?{image_id:draft.source_image_id,image_url:draft.source_image_url}:undefined" @success="handleUploadSuccess"/><section class="paper-card status-panel"><h3>{{draft?.source_image_id?'图片已就绪':'选择题目图片'}}</h3><p class="meta-text">支持相册中的图片，也可以使用手机相机拍摄。原图会随错题一起保留。</p><el-alert v-if="!ocrEnabled" title="图片识别尚未配置。你仍可保留原图并手动填写题目。" type="info" :closable="false"/><div class="status-actions"><el-button v-if="ocrEnabled" :disabled="!draft?.source_image_id" :loading="processing" @click="runOCR">{{hasOCRResult?'重新识别':'识别图片文字'}}</el-button><el-button type="primary" :disabled="!draft?.source_image_id||processing" @click="router.push('/questions/create')">{{hasOCRResult?'确认并整理内容':'手动整理这张图片'}}</el-button></div><p v-if="draft?.ocr_context" class="meta-text">识别可能存在误差，请在整理页检查题干和公式。</p></section></div>
+ <section v-if="hasOCRResult" class="paper-card status-panel"><h3>识别预览</h3><p class="ocr-preview">{{draft?.question_json.question_core}}</p></section>
+ </div></template>
 <script setup lang="ts">
 import { ElMessage } from "element-plus";
 import { computed, onMounted, ref } from "vue";
@@ -167,6 +20,8 @@ const aiStore = useAIStore();
 const draftStore = useDraftStore();
 const router = useRouter();
 const processing = ref(false);
+const ocrEnabled=ref(false);
+const errorMessage=ref("");
 
 const draft = computed(() => draftStore.currentDraft);
 const activeStep = computed(() => {
@@ -226,6 +81,8 @@ function handleChapterChange(value: string) {
 }
 
 async function runOCR() {
+    if(processing.value)return;
+    errorMessage.value="";
     const current = draft.value;
     if (!current?.source_image_id || !current.source_image_url) {
         ElMessage.warning("请先完成图片上传");
@@ -254,7 +111,7 @@ async function runOCR() {
         ElMessage.success("OCR 识别完成，请先确认识别结果");
     } catch (error) {
         current.status = "image_uploaded";
-        ElMessage.error(getErrorMessage(error, "OCR 识别失败"));
+        errorMessage.value=getErrorMessage(error, "识别失败，请重试或手动整理图片。");
     } finally {
         processing.value = false;
     }
@@ -296,12 +153,8 @@ async function runAnalysis() {
 }
 
 onMounted(async () => {
-    if (
-        !draftStore.currentDraft ||
-        draftStore.currentDraft.flow_mode !== "upload"
-    ) {
-        draftStore.initializeDraft("upload");
-    }
+    try { const r=await fetch("/api/v1/system/status");ocrEnabled.value=(await r.json()).data.ocr_enabled; }catch{}
+    draftStore.ensureDraft("upload");
 
     try {
         await aiStore.fetchChapters();
@@ -311,83 +164,4 @@ onMounted(async () => {
 });
 </script>
 
-<style scoped>
-.step-card,
-.status-panel,
-.model-selector-panel,
-.review-intro {
-    padding: 20px;
-}
-
-.upload-layout {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) 380px;
-    gap: 20px;
-}
-
-.right-column {
-    display: grid;
-    gap: 12px;
-    align-content: start;
-}
-
-.ocr-review-section {
-    display: grid;
-    gap: 16px;
-}
-
-.status-panel h3 {
-    margin: 0;
-}
-
-.review-intro h3 {
-    margin: 0;
-}
-
-.review-intro p {
-    margin: 8px 0 0;
-}
-
-.status-actions {
-    display: flex;
-    flex-direction: column;
-    align-items: stretch;
-    gap: 10px;
-    margin-top: 20px;
-}
-
-.status-action-button {
-    width: 100%;
-    margin-left: 0 !important;
-}
-
-.secondary-action {
-    align-self: stretch;
-}
-
-.ocr-tip {
-    margin-top: 20px;
-    padding: 14px;
-    border-radius: 16px;
-    background: rgba(30, 77, 63, 0.06);
-    line-height: 1.8;
-}
-
-.model-selector-panel h4 {
-    margin: 0 0 12px;
-}
-
-.model-selector-panel p {
-    margin: 0 0 12px;
-}
-
-.url-text {
-    word-break: break-all;
-}
-
-@media (max-width: 1080px) {
-    .upload-layout {
-        grid-template-columns: 1fr;
-    }
-}
-</style>
+<style scoped>.upload-page{max-width:1100px}.upload-layout{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:24px}.status-panel{padding:24px}.status-actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:24px}.ocr-preview{white-space:pre-wrap;overflow-wrap:anywhere}</style>

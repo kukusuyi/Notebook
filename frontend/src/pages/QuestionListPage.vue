@@ -4,11 +4,11 @@
             <div>
                 <h2 class="page-title">错题列表</h2>
                 <p class="page-subtitle">
-                    当前优先支持关键词、学科、掌握状态、来源类型和标签筛选。
+                    整理每一次思考，找到值得再练的一道题。
                 </p>
             </div>
             <div class="header-actions">
-                <el-radio-group
+                <el-radio-group v-if="!isMobile"
                     :model-value="questionStore.preferredListView"
                     @update:model-value="questionStore.setPreferredListView"
                 >
@@ -18,10 +18,12 @@
             </div>
         </header>
 
-        <section class="paper-card filter-card">
+        <div v-if="isMobile" class="mobile-search"><el-input v-model="filters.keyword" placeholder="搜索题目与标签" aria-label="搜索题目与标签" clearable @keyup.enter="applyFilters"/><el-button @click="applyFilters">搜索</el-button><el-button @click="filterOpen=true">筛选</el-button></div>
+        <div class="filter-chips"><template v-for="(label,key) in filterLabels" :key="key"><el-tag v-if="filters[key]" closable @close="clearFilter(key)">{{label}}：{{filters[key]}}</el-tag></template><el-tag v-if="activeTagHint" closable @close="resetFilters">{{activeTagHint}}</el-tag></div>
+        <component :is="isMobile?ElDrawer:'section'" v-model="filterOpen" title="筛选错题" direction="btt" size="auto" class="paper-card filter-card">
             <el-form label-position="top">
                 <div class="filter-grid">
-                    <el-form-item label="关键词">
+                    <el-form-item v-if="!isMobile" label="关键词">
                         <el-input
                             v-model="filters.keyword"
                             placeholder="搜索题目主干、标签等关键信息"
@@ -55,14 +57,14 @@
                     </span>
                     <div class="grow"></div>
                     <el-button @click="resetFilters">重置</el-button>
-                    <el-button type="primary" @click="loadQuestions"
+                    <el-button type="primary" @click="applyFilters"
                         >查询</el-button
                     >
                 </div>
             </el-form>
-        </section>
+        </component>
 
-        <section class="paper-card list-card">
+        <div :class="{'question-workspace':wide&&previewID}"><section class="paper-card list-card">
             <div class="list-toolbar">
                 <div class="toolbar-left">
                     <div class="meta-text">共 {{ total }} 条错题</div>
@@ -94,9 +96,7 @@
                             </el-dropdown-menu>
                         </template>
                     </el-dropdown>
-                    <RouterLink to="/questions/create">
-                        <el-button text>新增错题</el-button>
-                    </RouterLink>
+
                 </div>
             </div>
 
@@ -106,13 +106,13 @@
 
             <template v-else>
                 <div
-                    v-if="questionStore.preferredListView === 'card'"
+                    v-if="isMobile || questionStore.preferredListView === 'card'"
                     class="card-grid"
                 >
                     <QuestionCard
                         v-for="item in list"
                         :key="item.question_id"
-                        :item="item"
+                        :item="item" :preview="wide" @open="openQuestion(item.question_id)"
                         :selected="isQuestionSelected(item.question_id)"
                         @toggle-select="toggleSelection(item.question_id)"
                     />
@@ -178,12 +178,14 @@
                     />
                 </div>
             </template>
-        </section>
+        </section><aside v-if="wide&&previewID" class="detail-pane"><el-button text @click="router.replace({query:{...route.query,preview:undefined}})">关闭预览</el-button><QuestionDetailPage :question-id="previewID"/></aside></div>
     </div>
 </template>
 
 <script setup lang="ts">
-import { ElMessage } from "element-plus";
+import {useViewport} from "@/composables/useViewport";
+import QuestionDetailPage from "@/pages/QuestionDetailPage.vue";
+import { ElMessage, ElDrawer } from "element-plus";
 import { computed, onMounted, reactive, ref, watch } from "vue";
 import { RouterLink, useRoute, useRouter } from "vue-router";
 
@@ -208,6 +210,13 @@ const route = useRoute();
 const router = useRouter();
 const questionStore = useQuestionStore();
 const loading = ref(false);
+const isMobile=useViewport(), wide=useViewport('(min-width: 1280px)'),filterOpen=ref(false);
+const previewID=computed(()=>Number(route.query.preview)||undefined);
+const filterLabels={subject:'学科',mastery_status:'掌握状态',source_type:'来源'} as const;
+function openQuestion(id:number){if(wide.value)router.push({path:'/questions',query:{...route.query,preview:String(id)}});else router.push(`/questions/${id}`)}
+function clearFilter(key:keyof typeof filterLabels){filters[key]='';applyFilters()}
+function applyFilters(){filterOpen.value=false;router.push({path:'/questions',query:{keyword:filters.keyword||undefined,subject:filters.subject||undefined,chapter:filters.chapter||undefined,mastery_status:filters.mastery_status||undefined,source_type:filters.source_type||undefined,tagName:route.query.tagName||undefined,tagType:route.query.tagType||undefined,page:'1'}});loadQuestions()}
+
 const total = ref(0);
 const list = ref<QuestionListItem[]>([]);
 const activeTagHint = ref("");
@@ -258,6 +267,7 @@ function normalizeSourceType(value: unknown): SourceType | "" {
 }
 
 function syncFiltersFromRoute() {
+    filters.page=Math.max(1,Number(route.query.page)||1);
     filters.keyword =
         typeof route.query.keyword === "string" ? route.query.keyword : "";
     filters.subject =
@@ -293,8 +303,8 @@ async function syncTagFilterFromRoute() {
     );
     filters.tag_ids = matched ? String(matched.tag_id) : "";
     activeTagHint.value = matched
-        ? `${routeTagName.value} (${matched.tag_type})`
-        : `${routeTagName.value} (未匹配到 tag_id，已退化为普通列表查询)`;
+        ? routeTagName.value
+        : "标签已不存在";
 }
 
 async function loadQuestions() {
@@ -376,7 +386,7 @@ async function resetFilters() {
 
 function handlePageChange(page: number) {
     filters.page = page;
-    loadQuestions();
+    router.push({query:{...route.query,page:String(page)}});
 }
 
 onMounted(() => {
@@ -387,7 +397,6 @@ onMounted(() => {
 watch(
     () => route.query,
     () => {
-        filters.page = 1;
         syncFiltersFromRoute();
         loadQuestions();
     },
@@ -395,6 +404,7 @@ watch(
 </script>
 
 <style scoped>
+.mobile-search{display:flex;gap:8px}.filter-chips{display:flex;gap:8px;flex-wrap:wrap}.filter-chips:empty{display:none}.question-workspace{display:grid;grid-template-columns:minmax(300px,.9fr) minmax(0,1.3fr);gap:24px;align-items:start}.question-workspace .card-grid{grid-template-columns:1fr}.detail-pane{min-width:0;padding:8px}.question-workspace .detail-pane :deep(.summary-grid),.question-workspace .detail-pane :deep(.content-split){grid-template-columns:1fr}
 .header-actions {
     display: flex;
     gap: 12px;

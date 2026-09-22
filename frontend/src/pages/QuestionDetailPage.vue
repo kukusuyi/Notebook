@@ -4,7 +4,7 @@
       <div>
         <h2 class="page-title">错题详情</h2>
         <p class="page-subtitle">
-          详情页集中展示题目、原图、标准解法、错误思路、标签和相似题入口，是复盘的核心页面。
+          详情页回顾解题过程，找到下一次做对的关键。
         </p>
       </div>
       <div v-if="detail" class="header-actions">
@@ -14,39 +14,24 @@
         <RouterLink :to="`/questions/${detail.question_id}/similar`">
           <el-button type="primary" plain>查找相似题</el-button>
         </RouterLink>
-        <el-button type="danger" plain @click="removeQuestion">删除</el-button>
+        <el-dropdown><el-button text>更多</el-button><template #dropdown><el-dropdown-menu><el-dropdown-item @click="removeQuestion">删除错题</el-dropdown-item></el-dropdown-menu></template></el-dropdown>
       </div>
     </header>
 
     <el-empty v-if="!loading && !detail" description="未找到这道错题" />
 
     <template v-else-if="detail">
-      <section class="summary-grid">
-        <article class="paper-card summary-card">
-          <div class="meta-text">题目元信息</div>
-          <el-descriptions :column="2" border>
-            <el-descriptions-item label="ID">{{ detail.question_id }}</el-descriptions-item>
-            <el-descriptions-item label="学科">{{ detail.subject }}</el-descriptions-item>
-            <el-descriptions-item label="章节">{{ detail.chapter || '--' }}</el-descriptions-item>
-            <el-descriptions-item label="来源">{{ detail.source_type }}</el-descriptions-item>
-            <el-descriptions-item label="掌握状态">{{ formatMasteryStatus(detail.mastery_status) }}</el-descriptions-item>
-            <el-descriptions-item label="难度">{{ detail.difficulty_level }}</el-descriptions-item>
-            <el-descriptions-item label="创建时间">
-              {{ formatDateTime(detail.created_at) }}
-            </el-descriptions-item>
-            <el-descriptions-item label="更新时间">
-              {{ formatDateTime(detail.updated_at) }}
-            </el-descriptions-item>
-          </el-descriptions>
-        </article>
-
-        <ImagePreviewer :src="detail.source_image_url" />
-      </section>
-
       <section class="paper-card section-card">
         <div class="section-title">题目主干</div>
         <LatexRenderer :content="detail.question_core" allow-source-toggle />
       </section>
+      <section class="summary-grid">
+
+
+        <ImagePreviewer v-if="detail.source_image_url" :src="detail.source_image_url" />
+      </section>
+
+
 
       <section class="content-split">
         <div class="paper-card section-card">
@@ -77,6 +62,23 @@
         <TagGroup :tags="detail.tags" @tag-click="handleTagClick" />
       </section>
 
+        <details class="paper-card summary-card"><summary>题目信息</summary>
+          <div class="meta-text">题目元信息</div>
+          <el-descriptions :column="1" border>
+            <el-descriptions-item label="ID">{{ detail.question_id }}</el-descriptions-item>
+            <el-descriptions-item label="学科">{{ detail.subject }}</el-descriptions-item>
+            <el-descriptions-item label="章节">{{ detail.chapter || '--' }}</el-descriptions-item>
+            <el-descriptions-item label="来源">{{ detail.source_type }}</el-descriptions-item>
+            <el-descriptions-item label="掌握状态">{{ formatMasteryStatus(detail.mastery_status) }}</el-descriptions-item>
+            <el-descriptions-item label="难度">{{ detail.difficulty_level }}</el-descriptions-item>
+            <el-descriptions-item label="创建时间">
+              {{ formatDateTime(detail.created_at) }}
+            </el-descriptions-item>
+            <el-descriptions-item label="更新时间">
+              {{ formatDateTime(detail.updated_at) }}
+            </el-descriptions-item>
+          </el-descriptions>
+        </details>
       <section class="paper-card section-card">
         <div class="section-title-row">
           <div class="section-title">相似题预览</div>
@@ -98,6 +100,7 @@
 </template>
 
 <script setup lang="ts">
+const props=defineProps<{questionId?:number}>();
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { ref, watch } from 'vue'
 import { RouterLink, useRoute, useRouter } from 'vue-router'
@@ -120,7 +123,7 @@ const similarMessage = ref('暂未找到相似题')
 const similarList = ref<SimilarQuestionItem[]>([])
 
 function getQuestionID() {
-  return Number(route.params.id)
+  return props.questionId||Number(route.params.id)
 }
 
 function handleTagClick(payload: { type: string; name: string }) {
@@ -179,7 +182,7 @@ async function removeQuestion() {
 }
 
 watch(
-  () => route.params.id,
+  () => props.questionId||route.params.id,
   () => {
     void loadDetail()
   },

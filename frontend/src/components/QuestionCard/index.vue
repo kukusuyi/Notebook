@@ -7,12 +7,12 @@
           <span v-if="item.chapter">· {{ item.chapter }}</span>
           <span>· 难度 {{ item.difficulty_level }}</span>
         </div>
-        <h3 class="card-title">{{ truncateText(item.question_core, 120) }}</h3>
+        <div class="card-title"><LatexRenderer :content="item.question_core"/></div>
       </div>
       <div class="card-side">
-        <el-checkbox
+        <el-checkbox v-if="selected!==undefined"
           :model-value="selected"
-          class="select-box"
+          class="select-box" :aria-label="`选择题目 ${item.question_id}`"
           @change="emit('toggle-select')"
         />
         <div class="card-badges">
@@ -27,7 +27,7 @@
     <div class="card-footer">
       <span class="meta-text">创建于 {{ formatDateTime(item.created_at) }}</span>
       <div class="card-actions">
-        <RouterLink :to="`/questions/${item.question_id}`">
+        <el-button v-if="preview" text @click="emit('open')">详情</el-button><RouterLink v-else :to="`/questions/${item.question_id}`">
           <el-button text>详情</el-button>
         </RouterLink>
         <RouterLink :to="`/questions/${item.question_id}/edit`">
@@ -41,17 +41,20 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
 
+import LatexRenderer from '@/components/LatexRenderer/index.vue'
 import TagGroup from '@/components/TagGroup/index.vue'
 import type { QuestionListItem } from '@/types/question'
-import { formatDateTime, formatMasteryStatus, truncateText } from '@/utils/format'
+import { formatDateTime, formatMasteryStatus } from '@/utils/format'
 
 const props = defineProps<{
   item: QuestionListItem
   selected?: boolean
+  preview?:boolean
 }>()
 
 const emit = defineEmits<{
   (event: 'toggle-select'): void
+  (event: 'open'): void
 }>()
 
 const router = useRouter()
@@ -110,8 +113,8 @@ function handleTagClick(payload: { type: string; name: string }) {
 }
 
 .badge {
-  background: rgba(31, 41, 55, 0.06);
-  border-color: rgba(31, 41, 55, 0.08);
+  background: var(--line);
+  border-color: var(--line);
 }
 
 .card-footer {
@@ -126,4 +129,5 @@ function handleTagClick(payload: { type: string; name: string }) {
   display: flex;
   gap: 6px;
 }
+.card-top>div:first-child{min-width:0;flex:1}.card-title :deep(.latex-renderer){border:0;background:transparent}.card-title :deep(.renderer-preview){padding:0;min-height:0;max-height:144px;overflow:auto;font-weight:600}.card-title :deep(.latex-content){line-height:1.6}
 </style>

@@ -1,29 +1,4 @@
-<template>
-    <div class="auth-shell">
-        <div class="auth-backdrop"></div>
-
-        <div class="auth-grid">
-            <section class="auth-story">
-                <div class="story-mark">∫</div>
-                <h1>题迹 Notebook</h1>
-
-                <div class="story-points">
-                    <article class="paper-card point-card">
-                        <strong>高效错题本</strong>
-                        <span>全自动整理错题</span>
-                    </article>
-                    <article class="paper-card point-card">
-                        <strong>标签整理</strong>
-                        <span>全流程标签打理，精准提取同类错题</span>
-                    </article>
-                    <article class="paper-card point-card">
-                        <strong>懒人必备</strong>
-                        <span>没错我就是太懒了懒得抄错题</span>
-                    </article>
-                </div>
-            </section>
-
-            <section class="auth-card paper-card">
+<template><main class="auth-page"><section class="auth-intro"><span class="auth-symbol">∫</span><h1>题迹 Notebook</h1><p>让每一道错题<br/>都有收获。</p><span class="meta-text">收集 · 整理 · 理解 · 再练习</span></section><section class="auth-card paper-card">
                 <div class="auth-header">
                     <div>
                         <h2>
@@ -39,13 +14,13 @@
                         <el-form label-position="top" @submit.prevent>
                             <el-form-item label="用户名">
                                 <el-input
-                                    v-model="loginForm.username"
+                                    v-model="loginForm.username" autocomplete="username"
                                     placeholder="请输入用户名"
                                 />
                             </el-form-item>
                             <el-form-item label="密码">
                                 <el-input
-                                    v-model="loginForm.password"
+                                    v-model="loginForm.password" autocomplete="current-password"
                                     type="password"
                                     show-password
                                     placeholder="请输入密码"
@@ -63,7 +38,7 @@
                         </el-form>
                     </el-tab-pane>
 
-                    <el-tab-pane label="注册" name="register">
+                    <el-tab-pane v-if="registrationEnabled" label="注册" name="register">
                         <el-form label-position="top" @submit.prevent>
                             <el-form-item label="用户名">
                                 <el-input
@@ -97,14 +72,10 @@
                         </el-form>
                     </el-tab-pane>
                 </el-tabs>
-            </section>
-        </div>
-    </div>
-</template>
-
+            </section></main></template>
 <script setup lang="ts">
 import { ElMessage } from "element-plus";
-import { computed, reactive, ref } from "vue";
+import { computed, reactive, ref, onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
 
 import { useAuthStore } from "@/stores/auth.store";
@@ -113,6 +84,8 @@ import { getErrorMessage } from "@/utils/error";
 const route = useRoute();
 const router = useRouter();
 const authStore = useAuthStore();
+const registrationEnabled=ref(false);
+onMounted(async()=>{try{const r=await fetch("/api/v1/system/status");registrationEnabled.value=(await r.json()).data.registration_enabled}catch{}});
 const activeTab = ref<"login" | "register">("login");
 const submitting = computed(() => authStore.loading);
 
@@ -175,134 +148,5 @@ async function submitRegister() {
 </script>
 
 <style scoped>
-.auth-shell {
-    position: relative;
-    min-height: 100vh;
-    overflow: hidden;
-    background:
-        radial-gradient(
-            circle at top left,
-            rgba(30, 77, 63, 0.18),
-            transparent 28%
-        ),
-        radial-gradient(
-            circle at bottom right,
-            rgba(192, 103, 44, 0.16),
-            transparent 34%
-        ),
-        linear-gradient(180deg, #f2ede2 0%, #ece4d7 100%);
-}
-
-.auth-backdrop {
-    position: absolute;
-    inset: 0;
-    background:
-        linear-gradient(90deg, rgba(31, 41, 55, 0.03) 1px, transparent 1px) 0
-            0 / 26px 26px,
-        linear-gradient(rgba(31, 41, 55, 0.02) 1px, transparent 1px) 0 0 / 26px
-            26px;
-    pointer-events: none;
-}
-
-.auth-grid {
-    position: relative;
-    z-index: 1;
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) 460px;
-    gap: 28px;
-    min-height: 100vh;
-    align-items: center;
-    padding: 32px;
-}
-
-.auth-story {
-    max-width: 720px;
-}
-
-.story-mark {
-    display: grid;
-    place-items: center;
-    width: 72px;
-    height: 72px;
-    border-radius: 24px;
-    background: linear-gradient(135deg, var(--primary), var(--accent));
-    color: #fff;
-    font-size: 40px;
-    box-shadow: 0 18px 42px rgba(30, 77, 63, 0.24);
-}
-
-.auth-story h1 {
-    margin: 18px 0 12px;
-    font-size: 52px;
-    line-height: 1;
-    letter-spacing: -0.04em;
-}
-
-.auth-story p {
-    margin: 0;
-    max-width: 640px;
-    color: var(--text-secondary);
-    font-size: 18px;
-    line-height: 1.8;
-}
-
-.story-points {
-    display: grid;
-    gap: 14px;
-    margin-top: 28px;
-}
-
-.point-card {
-    display: grid;
-    gap: 8px;
-    padding: 18px;
-}
-
-.point-card strong {
-    font-size: 18px;
-}
-
-.point-card span {
-    color: var(--text-secondary);
-    line-height: 1.7;
-}
-
-.auth-card {
-    padding: 24px;
-}
-
-.auth-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    gap: 12px;
-    margin-bottom: 10px;
-}
-
-.auth-header h2 {
-    margin: 6px 0 0;
-    font-size: 28px;
-}
-
-.submit-btn {
-    width: 100%;
-    margin-top: 8px;
-}
-
-@media (max-width: 980px) {
-    .auth-grid {
-        grid-template-columns: 1fr;
-        align-items: start;
-    }
-
-    .auth-story h1 {
-        font-size: 40px;
-    }
-}
-
-@media (max-width: 640px) {
-    .auth-grid {
-        padding: 16px;
-    }
-}
+.auth-page{min-height:100dvh;display:grid;grid-template-columns:1fr 1fr;align-items:center;gap:64px;max-width:1050px;margin:auto;padding:48px}.auth-intro{padding:24px}.auth-symbol{display:grid;place-items:center;width:56px;height:56px;border-radius:14px;background:var(--primary);color:var(--on-primary);font-size:40px}.auth-intro h1{font-size:24px;margin-top:28px}.auth-intro p{font-size:38px;line-height:1.4;letter-spacing:-1px}.auth-card{padding:32px}.auth-header h2{font-size:24px;margin-top:0}.submit-btn{width:100%;margin-top:12px}@media(max-width:767px){.auth-page{display:block;padding:24px 16px}.auth-intro{padding:8px 8px 24px}.auth-intro p,.auth-intro .meta-text{display:none}.auth-intro h1{font-size:24px;margin:12px 0 0}.auth-symbol{width:40px;height:40px;font-size:30px}.auth-card{padding:24px}}
 </style>
