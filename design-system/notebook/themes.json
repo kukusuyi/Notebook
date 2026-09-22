@@ -1,0 +1,5 @@
+{
+  "blue": {"label":"清澈蓝","seed":"#2563EB","light":{"background":"#F5F7FA","surface":"#FFFFFF","text":"#19212E","muted":"#526174","border":"#DEE4EC"},"dark":{"background":"#11151D","surface":"#1A202B","text":"#EDF1F7","muted":"#AEBBCD","border":"#374253"}},
+  "paper": {"label":"暖纸墨","seed":"#57534E","light":{"background":"#F5F2EC","surface":"#FFFCF7","text":"#292722","muted":"#686258","border":"#DED7CC"},"dark":{"background":"#191815","surface":"#24221E","text":"#F3EEE5","muted":"#BDB5A9","border":"#494338"}},
+  "violet": {"label":"柔雾紫","seed":"#7C3AED","light":{"background":"#F6F5FA","surface":"#FFFFFF","text":"#252136","muted":"#645D76","border":"#E2DEED"},"dark":{"background":"#17141F","surface":"#221D2D","text":"#F2EDFA","muted":"#BEB2D0","border":"#463B56"}}
+}

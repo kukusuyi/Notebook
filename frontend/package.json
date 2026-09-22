@@ -6,10 +6,12 @@
   "scripts": {
     "dev": "vite",
     "build": "vue-tsc --noEmit && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "vitest run"
   },
   "dependencies": {
     "@element-plus/icons-vue": "^2.3.1",
+    "@material/material-color-utilities": "^0.4.0",
     "axios": "^1.8.4",
     "element-plus": "^2.9.10",
     "katex": "^0.16.22",
@@ -20,8 +22,11 @@
   "devDependencies": {
     "@types/node": "^22.15.19",
     "@vitejs/plugin-vue": "^5.2.4",
+    "@vue/test-utils": "^2.5.1",
+    "jsdom": "^26.1.0",
     "typescript": "^5.8.3",
     "vite": "^5.4.19",
+    "vitest": "^3.2.7",
     "vue-tsc": "^2.2.10"
   }
 }

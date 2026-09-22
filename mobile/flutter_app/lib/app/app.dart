@@ -2,7 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../core/storage/app_settings_controller.dart';
+import 'appearance.dart';
 import '../core/update/version_checker.dart';
 import '../features/update/update_dialog.dart';
 import 'app_scroll_behavior.dart';
@@ -39,16 +39,18 @@ class _AppState extends ConsumerState<App> {
   @override
   Widget build(BuildContext context) {
     final router = ref.watch(appRouterProvider);
-    final settings = ref.watch(appSettingsControllerProvider);
+    final appearance = ref.watch(appearanceProvider);
 
     return MaterialApp.router(
       title: '题迹 Notebook',
       debugShowCheckedModeBanner: false,
       theme: buildAppTheme(
-        seedColor: settings.themeColorSeed != null
-            ? Color(settings.themeColorSeed!)
-            : null,
-      ),
+          seedColor: appearance.accentColor, preset: appearance.preset),
+      darkTheme: buildAppTheme(
+          seedColor: appearance.accentColor,
+          preset: appearance.preset,
+          brightness: Brightness.dark),
+      themeMode: appearance.themeMode,
       scrollBehavior: const AppScrollBehavior(),
       routerConfig: router,
     );
