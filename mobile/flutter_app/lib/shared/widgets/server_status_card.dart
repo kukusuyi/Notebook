@@ -9,8 +9,8 @@ final _serverStatusProvider =
   final status = await client.get('/api/v1/system/status');
   final jobs = await client.get('/api/v1/vector-jobs');
   return {
-    ...Map<String, dynamic>.from(status.data['data'] as Map),
-    'jobs': Map<String, dynamic>.from(jobs.data['data'] as Map),
+    ...Map<String, dynamic>.from(status.data as Map),
+    'jobs': Map<String, dynamic>.from(jobs.data as Map),
   };
 });
 

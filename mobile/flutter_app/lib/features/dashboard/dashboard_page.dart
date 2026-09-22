@@ -37,33 +37,20 @@ class DashboardPage extends ConsumerWidget {
             await ref.read(dashboardSnapshotProvider.future);
           },
           child: ListView(
-            padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
+            padding: const EdgeInsets.fromLTRB(20, 20, 20, 100),
             children: [
               Text(
-                '错题仪表盘',
+                '学习概览',
                 style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                       fontWeight: FontWeight.w800,
                     ),
               ),
               const SizedBox(height: 8),
               Text(
-                '把录入、复盘和标签热点都放到首页，移动端也能直接进入复习节奏。',
+                '从最近的一道错题开始，让每一次思考都有收获。',
                 style: Theme.of(context).textTheme.bodyMedium,
               ),
               const SizedBox(height: 20),
-              _QuickActionRow(
-                onUpload: () => context.go(
-                  hasActiveDraft(draft)
-                      ? routeForDraft(draft!)
-                      : '/questions/upload',
-                ),
-                onCreate: () => context.go(
-                  hasActiveDraft(draft)
-                      ? routeForDraft(draft!)
-                      : '/questions/create',
-                ),
-                onList: () => context.go('/questions'),
-              ),
               if (hasActiveDraft(draft)) ...[
                 const SizedBox(height: 16),
                 _DraftResumeCard(
@@ -168,7 +155,7 @@ class _DashboardContent extends StatelessWidget {
                     items: summary.masteryDistribution,
                     labelBuilder: (item) =>
                         _masteryLabel(item.type, item.count),
-                    progressColor: const Color(0xFF0C7A5C),
+                    progressColor: Theme.of(context).colorScheme.primary,
                     onTap: (item) => context.go(
                       '/questions?mastery_status=${item.type}',
                     ),
@@ -179,7 +166,7 @@ class _DashboardContent extends StatelessWidget {
                     subtitle: '快速查看手动录入、图片识别和导入题。',
                     items: summary.sourceDistribution,
                     labelBuilder: (item) => _sourceLabel(item.type, item.count),
-                    progressColor: const Color(0xFFC5792A),
+                    progressColor: Theme.of(context).colorScheme.tertiary,
                     onTap: (item) => context.go(
                       '/questions?source_type=${item.type}',
                     ),
@@ -198,7 +185,7 @@ class _DashboardContent extends StatelessWidget {
                     items: summary.masteryDistribution,
                     labelBuilder: (item) =>
                         _masteryLabel(item.type, item.count),
-                    progressColor: const Color(0xFF0C7A5C),
+                    progressColor: Theme.of(context).colorScheme.primary,
                     onTap: (item) => context.go(
                       '/questions?mastery_status=${item.type}',
                     ),
@@ -211,7 +198,7 @@ class _DashboardContent extends StatelessWidget {
                     subtitle: '快速查看手动录入、图片识别和导入题。',
                     items: summary.sourceDistribution,
                     labelBuilder: (item) => _sourceLabel(item.type, item.count),
-                    progressColor: const Color(0xFFC5792A),
+                    progressColor: Theme.of(context).colorScheme.tertiary,
                     onTap: (item) => context.go(
                       '/questions?source_type=${item.type}',
                     ),
@@ -270,43 +257,6 @@ class _DashboardContent extends StatelessWidget {
       _ => '手动录入',
     };
     return '$label · $count';
-  }
-}
-
-class _QuickActionRow extends StatelessWidget {
-  const _QuickActionRow({
-    required this.onUpload,
-    required this.onCreate,
-    required this.onList,
-  });
-
-  final VoidCallback onUpload;
-  final VoidCallback onCreate;
-  final VoidCallback onList;
-
-  @override
-  Widget build(BuildContext context) {
-    return Wrap(
-      spacing: 12,
-      runSpacing: 12,
-      children: [
-        FilledButton.icon(
-          onPressed: onUpload,
-          icon: const Icon(Icons.photo_camera_outlined),
-          label: const Text('拍照 / 相册上传'),
-        ),
-        FilledButton.tonalIcon(
-          onPressed: onCreate,
-          icon: const Icon(Icons.edit_note_outlined),
-          label: const Text('手动录入'),
-        ),
-        FilledButton.tonalIcon(
-          onPressed: onList,
-          icon: const Icon(Icons.list_alt_outlined),
-          label: const Text('查看题库'),
-        ),
-      ],
-    );
   }
 }
 
@@ -471,13 +421,13 @@ class _StatCard extends StatelessWidget {
                 child: Text(
                   item.label,
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: const Color(0xFF5E6A65),
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
                       ),
                 ),
               ),
               DecoratedBox(
                 decoration: BoxDecoration(
-                  color: const Color(0xFFE2F3ED),
+                  color: Theme.of(context).colorScheme.primaryContainer,
                   borderRadius: BorderRadius.circular(999),
                 ),
                 child: Padding(
@@ -486,7 +436,7 @@ class _StatCard extends StatelessWidget {
                   child: Text(
                     item.badge,
                     style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                          color: const Color(0xFF0C7A5C),
+                          color: Theme.of(context).colorScheme.primary,
                           fontWeight: FontWeight.w700,
                         ),
                   ),
@@ -499,14 +449,14 @@ class _StatCard extends StatelessWidget {
             item.value,
             style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                   fontWeight: FontWeight.w800,
-                  color: const Color(0xFF0C7A5C),
+                  color: Theme.of(context).colorScheme.primary,
                 ),
           ),
           const SizedBox(height: 10),
           Text(
             item.description,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: const Color(0xFF5E6A65),
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
           ),
         ],
@@ -574,7 +524,8 @@ class _DistributionCard extends StatelessWidget {
                     padding: const EdgeInsets.all(14),
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(18),
-                      border: Border.all(color: const Color(0xFFD9E2DC)),
+                      border: Border.all(
+                          color: Theme.of(context).colorScheme.outlineVariant),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -597,7 +548,9 @@ class _DistributionCard extends StatelessWidget {
                           child: LinearProgressIndicator(
                             minHeight: 10,
                             value: maxCount <= 0 ? 0 : item.count / maxCount,
-                            backgroundColor: const Color(0xFFE9EFEB),
+                            backgroundColor: Theme.of(context)
+                                .colorScheme
+                                .surfaceContainerHighest,
                             color: progressColor,
                           ),
                         ),
@@ -690,10 +643,13 @@ class _QuickLinkTile extends StatelessWidget {
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(18),
           border: Border.all(
-            color:
-                highlighted ? const Color(0xFFB8DCCD) : const Color(0xFFD9E2DC),
+            color: highlighted
+                ? Theme.of(context).colorScheme.outlineVariant
+                : Theme.of(context).colorScheme.outlineVariant,
           ),
-          color: highlighted ? const Color(0xFFEAF7F2) : Colors.white,
+          color: highlighted
+              ? Theme.of(context).colorScheme.primaryContainer
+              : Theme.of(context).colorScheme.surface,
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -756,7 +712,8 @@ class _RecentQuestionsCard extends StatelessWidget {
                 (item) => Padding(
                   padding: const EdgeInsets.only(bottom: 12),
                   child: ListTile(
-                    tileColor: const Color(0xFFF8FAF8),
+                    tileColor:
+                        Theme.of(context).colorScheme.surfaceContainerLow,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(18),
                     ),
@@ -894,10 +851,12 @@ class _TagGroupPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final borderColor =
-        accent ? const Color(0xFFF0D5BF) : const Color(0xFFD9E9E2);
-    final backgroundColor =
-        accent ? const Color(0xFFFFF5EB) : const Color(0xFFF0F9F5);
+    final borderColor = accent
+        ? Theme.of(context).colorScheme.outlineVariant
+        : Theme.of(context).colorScheme.outlineVariant;
+    final backgroundColor = accent
+        ? Theme.of(context).colorScheme.surfaceContainerLow
+        : Theme.of(context).colorScheme.surfaceContainerLow;
 
     return DecoratedBox(
       decoration: BoxDecoration(
@@ -936,7 +895,10 @@ class _TagGroupPanel extends StatelessWidget {
                       ),
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(16),
-                        color: Colors.white.withValues(alpha: 0.8),
+                        color: Theme.of(context)
+                            .colorScheme
+                            .surface
+                            .withValues(alpha: 0.8),
                       ),
                       child: Row(
                         children: [

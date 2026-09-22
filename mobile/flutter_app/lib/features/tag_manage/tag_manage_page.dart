@@ -364,17 +364,17 @@ class _TagTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final typeColor = switch (item.tagType) {
-      TagType.knowledgePoint => const Color(0xFF0C7A5C),
-      TagType.problemType => const Color(0xFF5A6ACF),
-      TagType.method => const Color(0xFFB7791F),
-      TagType.mistakeReason => const Color(0xFFB44444),
+      TagType.knowledgePoint => Theme.of(context).colorScheme.primary,
+      TagType.problemType => Theme.of(context).colorScheme.secondary,
+      TagType.method => Theme.of(context).colorScheme.tertiary,
+      TagType.mistakeReason => Theme.of(context).colorScheme.error,
     };
 
     return DecoratedBox(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFFD9E2DC)),
-        color: Colors.white,
+        border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
+        color: Theme.of(context).colorScheme.surface,
       ),
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -403,17 +403,19 @@ class _TagTile extends StatelessWidget {
                       ),
                       _MiniPill(
                         label: '使用 ${item.usageCount} 次',
-                        backgroundColor: const Color(0xFFF1F4F2),
-                        textColor: const Color(0xFF4B5A54),
+                        backgroundColor:
+                            Theme.of(context).colorScheme.surfaceContainerLow,
+                        textColor:
+                            Theme.of(context).colorScheme.onSurfaceVariant,
                       ),
                       _MiniPill(
                         label: item.isActive ? '启用中' : '未启用',
                         backgroundColor: item.isActive
-                            ? const Color(0xFFE2F6EC)
-                            : const Color(0xFFF0F1F2),
+                            ? Theme.of(context).colorScheme.primaryContainer
+                            : Theme.of(context).colorScheme.surfaceContainerLow,
                         textColor: item.isActive
-                            ? const Color(0xFF0C7A5C)
-                            : const Color(0xFF6A7370),
+                            ? Theme.of(context).colorScheme.primary
+                            : Theme.of(context).colorScheme.onSurfaceVariant,
                       ),
                     ],
                   ),

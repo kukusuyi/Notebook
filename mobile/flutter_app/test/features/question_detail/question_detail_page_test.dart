@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:math_notebook_flutter/app/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_math_fork/flutter_math.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -19,8 +20,10 @@ void main() {
             _FakeQuestionRepository(),
           ),
         ],
-        child: const MaterialApp(
-          home: QuestionDetailPage(questionId: 1),
+        child: MaterialApp(
+          debugShowCheckedModeBanner: false,
+          theme: buildAppTheme(),
+          home: const QuestionDetailPage(questionId: 1),
         ),
       ),
     );
@@ -35,9 +38,12 @@ void main() {
             widget is SingleChildScrollView &&
             widget.scrollDirection == Axis.horizontal,
       ),
-      findsNothing,
+      findsWidgets,
     );
+    expect(tester.takeException(), isNull);
     expect(find.textContaining('掌握状态：未掌握'), findsOneWidget);
+    await expectLater(find.byType(MaterialApp),
+        matchesGoldenFile('goldens/question_detail.png'));
   });
 }
 

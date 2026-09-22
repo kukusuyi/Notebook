@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:math_notebook_flutter/app/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_math_fork/flutter_math.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -20,8 +21,10 @@ void main() {
             _FakeQuestionRepository(),
           ),
         ],
-        child: const MaterialApp(
-          home: QuestionListPage(
+        child: MaterialApp(
+          debugShowCheckedModeBanner: false,
+          theme: buildAppTheme(),
+          home: const QuestionListPage(
             initialFilter: ListQuestionFilter(),
           ),
         ),
@@ -44,6 +47,8 @@ void main() {
       findsNothing,
     );
     expect(find.textContaining('掌握状态：未掌握'), findsOneWidget);
+    await expectLater(find.byType(MaterialApp),
+        matchesGoldenFile('goldens/question_list.png'));
   });
 }
 
@@ -54,8 +59,8 @@ class _FakeQuestionRepository extends QuestionRepository {
   Future<PageResult<QuestionListItem>> listQuestions(
     ListQuestionFilter filter,
   ) async {
-    return PageResult<QuestionListItem>(
-      list: const [
+    return const PageResult<QuestionListItem>(
+      list: [
         QuestionListItem(
           questionId: 1,
           questionCore: r'已知函数在区间上的变化满足条件，结合 $\frac{x^2+1}{2}=0$ 求最终结果并说明理由。',

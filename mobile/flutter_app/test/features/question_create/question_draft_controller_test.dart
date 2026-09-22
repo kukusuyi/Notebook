@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:math_notebook_flutter/shared/models/ai_models.dart';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -12,9 +13,42 @@ import 'package:math_notebook_flutter/shared/models/question_models.dart';
 import 'package:math_notebook_flutter/shared/utils/draft_navigation.dart';
 
 void main() {
+  test('rejecting repeated AI analysis restores original draft after restart',
+      () async {
+    SharedPreferences.setMockInitialValues({});
+    final prefs = await SharedPreferences.getInstance();
+    ProviderContainer make() => ProviderContainer(
+        overrides: [sharedPreferencesProvider.overrideWithValue(prefs)]);
+    final first = make();
+    final controller = first.read(questionDraftControllerProvider.notifier);
+    controller.updateBasicFields(
+        subject: 'math',
+        chapter: '原章节',
+        questionJson: const QuestionJson(questionCore: '原题目'));
+    const result = AnalyzeWrongQuestionResponse(
+        chapter: 'AI章节',
+        tags: TagGroups(),
+        semanticSummary: 'AI摘要',
+        mistakeSummary: 'AI错因');
+    controller.applyAiAnalysis(result);
+    controller.applyAiAnalysis(result);
+    await controller.flush();
+    first.dispose();
+    final second = make();
+    addTearDown(second.dispose);
+    await second
+        .read(questionDraftControllerProvider.notifier)
+        .discardAnalysis();
+    expect(second.read(questionDraftControllerProvider)!.chapter, '原章节');
+    expect(
+        second.read(questionDraftControllerProvider)!.questionJson.questionCore,
+        '原题目');
+    expect(second.read(questionDraftControllerProvider)!.status,
+        DraftStatus.draft);
+  });
   test('recovers processing drafts back to OCR review and persists them',
       () async {
-    final processingDraft = QuestionDraft(
+    const processingDraft = QuestionDraft(
       flowMode: DraftFlowMode.upload,
       sourceType: SourceType.image,
       sourceImageId: 7,

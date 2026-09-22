@@ -1,3 +1,5 @@
+import 'dart:io';
+import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -8,6 +10,17 @@ import 'package:math_notebook_flutter/core/storage/key_value_store.dart';
 import 'package:math_notebook_flutter/shared/widgets/appearance_card.dart';
 
 void main() {
+  const fontPath = String.fromEnvironment('NOTEBOOK_UI_FONT');
+  setUpAll(() async {
+    const iconPath=String.fromEnvironment('NOTEBOOK_ICON_FONT');
+    if(iconPath.isNotEmpty) await (FontLoader('MaterialIcons')..addFont(File(iconPath).readAsBytes().then(ByteData.sublistView))).load();
+    if (fontPath.isNotEmpty) {
+      final bytes = ByteData.sublistView(await File(fontPath).readAsBytes());
+      for (final family in ['Ahem', 'Roboto', 'PingFang SC']) {
+        await (FontLoader(family)..addFont(Future.value(bytes))).load();
+      }
+    }
+  });
   for (final preset in ['blue', 'paper', 'violet']) {
     for (final brightness in Brightness.values) {
       testWidgets('appearance $preset ${brightness.name}', (tester) async {
@@ -26,6 +39,7 @@ void main() {
         await tester.pumpWidget(UncontrolledProviderScope(
             container: container,
             child: MaterialApp(
+                debugShowCheckedModeBanner: false,
                 theme: buildAppTheme(preset: preset, brightness: brightness),
                 home: Scaffold(
                     appBar: AppBar(title: const Text('我的')),
@@ -36,8 +50,9 @@ void main() {
         expect(tester.takeException(), isNull);
         await expectLater(
             find.byType(MaterialApp),
-            matchesGoldenFile(
-                'goldens/appearance_${preset}_${brightness.name}.png'));
+            matchesGoldenFile(fontPath.isEmpty
+                ? 'goldens/appearance_${preset}_${brightness.name}.png'
+                : '../../../../docs/v2/ui-screenshots/flutter_${preset}_${brightness.name}.png'));
       });
     }
   }
@@ -56,6 +71,7 @@ void main() {
       await tester.pumpWidget(ProviderScope(
           overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
           child: MaterialApp(
+              debugShowCheckedModeBanner: false,
               theme: buildAppTheme(),
               builder: (context, child) => MediaQuery(
                   data: MediaQuery.of(context)

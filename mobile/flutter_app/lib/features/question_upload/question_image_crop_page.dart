@@ -105,7 +105,8 @@ class _QuestionImageCropPageState extends State<QuestionImageCropPage> {
                     Text(
                       '拖动方框或四角手柄，圈定需要 OCR 的题目区域。',
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: Theme.of(context).colorScheme.onSurfaceVariant,
+                            color:
+                                Theme.of(context).colorScheme.onSurfaceVariant,
                           ),
                       textAlign: TextAlign.center,
                     ),
@@ -127,7 +128,8 @@ class _QuestionImageCropPageState extends State<QuestionImageCropPage> {
                                 ? const SizedBox(
                                     width: 18,
                                     height: 18,
-                                    child: CircularProgressIndicator(strokeWidth: 2),
+                                    child: CircularProgressIndicator(
+                                        strokeWidth: 2),
                                   )
                                 : const Icon(Icons.check_circle_outline),
                             label: Text(_saving ? '裁剪中...' : '使用当前区域'),
@@ -213,7 +215,8 @@ class _QuestionImageCropPageState extends State<QuestionImageCropPage> {
     final delta = position - dragAnchor;
     final nextRect = switch (dragMode) {
       _CropDragMode.move => _moveRect(dragStartRect, delta, imageRect),
-      _CropDragMode.topLeft => _resizeFromTopLeft(dragStartRect, delta, imageRect),
+      _CropDragMode.topLeft =>
+        _resizeFromTopLeft(dragStartRect, delta, imageRect),
       _CropDragMode.topRight =>
         _resizeFromTopRight(dragStartRect, delta, imageRect),
       _CropDragMode.bottomLeft =>
@@ -383,8 +386,7 @@ class _QuestionImageCropPageState extends State<QuestionImageCropPage> {
       );
 
       final cropWidth = srcRect.width.round().clamp(1, originalImage.width);
-      final cropHeight =
-          srcRect.height.round().clamp(1, originalImage.height);
+      final cropHeight = srcRect.height.round().clamp(1, originalImage.height);
       final recorder = ui.PictureRecorder();
       final canvas = Canvas(recorder);
 
@@ -511,6 +513,7 @@ class _CropOverlayPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _CropOverlayPainter oldDelegate) {
-    return oldDelegate.imageRect != imageRect || oldDelegate.cropRect != cropRect;
+    return oldDelegate.imageRect != imageRect ||
+        oldDelegate.cropRect != cropRect;
   }
 }

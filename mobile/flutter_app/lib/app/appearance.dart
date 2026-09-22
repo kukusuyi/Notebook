@@ -8,10 +8,17 @@ const appearanceKey = 'notebook:appearance:v1';
 
 class AppearancePreferences {
   const AppearancePreferences(
-      {this.preset = 'blue', this.mode = 'system', this.accentSeed});
+      {this.preset = 'blue',
+      this.mode = 'system',
+      this.accentSeed,
+      this.material = 'plain',
+      this.font = 'system',
+      this.background});
   final String preset;
   final String mode;
   final String? accentSeed;
+  final String material, font;
+  final String? background;
   ThemeMode get themeMode => switch (mode) {
         'light' => ThemeMode.light,
         'dark' => ThemeMode.dark,
@@ -22,6 +29,18 @@ class AppearancePreferences {
       : Color(int.parse(accentSeed!.substring(1), radix: 16) | 0xff000000);
   factory AppearancePreferences.fromJson(Map<String, dynamic> json) =>
       AppearancePreferences(
+        material: ['plain', 'glass', 'candy'].contains(json['material'])
+            ? json['material'] as String
+            : 'plain',
+        font: ['system', 'rounded', 'serif'].contains(json['font'])
+            ? json['font'] as String
+            : 'system',
+        background: json['background'] is String &&
+                (json['background'] as String).length < 2800000 &&
+                RegExp(r'^data:image/(jpeg|png|webp);base64,[a-zA-Z0-9+/=]+$')
+                    .hasMatch(json['background'])
+            ? json['background'] as String
+            : null,
         preset: ['blue', 'paper', 'violet'].contains(json['preset'])
             ? json['preset'] as String
             : 'blue',
@@ -34,8 +53,15 @@ class AppearancePreferences {
             ? json['accentSeed'] as String
             : null,
       );
-  Map<String, dynamic> toJson() =>
-      {'version': 1, 'preset': preset, 'mode': mode, 'accentSeed': accentSeed};
+  Map<String, dynamic> toJson() => {
+        'version': 1,
+        'preset': preset,
+        'mode': mode,
+        'accentSeed': accentSeed,
+        'material': material,
+        'font': font,
+        'background': background
+      };
 }
 
 final appearanceProvider =
@@ -65,8 +91,16 @@ class AppearanceController extends Notifier<AppearancePreferences> {
       {String? preset,
       String? mode,
       String? accentSeed,
+      String? material,
+      String? font,
+      String? background,
+      bool resetBackground = false,
       bool resetAccent = false}) async {
     state = AppearancePreferences.fromJson({
+      ...state.toJson(),
+      'material': material ?? state.material,
+      'font': font ?? state.font,
+      'background': resetBackground ? null : background ?? state.background,
       'preset': preset ?? state.preset,
       'mode': mode ?? state.mode,
       'accentSeed': resetAccent ? null : accentSeed ?? state.accentSeed

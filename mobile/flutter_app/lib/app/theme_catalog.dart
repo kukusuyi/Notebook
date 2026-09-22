@@ -4,20 +4,20 @@ import 'dart:convert';
 const sharedThemeJSON = r'''{
   "blue": {
     "label": "清澈蓝",
-    "seed": "#2563EB",
+    "seed": "#548DAF",
     "light": {
-      "background": "#F5F7FA",
+      "background": "#F1F6F9",
       "surface": "#FFFFFF",
-      "text": "#19212E",
-      "muted": "#526174",
-      "border": "#DEE4EC"
+      "text": "#203440",
+      "muted": "#526571",
+      "border": "#D9E5EC"
     },
     "dark": {
-      "background": "#11151D",
-      "surface": "#1A202B",
-      "text": "#EDF1F7",
-      "muted": "#AEBBCD",
-      "border": "#374253"
+      "background": "#101B23",
+      "surface": "#1A2832",
+      "text": "#EAF3F8",
+      "muted": "#B0C2CD",
+      "border": "#354B59"
     }
   },
   "paper": {

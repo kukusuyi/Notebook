@@ -41,6 +41,14 @@ class QuestionDetailPage extends ConsumerWidget {
           return ListView(
             padding: const EdgeInsets.all(20),
             children: [
+              _SectionCard(
+                title: '题目主干',
+                child: LatexBlock(
+                  data.questionCore,
+                  allowHorizontalScroll: true,
+                ),
+              ),
+              const SizedBox(height: 16),
               if (data.sourceImageUrl.isNotEmpty)
                 RemoteImageCard(imageUrl: data.sourceImageUrl),
               if (data.sourceImageUrl.isNotEmpty) const SizedBox(height: 16),
@@ -58,19 +66,12 @@ class QuestionDetailPage extends ConsumerWidget {
                 ),
               ),
               const SizedBox(height: 16),
-              _SectionCard(
-                title: '题目主干',
-                child: LatexBlock(
-                  data.questionCore,
-                  allowHorizontalScroll: false,
-                ),
-              ),
               const SizedBox(height: 16),
               _SectionCard(
                 title: '标准解',
                 child: LatexBlock(
                   data.standardSolution,
-                  allowHorizontalScroll: false,
+                  allowHorizontalScroll: true,
                 ),
               ),
               const SizedBox(height: 16),
@@ -78,7 +79,7 @@ class QuestionDetailPage extends ConsumerWidget {
                 title: '错误解',
                 child: LatexBlock(
                   data.wrongSolution,
-                  allowHorizontalScroll: false,
+                  allowHorizontalScroll: true,
                 ),
               ),
               const SizedBox(height: 16),
@@ -94,17 +95,6 @@ class QuestionDetailPage extends ConsumerWidget {
                 ),
               ),
               const SizedBox(height: 16),
-              FilledButton.tonalIcon(
-                onPressed: () => context.push('/questions/$questionId/edit'),
-                icon: const Icon(Icons.edit_outlined),
-                label: const Text('编辑错题'),
-              ),
-              const SizedBox(height: 12),
-              FilledButton.tonalIcon(
-                onPressed: () => context.push('/questions/$questionId/similar'),
-                icon: const Icon(Icons.hub_outlined),
-                label: const Text('查看相似题'),
-              ),
             ],
           );
         },

@@ -31,6 +31,9 @@ class NotebookSurfaces extends ThemeExtension<NotebookSurfaces> {
 ThemeData buildAppTheme(
     {Color? seedColor,
     String preset = 'blue',
+    String material = 'plain',
+    String font = 'system',
+    bool hasBackground = false,
     Brightness brightness = Brightness.light}) {
   final data = themeCatalog[preset] ?? themeCatalog['blue'];
   final dark = brightness == Brightness.dark;
@@ -65,31 +68,36 @@ ThemeData buildAppTheme(
   final base = ThemeData(
       useMaterial3: true,
       colorScheme: scheme,
-      fontFamilyFallback: const [
+      fontFamily: font == 'serif' ? 'serif' : null,
+      fontFamilyFallback: [
+        if (font == 'serif') ...['Songti SC', 'Noto Serif CJK SC'],
+        if (font == 'rounded') ...['SF Pro Rounded', 'Arial Rounded MT Bold'],
         'PingFang SC',
         'Microsoft YaHei',
         'Noto Sans CJK SC'
       ]);
   final shape = RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(12), side: BorderSide(color: border));
+      borderRadius: BorderRadius.circular(material == 'candy' ? 20 : 12),
+      side: BorderSide(color: border));
   return base.copyWith(
     extensions: [
       NotebookSurfaces(background: background, border: border, muted: muted)
     ],
-    scaffoldBackgroundColor: background,
+    scaffoldBackgroundColor: hasBackground ? Colors.transparent : background,
     textTheme: base.textTheme.copyWith(
         bodyLarge:
             base.textTheme.bodyLarge?.copyWith(fontSize: 16, height: 1.6),
         bodyMedium:
             base.textTheme.bodyMedium?.copyWith(fontSize: 14, height: 1.5)),
     appBarTheme: AppBarTheme(
-        backgroundColor: background,
+        backgroundColor:
+            hasBackground ? surface.withValues(alpha: .96) : background,
         foregroundColor: text,
         surfaceTintColor: Colors.transparent,
         elevation: 0,
         centerTitle: false,
         titleTextStyle:
-            TextStyle(fontSize: 22, fontWeight: FontWeight.w700, color: text)),
+            base.textTheme.titleLarge?.copyWith(fontSize: 22, fontWeight: FontWeight.w700, color: text)),
     cardTheme: CardThemeData(
         color: surface,
         surfaceTintColor: Colors.transparent,
@@ -113,12 +121,14 @@ ThemeData buildAppTheme(
         style: FilledButton.styleFrom(
             minimumSize: const Size(48, 48),
             shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10)))),
+                borderRadius:
+                    BorderRadius.circular(material == 'candy' ? 18 : 10)))),
     outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
             minimumSize: const Size(48, 48),
             shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10)))),
+                borderRadius:
+                    BorderRadius.circular(material == 'candy' ? 18 : 10)))),
     textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(minimumSize: const Size(48, 48))),
     iconButtonTheme: IconButtonThemeData(
@@ -135,7 +145,9 @@ ThemeData buildAppTheme(
             borderRadius: BorderRadius.vertical(top: Radius.circular(20)))),
     snackBarTheme: SnackBarThemeData(
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))),
+        shape: RoundedRectangleBorder(
+            borderRadius:
+                BorderRadius.circular(material == 'candy' ? 18 : 10))),
     pageTransitionsTheme: const PageTransitionsTheme(builders: {
       TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
       TargetPlatform.macOS: CupertinoPageTransitionsBuilder()

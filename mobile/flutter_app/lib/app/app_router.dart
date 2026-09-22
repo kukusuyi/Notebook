@@ -44,8 +44,9 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state, child) {
           return AppShell(
             currentLocation: state.uri.path,
-            tabNavigationIntent:
-                state.extra is TabNavigationIntent ? state.extra as TabNavigationIntent : null,
+            tabNavigationIntent: state.extra is TabNavigationIntent
+                ? state.extra as TabNavigationIntent
+                : null,
             child: child,
           );
         },

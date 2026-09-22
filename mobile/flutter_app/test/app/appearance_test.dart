@@ -22,13 +22,18 @@ void main() {
     expect(first.read(appearanceProvider).accentSeed, '#123456');
     await first
         .read(appearanceProvider.notifier)
-        .update(preset: 'paper', mode: 'dark');
+        .update(preset: 'paper', mode: 'dark', material:'glass',font:'serif',background:'data:image/png;base64,aGVsbG8=');
     first.dispose();
     final second = container();
     expect(second.read(appearanceProvider).preset, 'paper');
     expect(second.read(appearanceProvider).mode, 'dark');
+    expect(second.read(appearanceProvider).material, 'glass');
+    expect(second.read(appearanceProvider).font, 'serif');
+    expect(second.read(appearanceProvider).background, isNotNull);
     await second.read(appearanceProvider.notifier).reset();
     expect(second.read(appearanceProvider).accentSeed, isNull);
+    expect(second.read(appearanceProvider).background, isNull);
+    expect(AppearancePreferences.fromJson({'background':'https://invalid/image.png'}).background,isNull);
     expect(prefs.getString(StorageKeys.apiBaseUrl), 'http://computer:8080');
     second.dispose();
   });

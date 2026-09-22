@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import '../../core/network/server_capabilities.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
@@ -95,7 +96,8 @@ class _QuestionUploadPageState extends ConsumerState<QuestionUploadPage> {
                     Container(
                       height: 220,
                       decoration: BoxDecoration(
-                        color: const Color(0xFFE7F1EC),
+                        color:
+                            Theme.of(context).colorScheme.surfaceContainerLow,
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: const Center(
@@ -107,15 +109,20 @@ class _QuestionUploadPageState extends ConsumerState<QuestionUploadPage> {
             ),
           ),
           const SizedBox(height: 16),
+          if (ref
+                  .watch(serverCapabilitiesProvider)
+                  .valueOrNull?['ocr_enabled'] ==
+              true)
+            FilledButton.tonal(
+              onPressed: _submitting ? null : () => _uploadAndRecognize(),
+              child: Text(_submitting ? '上传并识别中...' : '上传并开始 OCR'),
+            ),
+          const SizedBox(height: 12),
           FilledButton(
-            onPressed: _submitting ? null : () => _uploadAndRecognize(),
-            child: Text(_submitting ? '上传并识别中...' : '上传并开始 OCR'),
-          ),
-          TextButton(
               onPressed: _submitting
                   ? null
                   : () => _uploadAndRecognize(recognize: false),
-              child: const Text('仅上传图片，手动录题')),
+              child: Text(_submitting ? '正在上传…' : '上传并整理内容')),
         ],
       ),
     );
@@ -206,6 +213,7 @@ class _QuestionUploadPageState extends ConsumerState<QuestionUploadPage> {
   }
 
   Future<void> _uploadAndRecognize({bool recognize = true}) async {
+    if (_submitting) return;
     final selectedImage = _selectedImage;
     if (selectedImage == null) {
       _showMessage('请先选择图片');

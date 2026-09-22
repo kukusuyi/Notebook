@@ -4,7 +4,8 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/network/api_exception.dart';
 import '../../shared/models/question_models.dart';
-import '../../shared/widgets/ai_model_selector_card.dart';
+import '../../shared/widgets/analysis_picker.dart';
+import '../../shared/models/common_models.dart';
 import '../../shared/widgets/latex_review_field.dart';
 import '../../shared/widgets/remote_image_card.dart';
 import '../question_create/question_draft_controller.dart';
@@ -150,7 +151,8 @@ class _OcrReviewPageState extends ConsumerState<OcrReviewPage> {
                               _updateChapter(value ?? '');
                             },
                           ),
-                          if (snapshot.connectionState == ConnectionState.waiting)
+                          if (snapshot.connectionState ==
+                              ConnectionState.waiting)
                             const Padding(
                               padding: EdgeInsets.only(top: 8),
                               child: LinearProgressIndicator(minHeight: 2),
@@ -178,38 +180,39 @@ class _OcrReviewPageState extends ConsumerState<OcrReviewPage> {
             ),
           ),
           const SizedBox(height: 16),
-          AIModelSelectorCard(
-            providerName: draft.providerName,
-            modelName: draft.modelName,
-            title: '选择分析模型',
-            description: 'OCR 内容确认无误后，选择下一步用于错误分析的模型。',
-            onProviderChanged: (value) {
-              final current = ref.read(questionDraftControllerProvider);
-              ref
-                  .read(questionDraftControllerProvider.notifier)
-                  .updateAIModelSelection(
-                    providerName: value,
-                    modelName: current?.modelName ?? '',
-                  );
-            },
-            onModelChanged: (value) {
-              final current = ref.read(questionDraftControllerProvider);
-              ref
-                  .read(questionDraftControllerProvider.notifier)
-                  .updateAIModelSelection(
-                    providerName: current?.providerName ?? '',
-                    modelName: value,
-                  );
-            },
-          ),
           const SizedBox(height: 16),
           FilledButton(
-            onPressed: _submitting ? null : _analyze,
-            child: Text(_submitting ? '分析中...' : '继续 AI 分析'),
+              onPressed: _submitting ? null : _continueEditing,
+              child: const Text('确认并整理内容')),
+          const SizedBox(height: 12),
+          FilledButton(
+            onPressed: _submitting
+                ? null
+                : () async {
+                    if (await showAnalysisPicker(context) && mounted)
+                      await _analyze();
+                  },
+            child: Text(_submitting ? '分析中...' : 'AI 辅助分析'),
           ),
         ],
       ),
     );
+  }
+
+  void _continueEditing() {
+    final controller = ref.read(questionDraftControllerProvider.notifier);
+    final draft = ref.read(questionDraftControllerProvider)!;
+    controller.updateBasicFields(
+        subject: draft.subject,
+        chapter: draft.chapter,
+        questionJson: QuestionJson(
+            questionCore: _questionCoreController.text,
+            standardSolution: _standardSolutionController.text,
+            wrongSolution: _wrongSolutionController.text),
+        flowMode: DraftFlowMode.manual,
+        sourceType: SourceType.image);
+    controller.markStatus(DraftStatus.draft);
+    context.go('/questions/create');
   }
 
   void _hydrateIfNeeded(QuestionDraft? draft) {

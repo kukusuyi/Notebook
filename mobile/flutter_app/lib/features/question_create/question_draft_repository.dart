@@ -36,7 +36,24 @@ class QuestionDraftRepository {
     );
   }
 
+  Future<void> saveAnalysisSnapshot(QuestionDraft draft) async {
+    if (_store.readString('$_key:before-analysis') == null)
+      await _store.writeString(
+          '$_key:before-analysis', jsonEncode(draft.toJson()));
+  }
+
+  QuestionDraft? readAnalysisSnapshot() {
+    final raw = _store.readString('$_key:before-analysis');
+    if (raw == null) return null;
+    return QuestionDraft.fromJson(jsonDecode(raw));
+  }
+
+  Future<void> clearAnalysisSnapshot() async {
+    await _store.remove('$_key:before-analysis');
+  }
+
   Future<void> clearDraft() async {
+    await clearAnalysisSnapshot();
     await _store.remove(_key);
   }
 }

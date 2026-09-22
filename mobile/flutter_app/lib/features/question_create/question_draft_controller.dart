@@ -87,8 +87,21 @@ class QuestionDraftController extends Notifier<QuestionDraft?> {
     );
   }
 
+  Future<void> discardAnalysis() async {
+    await flush();
+    final repository = ref.read(questionDraftRepositoryProvider);
+    final old = repository.readAnalysisSnapshot();
+    if (old != null)
+      _commit(old.copyWith(
+          status: DraftStatus.draft, flowMode: DraftFlowMode.manual));
+    await repository.clearAnalysisSnapshot();
+    await flush();
+  }
+
   void applyAiAnalysis(AnalyzeWrongQuestionResponse response) {
     final current = state ?? QuestionDraft.emptyManual();
+    final repository = ref.read(questionDraftRepositoryProvider);
+    _enqueuePersistence(() => repository.saveAnalysisSnapshot(current));
 
     _commit(
       current.copyWith(

@@ -17,7 +17,8 @@ class SimilarQuestionPage extends ConsumerStatefulWidget {
   final int questionId;
 
   @override
-  ConsumerState<SimilarQuestionPage> createState() => _SimilarQuestionPageState();
+  ConsumerState<SimilarQuestionPage> createState() =>
+      _SimilarQuestionPageState();
 }
 
 class _SimilarQuestionPageState extends ConsumerState<SimilarQuestionPage> {
@@ -104,7 +105,8 @@ class _SimilarQuestionPageState extends ConsumerState<SimilarQuestionPage> {
                           ),
                         ),
                         trailing: const Icon(Icons.chevron_right),
-                        onTap: () => context.push('/questions/${item.questionId}'),
+                        onTap: () =>
+                            context.push('/questions/${item.questionId}'),
                       ),
                     ),
                     const SizedBox(height: 12),

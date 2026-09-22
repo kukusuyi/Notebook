@@ -284,7 +284,6 @@ class _QuestionListPageState extends ConsumerState<QuestionListPage> {
 }
 
 class _QuestionListCard extends StatelessWidget {
-
   const _QuestionListCard({
     required this.item,
     required this.selected,
@@ -385,7 +384,7 @@ class _FilterSummaryCard extends StatelessWidget {
                   .map(
                     (item) => DecoratedBox(
                       decoration: BoxDecoration(
-                        color: const Color(0xFFEAF7F2),
+                        color: Theme.of(context).colorScheme.primaryContainer,
                         borderRadius: BorderRadius.circular(999),
                       ),
                       child: Padding(

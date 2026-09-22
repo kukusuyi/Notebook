@@ -46,11 +46,12 @@ class AppEnvironment {
       defaultValue: 'dev',
     );
 
-    if (kReleaseMode)
+    if (kReleaseMode) {
       return const AppEnvironment(
           flavor: 'production',
           defaultApiBaseUrl: '',
           defaultApiBaseUrlSource: '请填写电脑上显示的局域网地址');
+    }
     final fileConfig = await _loadConfigFromAsset(actualConfigAssetPath);
     if (fileConfig != null && fileConfig.apiBaseUrl.trim().isNotEmpty) {
       return AppEnvironment(
@@ -111,11 +112,12 @@ Future<AppEnvironment> _loadRuntimeFallback(String flavor) async {
     );
   }
 
-  if (kReleaseMode)
+  if (kReleaseMode) {
     return AppEnvironment(
         flavor: flavor,
         defaultApiBaseUrl: '',
         defaultApiBaseUrlSource: '请填写电脑上显示的局域网地址');
+  }
   final runtimeFallback = await _resolveRuntimeFallback();
   return AppEnvironment(
     flavor: flavor,

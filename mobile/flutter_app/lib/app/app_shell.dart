@@ -1,25 +1,16 @@
 import 'dart:math' as math;
 import 'dart:ui';
 
-import 'package:device_info_plus/device_info_plus.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../features/question_create/question_draft_controller.dart';
 import '../shared/models/question_models.dart';
-import '../shared/utils/draft_navigation.dart';
 import 'tab_navigation_intent.dart';
-
-final _iosMajorVersionProvider = FutureProvider<int?>((ref) async {
-  if (kIsWeb || defaultTargetPlatform != TargetPlatform.iOS) {
-    return null;
-  }
-
-  final info = await DeviceInfoPlugin().iosInfo;
-  return int.tryParse(info.systemVersion.split('.').first);
-});
+import 'appearance.dart';
+import '../shared/widgets/new_question_sheet.dart';
 
 class AppShell extends ConsumerWidget {
   const AppShell({
@@ -36,18 +27,23 @@ class AppShell extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final draft = ref.watch(questionDraftControllerProvider);
-    final platform = Theme.of(context).platform;
+    final topLevel = ['/dashboard', '/questions', '/tags', '/settings']
+        .contains(currentLocation);
+    final body = LayoutBuilder(
+        builder: (context, constraints) => Align(
+            alignment: Alignment.topCenter,
+            child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 1100),
+                child: child)));
+    if (!topLevel) return body;
     final mediaQuery = MediaQuery.of(context);
     final useLiquidGlassTabBar =
-        platform == TargetPlatform.iOS &&
-        ref.watch(_iosMajorVersionProvider).maybeWhen(
-              data: (major) => (major ?? 0) >= 26,
-              loading: () => true,
-              orElse: () => false,
-            );
-    final bodyBottomInset = useLiquidGlassTabBar
-        ? _liquidTabBarReservedHeight(mediaQuery)
-        : 0.0;
+        ref.watch(appearanceProvider).material == 'glass' &&
+            !mediaQuery.disableAnimations &&
+            !mediaQuery.highContrast &&
+            !mediaQuery.accessibleNavigation;
+    final bodyBottomInset =
+        useLiquidGlassTabBar ? _liquidTabBarReservedHeight(mediaQuery) : 0.0;
     final selectedIndex = _selectedIndex();
     final destinations = _destinations;
     final allowTabBarHorizontalSwipe = useLiquidGlassTabBar;
@@ -56,6 +52,13 @@ class AppShell extends ConsumerWidget {
 
     return Scaffold(
       extendBody: useLiquidGlassTabBar,
+      floatingActionButton:
+          ['/dashboard', '/questions'].contains(currentLocation)
+              ? FloatingActionButton.extended(
+                  onPressed: () => showNewQuestionSheet(context, ref),
+                  icon: const Icon(Icons.add),
+                  label: const Text('新增错题'))
+              : null,
       body: _ShellBodyTransition(
         currentLocation: currentLocation,
         tabNavigationIntent: tabNavigationIntent,
@@ -67,7 +70,7 @@ class AppShell extends ConsumerWidget {
           selectedIndex,
           delta,
         ),
-        child: child,
+        child: body,
       ),
       bottomNavigationBar: useLiquidGlassTabBar
           ? _IosLiquidGlassTabBar(
@@ -107,8 +110,7 @@ class AppShell extends ConsumerWidget {
     final route = switch (index) {
       0 => '/dashboard',
       1 => '/questions',
-      2 => hasActiveDraft(draft) ? routeForDraft(draft!) : '/questions/create',
-      3 => '/tags',
+      2 => '/tags',
       _ => '/settings',
     };
     context.go(
@@ -136,15 +138,9 @@ class AppShell extends ConsumerWidget {
 
   int _selectedIndex() {
     if (currentLocation.startsWith('/settings')) {
-      return 4;
-    }
-    if (currentLocation.startsWith('/tags')) {
       return 3;
     }
-    if (currentLocation.startsWith('/questions/create') ||
-        currentLocation.startsWith('/questions/upload') ||
-        currentLocation.startsWith('/questions/ocr-review') ||
-        currentLocation.startsWith('/questions/ai-review')) {
+    if (currentLocation.startsWith('/tags')) {
       return 2;
     }
     if (currentLocation.startsWith('/questions')) {
@@ -214,7 +210,7 @@ class _ShellBodyTransitionState extends State<_ShellBodyTransition>
     super.didUpdateWidget(oldWidget);
 
     final intent = widget.tabNavigationIntent;
-    final shouldAnimate =
+    final shouldAnimate = !MediaQuery.disableAnimationsOf(context) &&
         !kIsWeb &&
         defaultTargetPlatform == TargetPlatform.iOS &&
         intent != null &&
@@ -250,8 +246,7 @@ class _ShellBodyTransitionState extends State<_ShellBodyTransition>
   Widget build(BuildContext context) {
     final incomingChild = _incomingChild;
     final outgoingChild = _outgoingChild;
-    final swipeEnabled =
-        widget.allowHorizontalTabSwipe &&
+    final swipeEnabled = widget.allowHorizontalTabSwipe &&
         incomingChild == null &&
         outgoingChild == null;
 
@@ -332,7 +327,7 @@ class _ShellBodyInset extends StatelessWidget {
 
 const _destinations = <_ShellDestination>[
   _ShellDestination(
-    label: '首页',
+    label: '概览',
     icon: Icons.home_outlined,
     selectedIcon: Icons.home_rounded,
   ),
@@ -342,17 +337,12 @@ const _destinations = <_ShellDestination>[
     selectedIcon: Icons.menu_book_rounded,
   ),
   _ShellDestination(
-    label: '录入',
-    icon: Icons.edit_note_outlined,
-    selectedIcon: Icons.edit_note_rounded,
-  ),
-  _ShellDestination(
     label: '标签',
     icon: Icons.sell_outlined,
     selectedIcon: Icons.sell_rounded,
   ),
   _ShellDestination(
-    label: '设置',
+    label: '我的',
     icon: Icons.settings_outlined,
     selectedIcon: Icons.settings_rounded,
   ),
@@ -418,13 +408,14 @@ class _IosLiquidGlassTabBar extends StatelessWidget {
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
                     colors: [
-                      Colors.white.withOpacity(0.70),
-                      Colors.white.withOpacity(0.42),
+                      Theme.of(context).colorScheme.surface.withOpacity(0.70),
+                      Theme.of(context).colorScheme.surface.withOpacity(0.42),
                     ],
                   ),
                   borderRadius: BorderRadius.circular(28),
                   border: Border.all(
-                    color: Colors.white.withOpacity(0.68),
+                    color:
+                        Theme.of(context).colorScheme.surface.withOpacity(0.68),
                     width: 0.9,
                   ),
                 ),
@@ -432,8 +423,8 @@ class _IosLiquidGlassTabBar extends StatelessWidget {
                   padding: const EdgeInsets.fromLTRB(10, 8, 10, 10),
                   child: LayoutBuilder(
                     builder: (context, constraints) {
-                      final itemWidth =
-                          (constraints.maxWidth - ((destinations.length - 1) * 8)) /
+                      final itemWidth = (constraints.maxWidth -
+                              ((destinations.length - 1) * 8)) /
                           destinations.length;
 
                       return Stack(
@@ -448,9 +439,18 @@ class _IosLiquidGlassTabBar extends StatelessWidget {
                                 decoration: BoxDecoration(
                                   gradient: LinearGradient(
                                     colors: [
-                                      Colors.white.withOpacity(0.0),
-                                      Colors.white.withOpacity(0.88),
-                                      Colors.white.withOpacity(0.0),
+                                      Theme.of(context)
+                                          .colorScheme
+                                          .surface
+                                          .withOpacity(0.0),
+                                      Theme.of(context)
+                                          .colorScheme
+                                          .surface
+                                          .withOpacity(0.88),
+                                      Theme.of(context)
+                                          .colorScheme
+                                          .surface
+                                          .withOpacity(0.0),
                                     ],
                                   ),
                                 ),
@@ -472,12 +472,16 @@ class _IosLiquidGlassTabBar extends StatelessWidget {
                           ),
                           Row(
                             children: [
-                              for (var index = 0; index < destinations.length; index++)
+                              for (var index = 0;
+                                  index < destinations.length;
+                                  index++)
                                 Expanded(
                                   child: Padding(
                                     padding: EdgeInsets.only(
                                       left: index == 0 ? 0 : 4,
-                                      right: index == destinations.length - 1 ? 0 : 4,
+                                      right: index == destinations.length - 1
+                                          ? 0
+                                          : 4,
                                     ),
                                     child: _IosLiquidGlassTabItem(
                                       destination: destinations[index],
@@ -584,14 +588,14 @@ class _IosLiquidSelectionCapsule extends StatelessWidget {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            Colors.white.withOpacity(0.72),
+            Theme.of(context).colorScheme.surface.withOpacity(0.72),
             colorScheme.primaryContainer.withOpacity(0.68),
             colorScheme.secondaryContainer.withOpacity(0.52),
           ],
           stops: const [0.0, 0.52, 1.0],
         ),
         border: Border.all(
-          color: Colors.white.withOpacity(0.78),
+          color: Theme.of(context).colorScheme.surface.withOpacity(0.78),
           width: 0.8,
         ),
         boxShadow: [
@@ -617,8 +621,8 @@ class _IosLiquidSelectionCapsule extends StatelessWidget {
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                   colors: [
-                    Colors.white.withOpacity(0.82),
-                    Colors.white.withOpacity(0.0),
+                    Theme.of(context).colorScheme.surface.withOpacity(0.82),
+                    Theme.of(context).colorScheme.surface.withOpacity(0.0),
                   ],
                 ),
               ),
@@ -634,8 +638,8 @@ class _IosLiquidSelectionCapsule extends StatelessWidget {
                 shape: BoxShape.circle,
                 gradient: RadialGradient(
                   colors: [
-                    Colors.white.withOpacity(0.72),
-                    Colors.white.withOpacity(0.0),
+                    Theme.of(context).colorScheme.surface.withOpacity(0.72),
+                    Theme.of(context).colorScheme.surface.withOpacity(0.0),
                   ],
                 ),
               ),
@@ -678,7 +682,9 @@ class _IosLiquidGlassTabItem extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(22),
-              color: selected ? Colors.transparent : Colors.white.withOpacity(0.08),
+              color: selected
+                  ? Colors.transparent
+                  : Theme.of(context).colorScheme.surface.withOpacity(0.08),
             ),
             child: Column(
               mainAxisSize: MainAxisSize.min,

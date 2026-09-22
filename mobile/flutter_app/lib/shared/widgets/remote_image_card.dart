@@ -50,7 +50,7 @@ class RemoteImageCard extends ConsumerWidget {
                     return Container(
                       height: height,
                       width: double.infinity,
-                      color: const Color(0xFFE9EEEA),
+                      color: Theme.of(context).colorScheme.surfaceContainerHighest,
                       padding: const EdgeInsets.all(20),
                       alignment: Alignment.center,
                       child: Column(
@@ -82,21 +82,21 @@ class RemoteImageCard extends ConsumerWidget {
                   color: Colors.black.withValues(alpha: 0.55),
                   borderRadius: BorderRadius.circular(999),
                 ),
-                child: const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Icon(
                         Icons.zoom_in_outlined,
-                        color: Colors.white,
+                        color: Theme.of(context).colorScheme.surface,
                         size: 16,
                       ),
-                      SizedBox(width: 6),
+                      const SizedBox(width: 6),
                       Text(
                         '点击预览',
                         style: TextStyle(
-                          color: Colors.white,
+                          color: Theme.of(context).colorScheme.surface,
                           fontSize: 12,
                           fontWeight: FontWeight.w600,
                         ),

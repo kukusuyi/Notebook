@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -45,11 +46,37 @@ class _AppState extends ConsumerState<App> {
       title: '题迹 Notebook',
       debugShowCheckedModeBanner: false,
       theme: buildAppTheme(
-          seedColor: appearance.accentColor, preset: appearance.preset),
+          seedColor: appearance.accentColor,
+          preset: appearance.preset,
+          material: appearance.material,
+          font: appearance.font,
+          hasBackground: appearance.background != null),
       darkTheme: buildAppTheme(
           seedColor: appearance.accentColor,
           preset: appearance.preset,
+          material: appearance.material,
+          font: appearance.font,
+          hasBackground: appearance.background != null,
           brightness: Brightness.dark),
+      builder: (context, child) {
+        final surfaces = Theme.of(context).extension<NotebookSurfaces>()!;
+        final background = appearance.background;
+        return ColoredBox(
+            color: surfaces.background,
+            child: Stack(fit: StackFit.expand, children: [
+              if (background != null && !MediaQuery.highContrastOf(context))
+                Positioned.fill(
+                    child: ExcludeSemantics(
+                        child: Opacity(
+                            opacity: .25,
+                            child: Image.memory(
+                                base64Decode(background.split(',').last),
+                                fit: BoxFit.cover,
+                                errorBuilder: (_, __, ___) =>
+                                    const SizedBox.shrink())))),
+              if (child != null) child,
+            ]));
+      },
       themeMode: appearance.themeMode,
       scrollBehavior: const AppScrollBehavior(),
       routerConfig: router,

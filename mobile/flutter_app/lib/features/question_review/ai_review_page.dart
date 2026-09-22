@@ -64,7 +64,7 @@ class _AiReviewPageState extends ConsumerState<AiReviewPage> {
         actions: [
           IconButton(
             icon: const Icon(Icons.delete_outline),
-            tooltip: '丢弃草稿',
+            tooltip: '放弃分析建议，返回编辑',
             onPressed: () => _confirmDiscard(),
           ),
         ],
@@ -265,27 +265,8 @@ class _AiReviewPageState extends ConsumerState<AiReviewPage> {
     );
   }
 
-  void _confirmDiscard() {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('丢弃草稿'),
-        content: const Text('确定要丢弃当前草稿吗？丢弃后无法恢复。'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text('取消'),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.of(ctx).pop();
-              ref.read(questionDraftControllerProvider.notifier).clear();
-              context.go('/dashboard');
-            },
-            child: const Text('确定丢弃'),
-          ),
-        ],
-      ),
-    );
+  Future<void> _confirmDiscard() async {
+    await ref.read(questionDraftControllerProvider.notifier).discardAnalysis();
+    if (mounted) context.go('/questions/create');
   }
 }

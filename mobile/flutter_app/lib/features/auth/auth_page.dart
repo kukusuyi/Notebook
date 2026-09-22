@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/config/effective_api_base_url.dart';
 import '../../core/storage/app_settings_controller.dart';
 import '../../core/config/app_environment.dart';
+import '../../core/network/server_capabilities.dart';
 import '../../shared/models/auth_models.dart';
 import 'auth_controller.dart';
 
@@ -21,7 +22,9 @@ class _AuthPageState extends ConsumerState<AuthPage> {
   final _emailController = TextEditingController();
   final _apiUrlController = TextEditingController();
   bool _registerMode = false;
-  bool _apiUrlExpanded = true;
+  bool _apiUrlExpanded = false;
+  bool _connecting = false;
+  String? _connectionError;
   bool _apiUrlHydrated = false;
   String? _lastShownErrorMessage;
 
@@ -55,228 +58,130 @@ class _AuthPageState extends ConsumerState<AuthPage> {
   Widget build(BuildContext context) {
     final authState = ref.watch(authControllerProvider);
     final environment = ref.watch(appEnvironmentProvider);
-    final apiBaseUrl = ref.watch(
-      appSettingsControllerProvider.select((state) => state.apiBaseUrlOverride),
-    );
-    final effectiveApiBaseUrl = ref.watch(effectiveApiBaseUrlProvider);
-
-    return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              Color(0xFFE0F4EC),
-              Color(0xFFF4F7F2),
-            ],
-          ),
-        ),
-        child: SafeArea(
-          child: Center(
-            child: SingleChildScrollView(
-              keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-              padding: const EdgeInsets.all(24),
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 480),
-                child: Card(
-                  child: Padding(
-                    padding: const EdgeInsets.all(24),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          '题迹 Notebook',
-                          style: Theme.of(context)
-                              .textTheme
-                              .headlineMedium
-                              ?.copyWith(
-                                fontWeight: FontWeight.w800,
-                              ),
-                        ),
-                        const SizedBox(height: 8),
-                        const SizedBox(height: 24),
-                        TextFormField(
-                          controller: _usernameController,
-                          decoration: const InputDecoration(
-                            labelText: '用户名',
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        if (_registerMode) ...[
-                          TextFormField(
-                            controller: _emailController,
-                            decoration: const InputDecoration(
-                              labelText: '邮箱',
-                            ),
-                          ),
-                          const SizedBox(height: 12),
-                        ],
-                        TextFormField(
-                          controller: _passwordController,
-                          obscureText: true,
-                          decoration: const InputDecoration(
-                            labelText: '密码',
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: FilledButton(
-                                onPressed:
-                                    authState.isSubmitting ? null : _submit,
-                                child: Text(
-                                  authState.isSubmitting
-                                      ? '提交中...'
-                                      : (_registerMode ? '注册并进入' : '登录'),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                        if ((authState.errorMessage ?? '')
-                            .trim()
-                            .isNotEmpty) ...[
-                          const SizedBox(height: 12),
-                          _AuthErrorMessage(
-                              message: authState.errorMessage!.trim()),
-                        ],
-                        const SizedBox(height: 8),
-                        TextButton(
-                          onPressed: authState.isSubmitting
-                              ? null
-                              : () {
-                                  setState(() {
-                                    _registerMode = !_registerMode;
-                                  });
-                                },
-                          child: Text(
-                            _registerMode ? '已有账号，去登录' : '没有账号，先注册',
-                          ),
-                        ),
-                        const Divider(height: 32),
-                        _buildApiUrlSection(
-                          context,
-                          environment,
-                          apiBaseUrl,
-                          effectiveApiBaseUrl,
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildApiUrlSection(
-    BuildContext context,
-    AppEnvironment environment,
-    String apiBaseUrl,
-    String effectiveApiBaseUrl,
-  ) {
-    final theme = Theme.of(context);
-    final apiLabel = effectiveApiBaseUrl.isEmpty ? '未配置' : effectiveApiBaseUrl;
-
-    if (!_apiUrlExpanded) {
-      return InkWell(
-        onTap: () => setState(() => _apiUrlExpanded = true),
-        borderRadius: BorderRadius.circular(8),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8),
-          child: Row(
-            children: [
-              Icon(
-                Icons.link,
-                size: 16,
-                color: theme.colorScheme.primary,
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'API 地址：$apiLabel',
-                      style: theme.textTheme.bodySmall,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      apiBaseUrl.isEmpty
-                          ? '来源：${environment.defaultApiBaseUrlSource}'
-                          : '已覆盖',
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
-                        fontSize: 11,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Icon(
-                Icons.chevron_right,
-                size: 18,
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
-            ],
-          ),
-        ),
-      );
-    }
-
+    final apiBaseUrl =
+        ref.watch(appSettingsControllerProvider).apiBaseUrlOverride;
+    final effective = ref.watch(effectiveApiBaseUrlProvider);
+    final connecting = effective.isEmpty || _apiUrlExpanded;
     _hydrateApiUrlIfNeeded(environment.defaultApiBaseUrl, apiBaseUrl);
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Icon(
-              Icons.link,
-              size: 16,
-              color: theme.colorScheme.primary,
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Text(
-                'API 地址配置',
-                style: theme.textTheme.labelLarge,
-              ),
-            ),
-            IconButton(
-              onPressed: () => setState(() => _apiUrlExpanded = false),
-              icon: const Icon(Icons.keyboard_arrow_up, size: 20),
-              visualDensity: VisualDensity.compact,
-              padding: EdgeInsets.zero,
-              constraints: const BoxConstraints(),
-            ),
-          ],
-        ),
-        const SizedBox(height: 8),
-        TextFormField(
-          controller: _apiUrlController,
-          decoration: const InputDecoration(
-            labelText: 'API Base URL',
-            hintText: 'http://192.168.x.x:8080',
-            isDense: true,
-          ),
-          style: theme.textTheme.bodySmall,
-        ),
-        const SizedBox(height: 8),
-        FilledButton(
-          onPressed: () => _saveApiUrl(environment.defaultApiBaseUrl),
-          child: const Text('保存地址'),
-        ),
-        const SizedBox(height: 4),
-      ],
-    );
+    final registration = effective.isNotEmpty &&
+        ref
+                .watch(serverCapabilitiesProvider)
+                .valueOrNull?['registration_enabled'] ==
+            true;
+    return Scaffold(
+        body: SafeArea(
+            child: Center(
+                child: SingleChildScrollView(
+      keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+      padding: const EdgeInsets.all(24),
+      child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 460),
+          child: Card(
+              child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: AutofillGroup(
+                      child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                        Icon(Icons.auto_stories_outlined,
+                            size: 36,
+                            color: Theme.of(context).colorScheme.primary),
+                        const SizedBox(height: 20),
+                        Text('题迹 Notebook',
+                            style: Theme.of(context)
+                                .textTheme
+                                .headlineMedium
+                                ?.copyWith(fontWeight: FontWeight.w700)),
+                        const SizedBox(height: 8),
+                        Text(connecting ? '连接你的电脑，开始整理错题。' : '欢迎回来，继续你的学习。'),
+                        const SizedBox(height: 28),
+                        if (connecting) ...[
+                          TextField(
+                              controller: _apiUrlController,
+                              keyboardType: TextInputType.url,
+                              autocorrect: false,
+                              decoration: InputDecoration(
+                                  labelText: '电脑服务地址',
+                                  hintText: 'http://192.168.1.10:8080',
+                                  errorText: _connectionError)),
+                          const SizedBox(height: 12),
+                          const Text('打开电脑上的题迹，在“电脑连接”中找到局域网地址。手机与电脑需连接同一网络。'),
+                          const SizedBox(height: 20),
+                          SizedBox(
+                              width: double.infinity,
+                              child: FilledButton(
+                                  onPressed: _connecting
+                                      ? null
+                                      : () => _saveApiUrl(
+                                          environment.defaultApiBaseUrl),
+                                  child:
+                                      Text(_connecting ? '正在验证连接…' : '连接电脑'))),
+                          if (effective.isNotEmpty)
+                            TextButton(
+                                onPressed: () =>
+                                    setState(() => _apiUrlExpanded = false),
+                                child: const Text('返回登录')),
+                        ] else ...[
+                          ListTile(
+                              contentPadding: EdgeInsets.zero,
+                              leading: const Icon(Icons.computer_outlined),
+                              title: const Text('当前电脑'),
+                              subtitle: Text(effective),
+                              trailing: TextButton(
+                                  onPressed: () =>
+                                      setState(() => _apiUrlExpanded = true),
+                                  child: const Text('更换'))),
+                          const SizedBox(height: 16),
+                          TextFormField(
+                              controller: _usernameController,
+                              autofillHints: const [AutofillHints.username],
+                              decoration:
+                                  const InputDecoration(labelText: '用户名')),
+                          const SizedBox(height: 16),
+                          if (_registerMode) ...[
+                            TextFormField(
+                                controller: _emailController,
+                                keyboardType: TextInputType.emailAddress,
+                                autofillHints: const [AutofillHints.email],
+                                decoration:
+                                    const InputDecoration(labelText: '邮箱')),
+                            const SizedBox(height: 16)
+                          ],
+                          TextFormField(
+                              controller: _passwordController,
+                              obscureText: true,
+                              autofillHints: const [AutofillHints.password],
+                              decoration:
+                                  const InputDecoration(labelText: '密码'),
+                              onFieldSubmitted: (_) => _submit()),
+                          const SizedBox(height: 20),
+                          if ((authState.errorMessage ?? '').isNotEmpty)
+                            Padding(
+                                padding: const EdgeInsets.only(bottom: 16),
+                                child: Text(authState.errorMessage!,
+                                    style: TextStyle(
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .error))),
+                          SizedBox(
+                              width: double.infinity,
+                              child: FilledButton(
+                                  onPressed:
+                                      authState.isSubmitting ? null : _submit,
+                                  child: Text(authState.isSubmitting
+                                      ? '正在登录…'
+                                      : _registerMode
+                                          ? '创建账户'
+                                          : '登录'))),
+                          if (registration)
+                            TextButton(
+                                onPressed: () => setState(
+                                    () => _registerMode = !_registerMode),
+                                child:
+                                    Text(_registerMode ? '已有账户，去登录' : '创建新账户')),
+                        ],
+                      ]))))),
+    ))));
   }
 
   void _hydrateApiUrlIfNeeded(String defaultBaseUrl, String overrideBaseUrl) {
@@ -287,22 +192,24 @@ class _AuthPageState extends ConsumerState<AuthPage> {
   }
 
   Future<void> _saveApiUrl(String defaultBaseUrl) async {
-    final raw = _apiUrlController.text.trim();
-    final nextValue = raw;
+    if (_connecting) return;
+    setState(() {
+      _connecting = true;
+      _connectionError = null;
+    });
     try {
       await ref
           .read(appSettingsControllerProvider.notifier)
-          .setApiBaseUrlOverride(nextValue);
-    } catch (e) {
-      if (mounted) _showMessage('连接失败：$e');
-      return;
-    }
-
-    if (mounted) {
-      _apiUrlHydrated = false;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('API 地址已保存，重新生效中')),
-      );
+          .setApiBaseUrlOverride(_apiUrlController.text.trim());
+      if (mounted)
+        setState(() {
+          _apiUrlExpanded = false;
+          _apiUrlHydrated = false;
+        });
+    } catch (_) {
+      if (mounted) setState(() => _connectionError = '连接失败，请检查电脑地址、程序和网络。');
+    } finally {
+      if (mounted) setState(() => _connecting = false);
     }
   }
 
@@ -356,34 +263,5 @@ class _AuthPageState extends ConsumerState<AuthPage> {
           behavior: SnackBarBehavior.floating,
         ),
       );
-  }
-}
-
-class _AuthErrorMessage extends StatelessWidget {
-  const _AuthErrorMessage({
-    required this.message,
-  });
-
-  final String message;
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-      decoration: BoxDecoration(
-        color: colorScheme.errorContainer,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Text(
-        message,
-        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: colorScheme.onErrorContainer,
-              fontWeight: FontWeight.w600,
-            ),
-      ),
-    );
   }
 }
