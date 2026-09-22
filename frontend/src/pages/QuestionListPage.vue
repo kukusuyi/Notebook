@@ -109,7 +109,7 @@
                     v-if="isMobile || questionStore.preferredListView === 'card'"
                     class="card-grid"
                 >
-                    <QuestionCard
+                    <QuestionCard selectable
                         v-for="item in list"
                         :key="item.question_id"
                         :item="item" :preview="wide" @open="openQuestion(item.question_id)"

@@ -580,6 +580,6 @@ onMounted(loadData);
     }
 }
 
-.stats-grid .stat-card{text-align:left;color:var(--text-main);font:inherit}.insight-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.distribution-fill{background:var(--primary)}
+.tag-rank-grid,.tag-list{align-items:start;align-content:start}.stats-grid .stat-card{text-align:left;color:var(--text-main);font:inherit}.insight-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.distribution-fill{background:var(--primary)}
 @media(max-width:767px){.stat-card:nth-child(n+4){display:none}.stat-card:nth-child(3){grid-column:span 2}.stats-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:12px}.stat-card{padding:16px}.stat-card p{display:none}.stat-card strong{font-size:28px}.content-grid{grid-template-columns:minmax(0,1fr)}.tag-rank-grid{grid-template-columns:minmax(0,1fr)}}
 </style>

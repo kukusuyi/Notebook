@@ -87,6 +87,7 @@ export const useDraftStore = defineStore('draft', () => {
   }
 
   function initializeDraft(flowMode: DraftFlowMode) {
+    window.sessionStorage.removeItem(STORAGE_KEY+':before-analysis')
     currentDraft.value = createEmptyDraft(flowMode)
   }
 
@@ -121,7 +122,7 @@ export const useDraftStore = defineStore('draft', () => {
 
   function discardAnalysis() {
     const raw=window.sessionStorage.getItem(STORAGE_KEY+':before-analysis')
-    if(raw){try{currentDraft.value=JSON.parse(raw)}catch{};window.sessionStorage.removeItem(STORAGE_KEY+':before-analysis')}
+    if(raw){try{currentDraft.value={...JSON.parse(raw),status:'draft'}}catch{};window.sessionStorage.removeItem(STORAGE_KEY+':before-analysis')}
   }
   function applyAnalysis(result: AnalyzeWrongQuestionResponse) {
     const draft = ensureDraft()

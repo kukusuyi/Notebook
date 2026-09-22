@@ -10,7 +10,7 @@
         <div class="card-title"><LatexRenderer :content="item.question_core"/></div>
       </div>
       <div class="card-side">
-        <el-checkbox v-if="selected!==undefined"
+        <el-checkbox v-if="selectable"
           :model-value="selected"
           class="select-box" :aria-label="`选择题目 ${item.question_id}`"
           @change="emit('toggle-select')"
@@ -48,6 +48,7 @@ import { formatDateTime, formatMasteryStatus } from '@/utils/format'
 
 const props = defineProps<{
   item: QuestionListItem
+  selectable?: boolean
   selected?: boolean
   preview?:boolean
 }>()

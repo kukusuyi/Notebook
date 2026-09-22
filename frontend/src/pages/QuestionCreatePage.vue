@@ -58,6 +58,7 @@ async function resetDraft() {
 
 function handleImageUploaded(payload: { image_id: number; image_url: string }) {
     const current = draftStore.ensureDraft("manual");
+    current.source_type = "image";
     current.source_image_id = payload.image_id;
     current.source_image_url = payload.image_url;
     ElMessage.success("图片已绑定到当前草稿");

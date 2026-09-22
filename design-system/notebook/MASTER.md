@@ -12,3 +12,11 @@
 - 主题颜色不用于打印；打印保持黑白纸面。键盘焦点可见，减少动效时禁用过渡，Flutter 透明效果尊重辅助功能设置。
 
 验收证据及限制见 `docs/v2/UI-VALIDATION.md`。
+
+## 个性化扩展（2026-09-22）
+
+- 根据反馈，将清澈蓝种子调整为 `#548DAF`，使用雾蓝与冷白，而非高饱和偏紫蓝。
+- 偏好兼容扩展 `material: plain | glass | candy`、`font: system | rounded | serif`、`background: data URL | null`。旧数据自动补默认值，仍采用 version 1。
+- 玻璃使用网页 backdrop-filter／Flutter 模糊导航，不宣称调用 macOS 原生 Liquid Glass API。糖果质感通过圆润轮廓、轻高光和浅浮雕实现，不改变业务操作层级。
+- 字体使用设备本地字体栈：现代黑体、圆润人文、书卷宋体。缺少指定字体时回退，跨平台字形可能不同。
+- 背景仅接受 2 MB 内 JPG／PNG／WebP，保存于本机偏好，不上传、不加载远程 URL。背景叠加低透明度，阅读面板保持接近不透明。减少透明度／高对比度时回退，打印不显示背景。
