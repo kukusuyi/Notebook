@@ -256,7 +256,7 @@ func buildPaths() map[string]any {
 				"根据选中的错题 ID 生成浏览器可直接打印并另存为 PDF 的 HTML 页面。",
 				[]map[string]any{
 					queryParam("question_ids", "string", "错题 ID，多个用逗号分隔，按传入顺序导出", true, nil),
-					queryParam("export_mode", "string", "导出模式：with_answers 携带答案，questions_only 仅题目", false, enumValues("with_answers", "questions_only")),
+					queryParam("export_mode", "string", "仅题目 A4 每页两题；with_answers 为兼容旧客户端保留，现同样只导出题目", false, enumValues("with_answers", "questions_only")),
 					queryParam("access_token", "string", "浏览器直开导出页时使用的 JWT", false, nil),
 				},
 				successNoEnvelope("text/html", "<html><body>错题导出打印页</body></html>"),

@@ -2,496 +2,82 @@ package v1
 
 import (
 	"html/template"
-	"net/http"
-	"strconv"
-	"strings"
-	"time"
-
 	"mathnotebook/backend/internal/domain/dto"
+	"net/http"
 )
 
+// Keep accepting legacy mode values; all PDF exports now use question-only A4 sheets.
 const (
 	exportModeWithAnswers   = "with_answers"
 	exportModeQuestionsOnly = "questions_only"
 )
 
-type questionExportPageData struct {
-	GeneratedAt      string
-	PageTitle        string
-	PageDescription  string
-	ShowAnswerBlocks bool
-	ShowTagBlocks    bool
-	ShowMetaHeader   bool
-	ShowImageBlocks  bool
-	Questions        []questionExportView
+type printQuestion struct {
+	Index       int
+	Core, Image string
 }
+type printSheet struct{ Questions []printQuestion }
 
-type questionExportView struct {
-	Index            int
-	QuestionID       int64
-	Subject          string
-	Chapter          string
-	MasteryStatus    string
-	DifficultyLevel  int
-	CreatedAt        string
-	UpdatedAt        string
-	SourceType       string
-	SourceImageURL   string
-	QuestionCore     string
-	StandardSolution string
-	WrongSolution    string
-	SemanticSummary  string
-	MistakeSummary   string
-	TagGroups        []questionExportTagGroup
-}
-
-type questionExportTagGroup struct {
-	Label string
-	Items []string
-}
-
-func renderQuestionExportHTML(w http.ResponseWriter, items []dto.QuestionExportItem, exportMode string) error {
-	pageTitle := "错题导出打印页"
-	pageDescription := "共 {{count}} 道错题，生成时间 {{generatedAt}}。建议在打印对话框中选择“另存为 PDF”。"
-	showAnswerBlocks := true
-	showTagBlocks := true
-	showMetaHeader := true
-	showImageBlocks := true
-
-	if exportMode == exportModeQuestionsOnly {
-		pageTitle = "仅题目导出打印页"
-		pageDescription = "当前为仅题目导出模式，适合组卷。生成时间 {{generatedAt}}。"
-		showAnswerBlocks = false
-		showTagBlocks = false
-		showMetaHeader = false
-		showImageBlocks = false
+func renderQuestionExportHTML(w http.ResponseWriter, items []dto.QuestionExportItem, _ string) error {
+	sheets := make([]printSheet, 0, (len(items)+1)/2)
+	for i, item := range items {
+		if i%2 == 0 {
+			sheets = append(sheets, printSheet{})
+		}
+		n := len(sheets) - 1
+		sheets[n].Questions = append(sheets[n].Questions, printQuestion{Index: i + 1, Core: item.QuestionCore, Image: item.SourceImageURL})
 	}
-
-	data := questionExportPageData{
-		GeneratedAt:      time.Now().Format("2006-01-02 15:04:05"),
-		PageTitle:        pageTitle,
-		ShowAnswerBlocks: showAnswerBlocks,
-		ShowTagBlocks:    showTagBlocks,
-		ShowMetaHeader:   showMetaHeader,
-		ShowImageBlocks:  showImageBlocks,
-		Questions:        make([]questionExportView, 0, len(items)),
-	}
-	data.PageDescription = strings.NewReplacer(
-		"{{count}}", strconv.Itoa(len(items)),
-		"{{generatedAt}}", data.GeneratedAt,
-	).Replace(pageDescription)
-
-	for index, item := range items {
-		data.Questions = append(data.Questions, questionExportView{
-			Index:            index + 1,
-			QuestionID:       item.QuestionID,
-			Subject:          item.Subject,
-			Chapter:          item.Chapter,
-			MasteryStatus:    item.MasteryStatus,
-			DifficultyLevel:  item.DifficultyLevel,
-			CreatedAt:        item.CreatedAt,
-			UpdatedAt:        item.UpdatedAt,
-			SourceType:       item.SourceType,
-			SourceImageURL:   item.SourceImageURL,
-			QuestionCore:     item.QuestionCore,
-			StandardSolution: item.StandardSolution,
-			WrongSolution:    item.WrongSolution,
-			SemanticSummary:  item.SemanticSummary,
-			MistakeSummary:   item.MistakeSummary,
-			TagGroups:        buildExportTagGroups(item.Tags),
-		})
-	}
-
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	return questionExportTemplate.Execute(w, data)
-}
-
-func buildExportTagGroups(tags dto.TagGroups) []questionExportTagGroup {
-	type pair struct {
-		label string
-		items []string
-	}
-
-	pairs := []pair{
-		{label: "知识点", items: tags.KnowledgePoints},
-		{label: "题型", items: tags.ProblemType},
-		{label: "方法", items: tags.Method},
-		{label: "错因", items: tags.MistakeReason},
-	}
-
-	result := make([]questionExportTagGroup, 0, len(pairs))
-	for _, pair := range pairs {
-		cleaned := compactStrings(pair.items)
-		if len(cleaned) == 0 {
-			continue
-		}
-		result = append(result, questionExportTagGroup{
-			Label: pair.label,
-			Items: cleaned,
-		})
-	}
-
-	return result
-}
-
-func compactStrings(values []string) []string {
-	result := make([]string, 0, len(values))
-	for _, value := range values {
-		value = strings.TrimSpace(value)
-		if value == "" {
-			continue
-		}
-		result = append(result, value)
-	}
-	return result
+	return questionExportTemplate.Execute(w, sheets)
 }
 
 var questionExportTemplate = template.Must(template.New("question-export").Parse(`<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>{{.PageTitle}}</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/katex.min.css" />
-  <style>
-    :root {
-      color-scheme: light;
-      --paper: #ffffff;
-      --surface: #f6f1e8;
-      --ink: #1f2937;
-      --muted: #607086;
-      --line: rgba(31, 41, 55, 0.14);
-      --accent: #1e4d3f;
-      --accent-soft: rgba(30, 77, 63, 0.08);
-      --tag-bg: rgba(192, 103, 44, 0.12);
-    }
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      font-family: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
-      color: var(--ink);
-      background: var(--surface);
-    }
-    .toolbar {
-      position: sticky;
-      top: 0;
-      z-index: 10;
-      display: flex;
-      justify-content: space-between;
-      gap: 16px;
-      align-items: center;
-      padding: 16px 24px;
-      border-bottom: 1px solid var(--line);
-      background: rgba(255, 251, 245, 0.94);
-      backdrop-filter: blur(16px);
-    }
-    .toolbar h1 {
-      margin: 0;
-      font-size: 20px;
-    }
-    .toolbar p {
-      margin: 6px 0 0;
-      color: var(--muted);
-      font-size: 13px;
-    }
-    .toolbar-actions {
-      display: flex;
-      gap: 12px;
-      flex-wrap: wrap;
-    }
-    .button {
-      border: 1px solid var(--line);
-      border-radius: 999px;
-      padding: 10px 16px;
-      background: white;
-      color: var(--ink);
-      cursor: pointer;
-      font: inherit;
-    }
-    .button.primary {
-      background: var(--accent);
-      color: white;
-      border-color: var(--accent);
-    }
-    .container {
-      width: min(1080px, calc(100vw - 32px));
-      margin: 24px auto 48px;
-      display: grid;
-      gap: 24px;
-    }
-    .question {
-      border: 1px solid var(--line);
-      border-radius: 24px;
-      background: var(--paper);
-      padding: 24px;
-      page-break-inside: avoid;
-      break-inside: avoid;
-      box-shadow: 0 16px 40px rgba(31, 41, 55, 0.08);
-    }
-    .question + .question {
-      page-break-before: always;
-    }
-    .question-header {
-      display: flex;
-      justify-content: space-between;
-      gap: 16px;
-      align-items: flex-start;
-      margin-bottom: 20px;
-    }
-    .question-header h2 {
-      margin: 0;
-      font-size: 22px;
-    }
-    .question-header.simple-header {
-      margin-bottom: 12px;
-    }
-    .meta {
-      color: var(--muted);
-      font-size: 13px;
-      line-height: 1.8;
-      text-align: right;
-    }
-    .summary-grid {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 16px;
-      margin-bottom: 20px;
-    }
-    .panel {
-      border: 1px solid var(--line);
-      border-radius: 18px;
-      overflow: hidden;
-      background: #fffdf9;
-    }
-    .panel-title {
-      padding: 12px 16px;
-      font-size: 13px;
-      font-weight: 700;
-      color: var(--muted);
-      border-bottom: 1px solid var(--line);
-      background: var(--accent-soft);
-    }
-    .panel-body {
-      padding: 16px;
-    }
-    .rich-text {
-      white-space: pre-wrap;
-      word-break: break-word;
-      line-height: 1.85;
-    }
-    .image {
-      width: 100%;
-      max-height: 420px;
-      object-fit: contain;
-      border-radius: 14px;
-      background: #f5f5f5;
-      color: transparent;
-      font-size: 0;
-    }
-    .tag-groups {
-      display: grid;
-      gap: 12px;
-    }
-    .tag-group-row {
-      display: flex;
-      gap: 10px;
-      align-items: flex-start;
-      flex-wrap: wrap;
-    }
-    .tag-label {
-      min-width: 56px;
-      color: var(--muted);
-      font-weight: 700;
-      padding-top: 3px;
-    }
-    .tag-list {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-    .tag {
-      display: inline-flex;
-      align-items: center;
-      min-height: 30px;
-      padding: 0 12px;
-      border-radius: 999px;
-      background: var(--tag-bg);
-      font-size: 12px;
-      font-weight: 700;
-    }
-    .empty {
-      color: var(--muted);
-    }
-    @media (max-width: 860px) {
-      .question-header,
-      .summary-grid {
-        grid-template-columns: 1fr;
-        display: grid;
-      }
-      .meta {
-        text-align: left;
-      }
-      .toolbar {
-        flex-direction: column;
-        align-items: flex-start;
-      }
-    }
-    @media print {
-      body {
-        background: white;
-      }
-      .toolbar {
-        display: none;
-      }
-      .container {
-        width: 100%;
-        margin: 0;
-        gap: 0;
-      }
-      .question {
-        border: none;
-        border-radius: 0;
-        box-shadow: none;
-        padding: 0;
-      }
-      .question + .question {
-        margin-top: 0;
-      }
-    }
-  </style>
-</head>
-<body>
-  <div class="toolbar">
-    <div>
-      <h1>{{.PageTitle}}</h1>
-      <p>{{.PageDescription}}</p>
-    </div>
-    <div class="toolbar-actions">
-      <button class="button" type="button" onclick="window.location.reload()">重新渲染</button>
-      <button class="button primary" type="button" onclick="window.print()">打印 / 保存为 PDF</button>
-    </div>
-  </div>
-
-  <main class="container">
-    {{range .Questions}}
-      <article class="question">
-        <header class="question-header">
-          <div>
-            <h2>{{if $.ShowAnswerBlocks}}错题 #{{.QuestionID}}{{else}}题目 {{.Index}}{{end}}</h2>
-            {{if $.ShowMetaHeader}}
-              <div class="meta">{{.Subject}}{{if .Chapter}} · {{.Chapter}}{{end}}</div>
-            {{end}}
-          </div>
-          {{if $.ShowMetaHeader}}
-            <div class="meta">
-              <div>掌握状态：{{.MasteryStatus}}</div>
-              <div>难度：{{.DifficultyLevel}}</div>
-              <div>来源：{{.SourceType}}</div>
-              <div>创建：{{.CreatedAt}}</div>
-              <div>更新：{{.UpdatedAt}}</div>
-            </div>
-          {{end}}
-        </header>
-
-        {{if and $.ShowImageBlocks .SourceImageURL}}
-          <section class="panel" style="margin-bottom: 16px;" data-image-panel>
-            <div class="panel-title">原图</div>
-            <div class="panel-body">
-              <img
-                class="image"
-                src="{{.SourceImageURL}}"
-                alt=""
-                referrerpolicy="no-referrer"
-                onerror="this.closest('[data-image-panel]').remove()"
-              />
-            </div>
-          </section>
-        {{end}}
-
-        <section class="panel" style="margin-bottom: 16px;">
-          <div class="panel-title">题目主干</div>
-          <div class="panel-body rich-text math-content">{{.QuestionCore}}</div>
-        </section>
-
-        {{if $.ShowAnswerBlocks}}
-          <section class="summary-grid">
-            <section class="panel">
-              <div class="panel-title">标准解法</div>
-              <div class="panel-body rich-text math-content">{{if .StandardSolution}}{{.StandardSolution}}{{else}}暂无标准解法{{end}}</div>
-            </section>
-            <section class="panel">
-              <div class="panel-title">错误解法 / 错误思路</div>
-              <div class="panel-body rich-text math-content">{{if .WrongSolution}}{{.WrongSolution}}{{else}}暂无错误解法{{end}}</div>
-            </section>
-          </section>
-
-          <section class="summary-grid">
-            <section class="panel">
-              <div class="panel-title">语义摘要</div>
-              <div class="panel-body rich-text">{{if .SemanticSummary}}{{.SemanticSummary}}{{else}}暂无语义摘要{{end}}</div>
-            </section>
-            <section class="panel">
-              <div class="panel-title">错因摘要</div>
-              <div class="panel-body rich-text">{{if .MistakeSummary}}{{.MistakeSummary}}{{else}}暂无错因摘要{{end}}</div>
-            </section>
-          </section>
-        {{end}}
-
-        {{if $.ShowTagBlocks}}
-          <section class="panel">
-            <div class="panel-title">标签</div>
-            <div class="panel-body">
-              {{if .TagGroups}}
-                <div class="tag-groups">
-                  {{range .TagGroups}}
-                    <div class="tag-group-row">
-                      <div class="tag-label">{{.Label}}</div>
-                      <div class="tag-list">
-                        {{range .Items}}
-                          <span class="tag">{{.}}</span>
-                        {{end}}
-                      </div>
-                    </div>
-                  {{end}}
-                </div>
-              {{else}}
-                <div class="empty">暂无标签</div>
-              {{end}}
-            </div>
-          </section>
-        {{end}}
-      </article>
-    {{end}}
-  </main>
-
-  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/katex.min.js"></script>
-  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/contrib/auto-render.min.js"></script>
-  <script>
-    window.addEventListener('load', function () {
-      if (window.renderMathInElement) {
-        document.querySelectorAll('.math-content').forEach(function (element) {
-          try {
-            window.renderMathInElement(element, {
-              delimiters: [
-                { left: '$$', right: '$$', display: true },
-                { left: '$', right: '$', display: false },
-                { left: '\\\\(', right: '\\\\)', display: false },
-                { left: '\\\\[', right: '\\\\]', display: true }
-              ],
-              throwOnError: false,
-              strict: 'ignore'
-            })
-          } catch (error) {
-            console.warn('render math failed', error)
-          }
-        })
-      }
-
-      window.setTimeout(function () {
-        window.print()
-      }, 350)
-    })
-  </script>
-</body>
-</html>
-`))
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>题目导出 · A4 每页两题</title>
+<link rel="stylesheet" href="/print-katex/katex.min.css">
+<style>
+@page { size:A4 portrait; margin:12mm; }
+* { box-sizing:border-box; }
+:root { color-scheme:light; }
+body { margin:0; color:#000; background:#eee; font:16px/1.6 "PingFang SC","Microsoft YaHei",sans-serif; }
+.toolbar { padding:12px 20px; background:#fff; display:flex; flex-wrap:wrap; gap:12px; align-items:center; }
+button { font:inherit; padding:8px 16px; cursor:pointer; }
+.sheet { width:186mm; height:272mm; margin:24px auto; background:white; display:grid; grid-template-rows:136mm 136mm; break-after:page; page-break-after:always; }
+.sheet:last-child { break-after:auto; page-break-after:auto; }
+.question { min-width:0; min-height:0; padding:8mm 0; break-inside:avoid; }
+.question-content { transform-origin:top left; }
+.number { float:left; margin-right:8px; }
+.math-content { white-space:pre-wrap; overflow-wrap:anywhere; }
+.katex-display { margin:8px 0; }
+.image { display:block; max-width:100%; max-height:110mm; object-fit:contain; }
+@media screen and (max-width:740px) { body { overflow-x:auto; }.toolbar { position:sticky;left:0;width:100vw; }.sheet { margin:16px; } }
+@media print { body { background:#fff; }.toolbar { display:none; }.sheet { margin:0; } }
+</style></head><body>
+<div class="toolbar"><button id="print" disabled onclick="window.print()">打印 / 保存 PDF</button><span id="status">正在准备公式…</span></div>
+<main>{{range .}}<section class="sheet">{{range .Questions}}<article class="question"><div class="question-content"><span class="number">{{.Index}}.</span>{{if .Core}}<div class="math-content">{{.Core}}</div>{{else if .Image}}<img class="image" src="{{.Image}}" alt="题目图片">{{end}}</div></article>{{end}}</section>{{end}}</main>
+<script defer src="/print-katex/katex.min.js"></script><script defer src="/print-katex/auto-render.min.js"></script>
+<script>
+function fitQuestions() {
+ let small=false;
+ document.querySelectorAll('.question').forEach(function(slot) {
+  const content=slot.querySelector('.question-content');content.style.transform='';
+  const style=getComputedStyle(slot),height=slot.clientHeight-parseFloat(style.paddingTop)-parseFloat(style.paddingBottom);
+  const scale=Math.min(1,height/Math.max(1,content.scrollHeight),slot.clientWidth/Math.max(1,content.scrollWidth));
+  if(scale<1)content.style.transform='scale('+scale+')';
+  if(scale<0.65)small=true;
+ });
+ return small;
+}
+window.addEventListener('beforeprint',fitQuestions);
+window.addEventListener('load',async function(){
+ const status=document.getElementById('status');
+ if(!window.renderMathInElement){status.textContent='公式资源加载失败，请刷新后重试。';return;}
+ document.querySelectorAll('.math-content').forEach(function(el){renderMathInElement(el,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false},{left:'\\(',right:'\\)',display:false},{left:'\\[',right:'\\]',display:true}],throwOnError:false,strict:'ignore'});});
+ await document.fonts.ready;
+ const missing=Array.from(document.images).some(function(i){return !i.naturalWidth;});
+ if(missing){status.textContent='题目图片加载失败，请刷新后重试。';return;}
+ const small=fitQuestions();
+ status.textContent=small?'部分题目较长，已缩小以适应半页，请检查字号。':'A4 纵向 · 每页两题。打印时关闭浏览器页眉和页脚，缩放选 100%。';
+ document.getElementById('print').disabled=false;
+});
+</script></body></html>`))

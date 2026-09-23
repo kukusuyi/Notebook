@@ -10,7 +10,7 @@
 
         </header>
 
-        <section v-if="draftStore.currentDraft" class="paper-card resume-card"><div><h3>继续上次的整理</h3><p class="meta-text">{{draftStore.currentDraft.question_json.question_core||'有一份尚未完成的草稿'}}</p></div><RouterLink :to="draftStore.currentDraft.flow_mode==='upload'?'/questions/upload':'/questions/create'"><el-button>继续草稿</el-button></RouterLink><el-button text type="danger" @click="discardDraft">删除草稿</el-button></section>
+        <section v-if="draftStore.currentDraft" class="paper-card resume-card"><div><h3>继续上次的整理</h3><p class="meta-text">{{draftStore.currentDraft.question_json.question_core||'有一份尚未完成的草稿'}}</p></div><div class="draft-actions"><RouterLink :to="draftStore.currentDraft.flow_mode==='upload'?'/questions/upload':'/questions/create'"><el-button>继续草稿</el-button></RouterLink><el-button text type="danger" @click="discardDraft">删除草稿</el-button></div></section>
         <section class="stats-grid">
             <button
                 type="button"
@@ -329,7 +329,7 @@ onMounted(loadData);
 </script>
 
 <style scoped>
-.resume-card{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:24px}.resume-card p{max-width:560px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.resume-card{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:24px}.draft-actions{display:flex;align-items:center;gap:12px;flex-shrink:0}.resume-card>div:first-child{min-width:0}.resume-card p{max-width:560px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
 .top-actions {
     display: flex;
     gap: 12px;
@@ -585,4 +585,5 @@ onMounted(loadData);
 
 .tag-rank-grid,.tag-list{align-items:start;align-content:start}.stats-grid .stat-card{text-align:left;color:var(--text-main);font:inherit}.insight-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.distribution-fill{background:var(--primary)}
 @media(max-width:767px){.stat-card:nth-child(n+4){display:none}.stat-card:nth-child(3){grid-column:span 2}.stats-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:12px}.stat-card{padding:16px}.stat-card p{display:none}.stat-card strong{font-size:28px}.content-grid{grid-template-columns:minmax(0,1fr)}.tag-rank-grid{grid-template-columns:minmax(0,1fr)}}
+@media(max-width:767px){.resume-card{align-items:flex-start;flex-direction:column;gap:12px}.draft-actions{flex-wrap:wrap}}
 </style>

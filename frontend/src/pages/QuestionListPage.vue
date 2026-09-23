@@ -74,28 +74,7 @@
                     </div>
                 </div>
                 <div class="toolbar-actions">
-                    <el-dropdown
-                        trigger="click"
-                        @command="handleExportCommand"
-                    >
-                        <el-button
-                            type="primary"
-                            plain
-                            :disabled="!selectedQuestionIds.length"
-                        >
-                            导出 PDF
-                        </el-button>
-                        <template #dropdown>
-                            <el-dropdown-menu>
-                                <el-dropdown-item command="with_answers">
-                                    携带答案导出
-                                </el-dropdown-item>
-                                <el-dropdown-item command="questions_only">
-                                    仅导出题目
-                                </el-dropdown-item>
-                            </el-dropdown-menu>
-                        </template>
-                    </el-dropdown>
+                    <el-button type="primary" plain :disabled="!selectedQuestionIds.length" @click="exportSelectedQuestions('questions_only')">导出 PDF · 每页两题</el-button>
 
                 </div>
             </div>
@@ -355,15 +334,6 @@ function exportSelectedQuestions(exportMode: QuestionExportMode) {
 
     const exportURL = buildQuestionExportPrintURL(selectedQuestionIds.value, exportMode);
     window.open(exportURL, "_blank", "noopener,noreferrer");
-}
-
-function handleExportCommand(command: string) {
-    if (command !== "with_answers" && command !== "questions_only") {
-        ElMessage.error("导出模式不支持");
-        return;
-    }
-
-    exportSelectedQuestions(command);
 }
 
 async function resetFilters() {

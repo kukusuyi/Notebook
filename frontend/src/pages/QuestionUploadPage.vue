@@ -1,9 +1,10 @@
 <template><div class="page-shell upload-page"><header class="page-header"><div><h2 class="page-title">从图片开始</h2><p class="page-subtitle">上传一道题，识别文字或直接手动整理。</p></div><el-button text @click="router.push('/questions/create')">改用手动录入</el-button></header>
  <el-alert v-if="errorMessage" :title="errorMessage" type="error" :closable="false"/>
  <div class="upload-layout"><UploadPanel :uploaded-image="draft?{image_id:draft.source_image_id,image_url:draft.source_image_url}:undefined" @success="handleUploadSuccess"/><section class="paper-card status-panel"><h3>{{draft?.source_image_id?'图片已就绪':'选择题目图片'}}</h3><p class="meta-text">支持相册中的图片，也可以使用手机相机拍摄。原图会随错题一起保留。</p><el-alert v-if="!ocrEnabled" title="图片识别尚未配置。你仍可保留原图并手动填写题目。" type="info" :closable="false"/><div class="status-actions"><el-button v-if="ocrEnabled" :disabled="!draft?.source_image_id" :loading="processing" @click="runOCR">{{hasOCRResult?'重新识别':'识别图片文字'}}</el-button><el-button type="primary" :disabled="!draft?.source_image_id||processing" @click="router.push('/questions/create')">{{hasOCRResult?'确认并整理内容':'手动整理这张图片'}}</el-button></div><p v-if="draft?.ocr_context" class="meta-text">识别可能存在误差，请在整理页检查题干和公式。</p></section></div>
- <section v-if="hasOCRResult" class="paper-card status-panel"><h3>识别预览</h3><p class="ocr-preview">{{draft?.question_json.question_core}}</p></section>
+ <section v-if="hasOCRResult" class="paper-card status-panel"><h3>识别预览</h3><LatexRenderer :content="draft?.question_json.question_core" /></section>
  </div></template>
 <script setup lang="ts">
+import LatexRenderer from "@/components/LatexRenderer/index.vue";
 import { ElMessage } from "element-plus";
 import { computed, onMounted, ref } from "vue";
 import { useRouter } from "vue-router";

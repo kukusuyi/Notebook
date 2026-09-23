@@ -685,14 +685,14 @@ func TestQuestionExportPrint(t *testing.T) {
 		if contentType := resp.Header.Get("Content-Type"); !strings.Contains(contentType, "text/html") {
 			t.Fatalf("export print content-type=%s want text/html", contentType)
 		}
-		if !containsIgnoreCase(string(body), "错题导出打印页") {
+		if !containsIgnoreCase(string(body), "A4 每页两题") {
 			t.Fatalf("export print body missing title: %s", string(body))
 		}
-		if !containsIgnoreCase(string(body), "导出测试标签") {
-			t.Fatalf("export print body missing tag: %s", string(body))
+		if containsIgnoreCase(string(body), "导出测试标签") {
+			t.Fatalf("export print body should omit tags: %s", string(body))
 		}
-		if !containsIgnoreCase(string(body), "标准解法") {
-			t.Fatalf("export print body missing answer section: %s", string(body))
+		if containsIgnoreCase(string(body), "标准解法") {
+			t.Fatalf("export print body should omit answers: %s", string(body))
 		}
 	})
 
@@ -716,7 +716,7 @@ func TestQuestionExportPrint(t *testing.T) {
 		if resp.StatusCode != http.StatusOK {
 			t.Fatalf("questions only export status=%d body=%s", resp.StatusCode, string(body))
 		}
-		if !containsIgnoreCase(string(body), "仅题目导出打印页") {
+		if !containsIgnoreCase(string(body), "A4 每页两题") {
 			t.Fatalf("questions only export body missing mode title: %s", string(body))
 		}
 		if containsIgnoreCase(string(body), "标准解法") {

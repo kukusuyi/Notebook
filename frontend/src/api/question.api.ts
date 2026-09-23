@@ -50,7 +50,7 @@ export function findSimilarByJSON(payload: SimilarByJSONPayload) {
 
 export function buildQuestionExportPrintURL(
   questionIDs: number[],
-  exportMode: QuestionExportMode = 'with_answers',
+  exportMode: QuestionExportMode = 'questions_only',
 ) {
   const params = new URLSearchParams()
   params.set('question_ids', questionIDs.join(','))

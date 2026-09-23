@@ -1,5 +1,5 @@
 <template>
-    <div class="question-form-grid">
+    <div class="question-form-grid" :class="{ stacked }">
         <section class="paper-card form-card">
             <div class="section-head">
                 <h3>题目基础信息</h3>
@@ -239,6 +239,7 @@ withDefaults(
     defineProps<{
         model: QuestionDraft;
         showAnalysisFields?: boolean;
+        stacked?: boolean;
         tagOptions?: Partial<Record<keyof QuestionDraft["tags"], string[]>>;
         lockSourceType?: boolean;
         chapterOptions?: OptionItem[];
@@ -261,6 +262,8 @@ withDefaults(
     gap: 20px;
 }
 
+.question-form-grid.stacked { grid-template-columns:minmax(0,1fr); }
+.question-form-grid > * { min-width:0; }
 .form-card,
 .preview-card {
     padding: 20px;

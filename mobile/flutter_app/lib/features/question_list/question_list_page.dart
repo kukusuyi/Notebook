@@ -7,13 +7,11 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../core/config/effective_api_base_url.dart';
 import '../../core/storage/auth_session_repository.dart';
 import '../../shared/models/question_models.dart';
-import '../../shared/utils/platform_ui.dart';
 import '../../shared/widgets/question_compact_preview.dart';
 import '../question_list/question_repository.dart';
 
 enum _QuestionExportMode {
-  withAnswers('with_answers', '携带答案导出'),
-  questionsOnly('questions_only', '仅导出题目');
+  questionsOnly('questions_only', '每页两题');
 
   const _QuestionExportMode(this.value, this.label);
 
@@ -202,26 +200,7 @@ class _QuestionListPageState extends ConsumerState<QuestionListPage> {
       return;
     }
 
-    final exportMode = await showPlatformActionSheet<_QuestionExportMode>(
-      context: context,
-      title: '导出方式',
-      actions: [
-        for (final mode in _QuestionExportMode.values)
-          PlatformActionSheetAction<_QuestionExportMode>(
-            label: mode.label,
-            value: mode,
-            icon: mode == _QuestionExportMode.withAnswers
-                ? Icons.fact_check_outlined
-                : Icons.article_outlined,
-          ),
-      ],
-    );
-
-    if (!mounted || exportMode == null) {
-      return;
-    }
-
-    await _exportSelectedQuestions(exportMode);
+    await _exportSelectedQuestions(_QuestionExportMode.questionsOnly);
   }
 
   Future<void> _exportSelectedQuestions(_QuestionExportMode exportMode) async {

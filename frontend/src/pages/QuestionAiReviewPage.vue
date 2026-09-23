@@ -7,11 +7,7 @@
           这一页是正式入库前的最后一道人工确认。OCR 结果、标签和摘要都允许改，改完再保存。
         </p>
       </div>
-      <div class="edit-action-bar" v-if="draft">
-        <el-button :loading="reanalyzing" @click="reanalyze">重新分析</el-button>
-        <el-button @click="discardDraft">放弃本次结果</el-button>
-        <el-button type="primary" :loading="saving" @click="saveDraft">确认并保存错题</el-button>
-      </div>
+
     </header>
 
     <el-empty
@@ -21,7 +17,7 @@
 
     <div v-else class="review-grid">
       <section class="left-column">
-        <ImagePreviewer :src="draft.source_image_url" />
+        <ImagePreviewer v-if="draft.source_image_url" :src="draft.source_image_url" />
 
         <AIModelSelector
           v-model:provider-name="providerName"
@@ -53,10 +49,16 @@
 
       <QuestionForm
         :model="draft"
+        stacked
         :show-analysis-fields="true"
         :tag-options="tagStore.groupedOptions"
       />
     </div>
+      <div class="edit-action-bar" v-if="draft">
+        <el-button :loading="reanalyzing" @click="reanalyze">重新分析</el-button>
+        <el-button @click="discardDraft">放弃本次结果</el-button>
+        <el-button type="primary" :loading="saving" @click="saveDraft">确认并保存错题</el-button>
+      </div>
   </div>
 </template>
 
@@ -201,10 +203,17 @@ onMounted(async () => {
 
 .review-grid {
   display: grid;
-  grid-template-columns: 360px minmax(0, 1fr);
+  grid-template-columns: minmax(260px, 320px) minmax(0, 1fr);
+  align-items: start;
   gap: 20px;
 }
 
+.left-column :deep(.selector-grid) { grid-template-columns:1fr; }
+.left-column :deep(.field) { display:block; }
+.left-column :deep(.el-form-item__label) { float:none; display:block; text-align:left; }
+.left-column :deep(.selector-head) { flex-wrap:wrap; }
+.left-column :deep(.el-select) { width:100%; }
+.review-grid > * { min-width: 0; }
 .left-column {
   display: grid;
   gap: 16px;
