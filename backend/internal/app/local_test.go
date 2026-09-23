@@ -204,6 +204,10 @@ func TestFileOwnershipAndSettingsRedaction(t *testing.T) {
 	if code != 404 {
 		t.Fatalf("OCR ownership: %d", code)
 	}
+	code, _ = request(t, rt, "POST", "/api/v1/ocr/wrong-question-json", reader, map[string]any{"image_id": 1, "image_url": "http://private.invalid", "purpose": "solution"})
+	if code != 404 {
+		t.Fatalf("solution OCR ownership: %d", code)
+	}
 	settings := map[string]any{"registration_enabled": false, "ocr": map[string]string{"name": "qwen", "model": "model", "api_key": "private-ocr-secret"}, "models": []any{}, "embedding": map[string]string{}, "download_url": ""}
 	code, res = request(t, rt, "PUT", "/api/v1/admin/settings", admin, settings)
 	if code != 200 {

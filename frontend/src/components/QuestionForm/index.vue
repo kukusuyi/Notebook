@@ -25,6 +25,8 @@
                     />
                 </el-form-item>
 
+                <SolutionOCR v-model="model.question_json.standard_solution" />
+
                 <el-form-item label="错误解法 / 错误思路">
                     <el-input
                         v-model="model.question_json.wrong_solution"
@@ -223,6 +225,7 @@
 </template>
 
 <script setup lang="ts">
+import SolutionOCR from '@/components/SolutionOCR/index.vue'
 import ImagePreviewer from "@/components/ImagePreviewer/index.vue";
 import LatexRenderer from "@/components/LatexRenderer/index.vue";
 import type { OptionItem } from "@/types/common";

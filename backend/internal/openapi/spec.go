@@ -442,6 +442,7 @@ func schemas() map[string]any {
 		"OCRWrongQuestionRequest": objectSchemaRequired(
 			[]string{"image_url", "image_id"},
 			field("image_url", map[string]any{"type": "string", "example": "http://localhost:8080/static/wrong-question/1.png"}),
+			field("purpose", map[string]any{"type": "string", "enum": []string{"question", "solution"}, "default": "question", "description": "question 识别题目；solution 仅抄录答案步骤，不解题，返回 standard_solution"}),
 			field("image_id", map[string]any{"type": "integer", "example": 1}),
 		),
 		"OCRWrongQuestionResponse": objectSchema(

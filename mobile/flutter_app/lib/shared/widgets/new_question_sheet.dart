@@ -30,11 +30,36 @@ Future<void> showNewQuestionSheet(BuildContext context, WidgetRef ref) async {
                         onTap: () => Navigator.pop(context, 'manual')),
                     if (hasActiveDraft(draft))
                       ListTile(
+                          leading: const Icon(Icons.delete_outline),
+                          title: const Text('删除上次草稿'),
+                          onTap: () => Navigator.pop(context, 'delete')),
+                    if (hasActiveDraft(draft))
+                      ListTile(
                           leading: const Icon(Icons.history),
                           title: const Text('继续上次草稿'),
                           onTap: () => Navigator.pop(context, 'resume')),
                   ]))));
   if (choice == null || !context.mounted) return;
+  if (choice == 'delete') {
+    final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+                title: const Text('删除草稿'),
+                content: const Text('删除后无法恢复，已保存的错题不受影响。'),
+                actions: [
+                  TextButton(
+                      onPressed: () => Navigator.pop(context, false),
+                      child: const Text('取消')),
+                  FilledButton(
+                      onPressed: () => Navigator.pop(context, true),
+                      child: const Text('删除'))
+                ]));
+    if (confirmed == true && context.mounted) {
+      ref.read(questionDraftControllerProvider.notifier).clear();
+      await ref.read(questionDraftControllerProvider.notifier).flush();
+    }
+    return;
+  }
   if (hasActiveDraft(draft)) {
     if (choice == 'resume') {
       context.push(routeForDraft(draft!));

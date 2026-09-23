@@ -1,3 +1,4 @@
+import '../../shared/widgets/solution_ocr_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -113,6 +114,9 @@ class _OcrReviewPageState extends ConsumerState<OcrReviewPage> {
                     emptyPreviewText: '暂无标准解',
                     onChanged: (_) => _persistDraft(),
                   ),
+                  SolutionOcrButton(
+                      controller: _standardSolutionController,
+                      onApplied: _persistDraft),
                   const SizedBox(height: 12),
                   LatexReviewField(
                     title: '错误解',

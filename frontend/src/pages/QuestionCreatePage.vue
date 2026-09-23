@@ -7,7 +7,7 @@
   <QuestionJsonEditor v-else-if="draft" v-model="draft.question_json" @validation-change="jsonValid=$event"/>
   <el-collapse class="paper-card upload-card"><el-collapse-item title="附上原图（可选）" name="image"><UploadPanel :uploaded-image="draft?{image_id:draft.source_image_id,image_url:draft.source_image_url}:undefined" @success="handleImageUploaded"/></el-collapse-item></el-collapse>
   <div class="edit-action-bar"><el-button :disabled="submitting" @click="showAI=true">AI 辅助分析</el-button><el-button type="primary" :loading="submitting" @click="saveDirectly">保存错题</el-button></div>
-  <el-dialog v-model="showAI" title="AI 辅助分析" width="560px"><p class="meta-text">分析结果将先供你检查，不会直接保存到题库。</p><AIModelSelector v-if="draft" v-model:provider-name="providerName" v-model:model-name="modelName"/><template #footer><el-button @click="showAI=false">返回编辑</el-button><el-button type="primary" :loading="submitting" @click="analyzeDraft">生成分析建议</el-button></template></el-dialog>
+  <el-dialog append-to-body align-center v-model="showAI" title="AI 辅助分析" width="560px"><p class="meta-text">分析结果将先供你检查，不会直接保存到题库。</p><AIModelSelector v-if="draft" v-model:provider-name="providerName" v-model:model-name="modelName"/><template #footer><el-button @click="showAI=false">返回编辑</el-button><el-button type="primary" :loading="submitting" @click="analyzeDraft">生成分析建议</el-button></template></el-dialog>
  </div>
 </template>
 <script setup lang="ts">

@@ -5,7 +5,7 @@
  <el-tabs v-model="active" class="settings-tabs">
   <el-tab-pane label="外观" name="appearance"><AppearancePanel/></el-tab-pane>
   <el-tab-pane label="电脑连接" name="connection"><section class="paper-card panel"><h3>连接这台电脑</h3><p class="meta-text">手机与电脑连接同一网络，使用下方局域网地址。</p><div v-for="url in status.urls" :key="url" class="address"><code>{{url}}</code><el-button @click="copy(url)">复制地址</el-button></div><el-alert title="127.0.0.1 仅供本机访问。连接失败时，请确认电脑正在运行并允许防火墙的局域网连接。" type="info" :closable="false"/></section></el-tab-pane>
-  <el-tab-pane v-if="settings" label="模型服务" name="models"><section class="paper-card panel"><h3>模型服务</h3><p class="meta-text">按需配置。没有模型也能录题、上传图片和复习。</p><el-form label-position="top">
+  <el-tab-pane v-if="settings" label="模型服务" name="models"><section class="paper-card panel"><h3>模型服务</h3><div class="settings-actions"><a href="https://account.aliyun.com/register/qr_register.htm" target="_blank" rel="noopener noreferrer">注册阿里云账号 ↗</a><a href="https://bailian.console.aliyun.com/" target="_blank" rel="noopener noreferrer">开通 Qwen / 获取 API Key ↗</a><a href="https://help.aliyun.com/zh/model-studio/first-api-call-to-qwen" target="_blank" rel="noopener noreferrer">配置指南 ↗</a></div><p class="meta-text">按需配置。没有模型也能录题、上传图片和复习。</p><el-form label-position="top">
    <el-collapse><el-collapse-item title="OCR · 图片识别" name="ocr"><el-form-item label="视觉模型"><el-input v-model="settings.ocr.model" placeholder="qwen3.6-plus"/></el-form-item><el-form-item label="API Key"><SecretField v-model="settings.ocr.api_key"/></el-form-item></el-collapse-item>
    <el-collapse-item title="AI · 分析模型" name="ai"><div v-for="(m,i) in settings.models" :key="i" class="model"><el-form-item label="服务名称"><el-input v-model="m.name"/></el-form-item><el-form-item label="接口地址"><el-input v-model="m.base_url" placeholder="https://example.com/v1"/></el-form-item><el-form-item label="模型名称"><el-input v-model="m.model"/></el-form-item><el-form-item label="API Key"><SecretField v-model="m.api_key"/></el-form-item><el-button type="danger" text @click="settings.models.splice(i,1)">移除模型</el-button></div><el-button @click="settings.models.push({name:'',provider_type:'openai_compatible',base_url:'',model:'',api_key:''})">添加分析模型</el-button></el-collapse-item>
    <el-collapse-item title="Embedding · 相似题" name="embedding"><el-form-item label="接口地址"><el-input v-model="settings.embedding.base_url"/></el-form-item><el-form-item label="模型名称"><el-input v-model="settings.embedding.model"/></el-form-item><el-form-item label="API Key"><SecretField v-model="settings.embedding.api_key"/></el-form-item><el-alert title="更换模型或地址会重新生成索引，可能产生服务商调用费用。" type="info" :closable="false"/></el-collapse-item></el-collapse>
@@ -26,15 +26,16 @@ import {useRouter} from 'vue-router'
 const active=ref('appearance'), auth=useAuthStore(), router=useRouter()
 function logout(){auth.logout();router.replace('/auth')}
 import { ElMessage } from 'element-plus'
+import { getErrorMessage } from '@/utils/error'
 import { httpGet,httpPost,httpPut } from '@/api/http'
 type Model={name:string;provider_type:string;base_url:string;model:string;api_key:string}
 type Settings={registration_enabled:boolean;ocr:{name:string;model:string;api_key:string};models:Model[];embedding:Omit<Model,'name'>;download_url:string}
 const status=ref<{urls:string[];embedding_enabled:boolean}>({urls:[],embedding_enabled:false}),settings=ref<Settings|null>(null),jobs=ref<Record<string,number>>({}),users=ref<any[]>([]),results=ref<Record<string,string>>({}),error=ref(''),busy=ref(false)
 const user=reactive({username:'',email:'',password:''})
-async function load(){try{status.value=await httpGet('/api/v1/system/status');jobs.value=await httpGet('/api/v1/vector-jobs');try{settings.value=await httpGet('/api/v1/admin/settings');users.value=await httpGet('/api/v1/admin/users')}catch{settings.value=null}}catch(e){error.value=(e as Error).message}}
-async function act(fn:()=>Promise<void>){busy.value=true;error.value='';try{await fn()}catch(e){error.value=(e as Error).message}finally{busy.value=false}}
+async function load(){try{status.value=await httpGet('/api/v1/system/status');jobs.value=await httpGet('/api/v1/vector-jobs');try{settings.value=await httpGet('/api/v1/admin/settings');users.value=await httpGet('/api/v1/admin/users')}catch{settings.value=null}}catch(e){error.value=getErrorMessage(e)}}
+async function act(fn:()=>Promise<void>){busy.value=true;error.value='';try{await fn()}catch(e){error.value=getErrorMessage(e)}finally{busy.value=false}}
 async function save(){await act(async()=>{await httpPut('/api/v1/admin/settings',settings.value);ElMessage.success('设置已保存');await load()})}
-async function test(){await act(async()=>{results.value=await httpPost('/api/v1/admin/settings/test',settings.value)})}
+async function test(){await act(async()=>{const raw=await httpPost<Record<string,string>>('/api/v1/admin/settings/test',settings.value);results.value=Object.fromEntries(Object.entries(raw).map(([key,value])=>[key,/^(ok|success|成功|连接成功|服务连接成功)/i.test(value)?'连接成功':getErrorMessage(new Error(value),'连接测试失败，请检查服务配置。')]))})}
 async function retry(){await act(async()=>{await httpPost('/api/v1/vector-jobs',{});await load()})}
 async function createUser(){await act(async()=>{await httpPost('/api/v1/admin/users',user);user.password='';ElMessage.success('用户已创建');await load()})}
 async function copy(text:string){try{await navigator.clipboard.writeText(text);ElMessage.success('地址已复制')}catch{ElMessage.info('请选中地址手动复制')}}

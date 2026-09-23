@@ -1,3 +1,4 @@
+import 'package:math_notebook_flutter/core/network/api_exception.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -83,7 +84,7 @@ class DashboardPage extends ConsumerWidget {
                                 ),
                           ),
                           const SizedBox(height: 12),
-                          Text(error.toString()),
+                          Text(describeError(error)),
                           const SizedBox(height: 16),
                           FilledButton(
                             onPressed: () => ref.invalidate(
@@ -122,6 +123,7 @@ class DashboardPage extends ConsumerWidget {
     }
 
     ref.read(questionDraftControllerProvider.notifier).clear();
+    await ref.read(questionDraftControllerProvider.notifier).flush();
   }
 }
 

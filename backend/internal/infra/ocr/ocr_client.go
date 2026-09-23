@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io"
 	"log/slog"
+	apperrors "mathnotebook/backend/internal/pkg/errors"
 	"mime"
 	"net"
 	"net/http"
@@ -148,13 +149,16 @@ func (c *QwenOCRClient) Recognize(ctx context.Context, imageURL string, prompt s
 
 	var chatResp chatResponse
 	if err := json.NewDecoder(resp.Body).Decode(&chatResp); err != nil {
-		return "", fmt.Errorf("decode response: %w", err)
+		return "", fmt.Errorf("%s", apperrors.ProviderMessage(resp.StatusCode, "decode response"))
 	}
 
 	if chatResp.Error != nil {
-		return "", fmt.Errorf("api error: %s (%s)", chatResp.Error.Message, chatResp.Error.Type)
+		return "", fmt.Errorf("%s", apperrors.ProviderMessage(resp.StatusCode, chatResp.Error.Message+" "+chatResp.Error.Type))
 	}
 
+	if resp.StatusCode >= 400 {
+		return "", fmt.Errorf("%s", apperrors.ProviderMessage(resp.StatusCode, ""))
+	}
 	if len(chatResp.Choices) == 0 {
 		return "", fmt.Errorf("no choices in response")
 	}

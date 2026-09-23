@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"mathnotebook/backend/internal/config"
+	apperrors "mathnotebook/backend/internal/pkg/errors"
 )
 
 const (
@@ -263,9 +264,9 @@ func decodeProviderError(resp *http.Response) error {
 		} `json:"error"`
 	}
 	if err := json.NewDecoder(resp.Body).Decode(&body); err == nil && body.Error != nil {
-		return fmt.Errorf("provider error: %s (%s)", body.Error.Message, body.Error.Type)
+		return fmt.Errorf("%s", apperrors.ProviderMessage(resp.StatusCode, body.Error.Message+" "+body.Error.Type))
 	}
-	return fmt.Errorf("provider returned status %d", resp.StatusCode)
+	return fmt.Errorf("%s", apperrors.ProviderMessage(resp.StatusCode, ""))
 }
 
 func appendBasePath(baseURL string, suffix string) (string, error) {

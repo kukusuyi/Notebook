@@ -1,3 +1,5 @@
+import '../../shared/widgets/solution_ocr_button.dart';
+import 'package:math_notebook_flutter/core/network/api_exception.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -69,7 +71,7 @@ class _QuestionEditPageState extends ConsumerState<QuestionEditPage> {
           child: Padding(
             padding: const EdgeInsets.all(24),
             child: Text(
-              '错题编辑数据加载失败：$error',
+              '错题编辑数据加载失败：${describeError(error)}',
               textAlign: TextAlign.center,
             ),
           ),
@@ -115,6 +117,8 @@ class _QuestionEditPageState extends ConsumerState<QuestionEditPage> {
                         emptyPreviewText: '暂无标准解',
                         onChanged: (_) {},
                       ),
+                      SolutionOcrButton(
+                          controller: _standardSolutionController),
                       const SizedBox(height: 12),
                       LatexReviewField(
                         title: '错误解',
@@ -288,7 +292,7 @@ class _QuestionEditPageState extends ConsumerState<QuestionEditPage> {
       _showMessage('错题更新成功');
       context.go('/questions/${widget.questionId}');
     } catch (error) {
-      _showMessage('错题更新失败：$error');
+      _showMessage('错题更新失败：${describeError(error)}');
     } finally {
       if (mounted) {
         setState(() {

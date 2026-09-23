@@ -1,3 +1,4 @@
+import 'package:math_notebook_flutter/core/network/api_exception.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -197,7 +198,7 @@ class _TagManagePageState extends ConsumerState<TagManagePage> {
         _tags = response.list;
       });
     } catch (error) {
-      _showMessage('标签列表加载失败：$error');
+      _showMessage('标签列表加载失败：${describeError(error)}');
     } finally {
       if (mounted) {
         setState(() {
@@ -233,7 +234,7 @@ class _TagManagePageState extends ConsumerState<TagManagePage> {
       _showMessage('标签已删除');
       await _loadTags();
     } catch (error) {
-      _showMessage('标签删除失败：$error');
+      _showMessage('标签删除失败：${describeError(error)}');
     }
   }
 
@@ -334,7 +335,7 @@ class _TagManagePageState extends ConsumerState<TagManagePage> {
       _showMessage('标签创建成功');
       await _loadTags();
     } catch (error) {
-      _showMessage('标签创建失败：$error');
+      _showMessage('标签创建失败：${describeError(error)}');
     } finally {
       if (mounted) {
         _creating = false;

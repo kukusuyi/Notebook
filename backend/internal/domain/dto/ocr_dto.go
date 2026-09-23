@@ -1,6 +1,7 @@
 package dto
 
 type OCRWrongQuestionRequest struct {
+	Purpose  string `json:"purpose,omitempty"` // question (default) or solution; solution never rewrites the question.
 	ImageURL string `json:"image_url"`
 	ImageID  int64  `json:"image_id"`
 }

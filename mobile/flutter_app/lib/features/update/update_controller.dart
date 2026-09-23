@@ -1,3 +1,4 @@
+import 'package:math_notebook_flutter/core/network/api_exception.dart';
 import 'dart:io';
 
 import 'package:dio/dio.dart';
@@ -91,7 +92,7 @@ class UpdateController extends Notifier<UpdateState> {
     } catch (e) {
       state = state.copyWith(
         status: UpdateStatus.error,
-        error: '更新失败: $e',
+        error: '更新失败: ${describeError(e)}',
       );
     }
   }

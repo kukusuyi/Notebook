@@ -1,3 +1,4 @@
+import 'package:math_notebook_flutter/core/network/api_exception.dart';
 import 'dart:convert';
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter/material.dart';
@@ -117,7 +118,7 @@ class AppearanceCard extends ConsumerWidget {
     } catch (error) {
       if (context.mounted)
         ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text('背景设置失败：$error')));
+            .showSnackBar(SnackBar(content: Text('背景设置失败：${describeError(error)}')));
     }
   }
 

@@ -1,7 +1,9 @@
-const {app,BrowserWindow,Tray,Menu,nativeImage,clipboard,dialog}=require('electron');
+const {app,BrowserWindow,Tray,Menu,nativeImage,clipboard,dialog,shell}=require('electron');
 const {spawn}=require('node:child_process');
 const path=require('node:path');
 const readline=require('node:readline');
+const {isTrustedExternal}=require('./external-links.cjs');
+function openWindow({url}){try{if(ready&&new URL(url).origin===ready.url)return {action:'allow',overrideBrowserWindowOptions:{webPreferences:{nodeIntegration:false,contextIsolation:true,sandbox:true}}};if(isTrustedExternal(url))void shell.openExternal(url).catch(()=>{dialog.showErrorBox("无法打开浏览器", "请复制链接到系统浏览器中打开。")})}catch{}return {action:'deny'}}
 let win,tray,child,ready,quitting=false,exitTimer;
 const lock=app.requestSingleInstanceLock();
 if(!lock) app.quit();
@@ -15,7 +17,7 @@ app.on('activate',show);
 app.on('web-contents-created',(_event,contents)=>{
  const allowed=url=>{try{return ready&&new URL(url).origin===ready.url}catch{return false}};
  contents.on('will-navigate',(event,url)=>{if(!allowed(url))event.preventDefault()});
- contents.setWindowOpenHandler(({url})=>allowed(url)?{action:'allow',overrideBrowserWindowOptions:{webPreferences:{nodeIntegration:false,contextIsolation:true,sandbox:true}}}:{action:'deny'});
+ contents.setWindowOpenHandler(openWindow);
 });
 async function boot(){
  const dir=process.env.NOTEBOOK_DATA_DIR||path.join(app.getPath('appData'),'Notebook');
@@ -30,7 +32,7 @@ async function boot(){
  lines.on('line',async line=>{let data;try{data=JSON.parse(line)}catch{return};if(data.event!=='ready'||booted)return;booted=true;clearTimeout(timeout);ready=data;
  try{const response=await fetch(data.url+'/healthz');if(!response.ok)throw Error('健康检查失败');
  win=new BrowserWindow({width:1280,height:850,minWidth:900,minHeight:640,title:'题迹 Notebook',webPreferences:{nodeIntegration:false,contextIsolation:true,sandbox:true}});
- win.webContents.setWindowOpenHandler(({url})=>{if(new URL(url).origin!==data.url)return {action:'deny'};return {action:'allow',overrideBrowserWindowOptions:{webPreferences:{nodeIntegration:false,contextIsolation:true,sandbox:true}}}});
+ win.webContents.setWindowOpenHandler(openWindow);
  win.webContents.on('will-navigate',(event,url)=>{if(new URL(url).origin!==data.url)event.preventDefault()});
  win.on('close',e=>{if(!quitting){e.preventDefault();win.hide()}});
  // Embedded PNG avoids runtime asset dependencies for the tray icon.

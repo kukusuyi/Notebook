@@ -10,7 +10,7 @@
 
         </header>
 
-        <section v-if="draftStore.currentDraft" class="paper-card resume-card"><div><h3>继续上次的整理</h3><p class="meta-text">{{draftStore.currentDraft.question_json.question_core||'有一份尚未完成的草稿'}}</p></div><RouterLink :to="draftStore.currentDraft.flow_mode==='upload'?'/questions/upload':'/questions/create'"><el-button>继续草稿</el-button></RouterLink></section>
+        <section v-if="draftStore.currentDraft" class="paper-card resume-card"><div><h3>继续上次的整理</h3><p class="meta-text">{{draftStore.currentDraft.question_json.question_core||'有一份尚未完成的草稿'}}</p></div><RouterLink :to="draftStore.currentDraft.flow_mode==='upload'?'/questions/upload':'/questions/create'"><el-button>继续草稿</el-button></RouterLink><el-button text type="danger" @click="discardDraft">删除草稿</el-button></section>
         <section class="stats-grid">
             <button
                 type="button"
@@ -183,6 +183,9 @@
 </template>
 
 <script setup lang="ts">
+import { ElMessageBox } from 'element-plus'
+async function discardDraft(){try{await ElMessageBox.confirm('仅删除未保存的草稿，已保存错题不受影响。','删除草稿',{confirmButtonText:'删除草稿',cancelButtonText:'保留草稿',type:'warning'});draftStore.resetDraft()}catch{}}
+
 import {useDraftStore} from "@/stores/draft.store";
 const draftStore=useDraftStore();
 import { ElMessage } from "element-plus";

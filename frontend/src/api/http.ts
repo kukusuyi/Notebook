@@ -1,4 +1,5 @@
 import axios, { AxiosError } from 'axios'
+import { getErrorMessage } from '@/utils/error'
 
 import type { ApiEnvelope } from '@/types/common'
 import { clearAuthState, getAuthToken } from '@/utils/auth'
@@ -80,7 +81,7 @@ client.interceptors.response.use(
 
     if (payload && typeof payload.code === 'number') {
       if (payload.code !== 0) {
-        return Promise.reject(new Error(payload.message || '请求失败'))
+        return Promise.reject(new Error(getErrorMessage({message:payload.message})))
       }
 
       response.data = payload.data
@@ -98,12 +99,8 @@ client.interceptors.response.use(
       }
     }
 
-    const message =
-      error.response?.data?.message ||
-      error.message ||
-      '网络请求失败，请检查后端服务是否已启动。'
+    return Promise.reject(new Error(getErrorMessage(error)))
 
-    return Promise.reject(new Error(message))
   },
 )
 

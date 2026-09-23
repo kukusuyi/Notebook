@@ -1,3 +1,4 @@
+import 'package:math_notebook_flutter/core/network/api_exception.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -22,7 +23,7 @@ class AsyncValueView<T> extends StatelessWidget {
         child: Padding(
           padding: const EdgeInsets.all(24),
           child: Text(
-            error.toString(),
+            describeError(error),
             textAlign: TextAlign.center,
           ),
         ),

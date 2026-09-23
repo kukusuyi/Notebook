@@ -60,7 +60,7 @@
             </el-table>
         </section>
 
-        <el-dialog v-model="createDialogVisible" title="新增标签" width="420px">
+        <el-dialog append-to-body align-center v-model="createDialogVisible" title="新增标签" width="420px">
             <el-form label-position="top">
                 <el-form-item label="标签名称">
                     <el-input v-model="createForm.tag_name" />

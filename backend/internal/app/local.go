@@ -474,7 +474,7 @@ func (s *LocalRuntime) testModels(w http.ResponseWriter, r *http.Request, cfg co
 		c, _ := ai.NewEmbeddingClient(cfg.EmbeddingModel)
 		_, err := c.Embed(ctx, "连接测试")
 		if err != nil {
-			result["embedding"] = "连接失败，请检查地址、模型和密钥"
+			result["embedding"] = apperrors.ProviderMessage(0, err.Error())
 		} else {
 			result["embedding"] = "连接成功"
 		}
@@ -486,7 +486,7 @@ func (s *LocalRuntime) testModels(w http.ResponseWriter, r *http.Request, cfg co
 		} else {
 			p, _ := registry.Provider("ocr")
 			if _, err = p.ListModels(ctx); err != nil {
-				result["ocr"] = "连接失败，请检查密钥"
+				result["ocr"] = apperrors.ProviderMessage(0, err.Error())
 			} else {
 				result["ocr"] = "服务连接成功"
 			}
@@ -501,7 +501,7 @@ func (s *LocalRuntime) testModels(w http.ResponseWriter, r *http.Request, cfg co
 		p, _ := registry.Provider(c.Name)
 		_, err := p.ListModels(ctx)
 		if err != nil {
-			result[c.Name] = "连接失败，请检查地址与密钥"
+			result[c.Name] = apperrors.ProviderMessage(0, err.Error())
 		} else {
 			result[c.Name] = "连接成功"
 		}

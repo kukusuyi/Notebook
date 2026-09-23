@@ -1,3 +1,4 @@
+import '../../shared/widgets/solution_ocr_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -167,6 +168,9 @@ class _QuestionCreatePageState extends ConsumerState<QuestionCreatePage> {
                                 decoration:
                                     const InputDecoration(labelText: '标准解（可选）'),
                                 onChanged: (_) => _persistDraft()),
+                            SolutionOcrButton(
+                                controller: _standardSolutionController,
+                                onApplied: _persistDraft),
                             const SizedBox(height: 16),
                             TextFormField(
                                 controller: _wrongSolutionController,

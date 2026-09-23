@@ -27,6 +27,6 @@ export function analyzeWrongQuestion(payload: AnalyzeWrongQuestionPayload) {
   return httpPost<AnalyzeWrongQuestionResponse>('/api/v1/ai/analyze-wrong-question', payload)
 }
 
-export function recognizeWrongQuestion(payload: { image_url: string; image_id: number }) {
+export function recognizeWrongQuestion(payload: { image_url: string; image_id: number; purpose?: 'question'|'solution' }) {
   return httpPost<QuestionJSON & OCRContext>('/api/v1/ocr/wrong-question-json', payload, { timeout: 300000 })
 }

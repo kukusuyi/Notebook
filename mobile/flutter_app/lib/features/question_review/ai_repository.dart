@@ -49,12 +49,14 @@ class AIRepository {
   Future<RecognizedWrongQuestion> recognizeWrongQuestion({
     required String imageUrl,
     required int imageId,
+    String purpose = 'question',
   }) async {
     final response = await _dio.post<Map<String, dynamic>>(
       '/api/v1/ocr/wrong-question-json',
       data: {
         'image_url': imageUrl,
         'image_id': imageId,
+        'purpose': purpose,
       },
       options: Options(
         sendTimeout: const Duration(minutes: 5),

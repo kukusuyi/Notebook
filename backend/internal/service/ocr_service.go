@@ -50,21 +50,43 @@ func (s *OCRService) Recognize(ctx context.Context, req dto.OCRWrongQuestionRequ
 		return dto.OCRWrongQuestionResponse{}, apperrors.New(http.StatusBadRequest, 40001, "image_id 必须大于 0")
 	}
 
+	if req.Purpose != "" && req.Purpose != "question" && req.Purpose != "solution" {
+		return dto.OCRWrongQuestionResponse{}, apperrors.New(http.StatusBadRequest, 40001, "不支持的识别用途")
+	}
 	if s.client == nil {
 		return dto.OCRWrongQuestionResponse{}, apperrors.New(http.StatusServiceUnavailable, 50002, "OCR 服务未配置 API Key")
 	}
 
-	rawJSON, err := s.client.Recognize(ctx, req.ImageURL, s.currentPrompt())
+	prompt := s.currentPrompt()
+	if req.Purpose == "solution" {
+		data, err := fs.ReadFile(promptFiles, "ocr_solution_prompt.md")
+		if err != nil {
+			return dto.OCRWrongQuestionResponse{}, err
+		}
+		prompt = string(data)
+	}
+	rawJSON, err := s.client.Recognize(ctx, req.ImageURL, prompt)
 	if err != nil {
-		return dto.OCRWrongQuestionResponse{}, apperrors.New(http.StatusInternalServerError, 50003, "OCR 识别失败: "+err.Error())
+		return dto.OCRWrongQuestionResponse{}, apperrors.New(http.StatusInternalServerError, 50003, apperrors.ProviderMessage(0, err.Error()))
 	}
 
+	if req.Purpose == "solution" {
+		var result ocrRawResult
+		if err := json.Unmarshal([]byte(stripMarkdownJSON(strings.TrimSpace(rawJSON))), &result); err != nil {
+			return dto.OCRWrongQuestionResponse{}, apperrors.New(http.StatusBadGateway, 50003, "答案识别返回格式异常，请重试，原答案未被修改。")
+		}
+		confidence := strings.ToLower(result.OCRConfidence)
+		if confidence != "high" && confidence != "medium" && confidence != "low" {
+			confidence = "medium"
+		}
+		return dto.OCRWrongQuestionResponse{StandardSolution: strings.TrimSpace(result.StandardSolution), OCRConfidence: confidence, UncertainParts: result.UncertainParts}, nil
+	}
 	result, parseErr := parseOCRResult(rawJSON)
 	if parseErr != nil {
 		return dto.OCRWrongQuestionResponse{
 			QuestionCore:   rawJSON,
 			OCRConfidence:  "low",
-			UncertainParts: []string{"模型返回非 JSON 格式，请人工确认: " + parseErr.Error()},
+			UncertainParts: []string{"模型没有按预期返回结构化内容，请人工核对识别文字。"},
 		}, nil
 	}
 

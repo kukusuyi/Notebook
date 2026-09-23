@@ -1,3 +1,4 @@
+import 'package:math_notebook_flutter/core/network/api_exception.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -91,7 +92,7 @@ class _QuestionListPageState extends ConsumerState<QuestionListPage> {
             children: [
               const SizedBox(height: 80),
               Text(
-                '错题列表加载失败：$error',
+                '错题列表加载失败：${describeError(error)}',
                 textAlign: TextAlign.center,
               ),
             ],
@@ -261,7 +262,7 @@ class _QuestionListPageState extends ConsumerState<QuestionListPage> {
       }
 
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('打开导出页失败：$error')),
+        SnackBar(content: Text('打开导出页失败：${describeError(error)}')),
       );
       return;
     }

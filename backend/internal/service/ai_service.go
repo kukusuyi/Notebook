@@ -105,7 +105,7 @@ func (s *AIService) ListProviderModels(ctx context.Context, providerName string)
 
 	models, err := provider.ListModels(ctx)
 	if err != nil {
-		return dto.AIProviderModelListResponse{}, apperrors.New(http.StatusBadGateway, 50004, "获取模型列表失败: "+err.Error())
+		return dto.AIProviderModelListResponse{}, apperrors.New(http.StatusBadGateway, 50004, apperrors.ProviderMessage(0, err.Error()))
 	}
 
 	items := make([]dto.AIProviderModelItem, 0, len(models))
@@ -157,22 +157,22 @@ func (s *AIService) Analyze(ctx context.Context, req dto.AnalyzeWrongQuestionReq
 
 	result, err := s.analyzeWithProvider(ctx, provider, resolvedReq)
 	if err != nil {
-		s.recordFailure(userID, resolvedReq, inputQuestionJSONBytes, err.Error())
+		s.recordFailure(userID, resolvedReq, inputQuestionJSONBytes, apperrors.ProviderMessage(0, err.Error()))
 		if errors.Is(err, errUnknownAnalyzeChapter) {
 			return dto.AnalyzeWrongQuestionResponse{}, apperrors.New(http.StatusBadRequest, 40001, "chapter 不存在于本地章节提示词目录")
 		}
 		if errors.Is(err, errInvalidAnalyzeChapterRoute) {
-			return dto.AnalyzeWrongQuestionResponse{}, apperrors.New(http.StatusBadGateway, 50006, "解析章节识别结果失败: "+err.Error())
+			return dto.AnalyzeWrongQuestionResponse{}, apperrors.New(http.StatusBadGateway, 50006, "模型返回的章节信息格式异常，请重试或手动选择章节。")
 		}
 		var analyzeParseError *analyzeResultParseError
 		if errors.As(err, &analyzeParseError) {
-			return dto.AnalyzeWrongQuestionResponse{}, apperrors.New(http.StatusBadGateway, 50006, "解析模型输出失败: "+analyzeParseError.Error())
+			return dto.AnalyzeWrongQuestionResponse{}, apperrors.New(http.StatusBadGateway, 50006, "模型返回格式异常，请重试或更换兼容模型，也可以手动整理。")
 		}
 		var promptLoadError *analyzePromptLoadError
 		if errors.As(err, &promptLoadError) {
-			return dto.AnalyzeWrongQuestionResponse{}, apperrors.New(http.StatusInternalServerError, 50007, "加载分析提示词失败: "+promptLoadError.Error())
+			return dto.AnalyzeWrongQuestionResponse{}, apperrors.New(http.StatusInternalServerError, 50007, "分析提示词无法读取，请重新启动或重新安装电脑端程序。")
 		}
-		return dto.AnalyzeWrongQuestionResponse{}, apperrors.New(http.StatusBadGateway, 50005, "AI 分析失败: "+err.Error())
+		return dto.AnalyzeWrongQuestionResponse{}, apperrors.New(http.StatusBadGateway, 50005, apperrors.ProviderMessage(0, err.Error()))
 	}
 
 	if err := s.recordSuccess(userID, resolvedReq, inputQuestionJSONBytes, result); err != nil {
