@@ -379,7 +379,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          notes=".github/release-notes/${RELEASE_VERSION}.md"
+          notes=".github/release-notes/v${RELEASE_VERSION}.md"
           if [ ! -f "${notes}" ]; then
             notes="CHANGELOG.md"
           fi
