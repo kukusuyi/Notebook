@@ -82,7 +82,7 @@
 - Notebook 2.0 不会自动导入 Notebook 1.x 的数据库或对象存储文件。现有 1.x 安装请继续使用 `master` 或 `dev-ios-adaptation` 分支。
 - 替换安装前请备份完整的 Notebook 数据目录；备份包含私人数据和模型凭据。
 - 仓库保留 iOS 源码和编译说明，但 v2.0.0 不发布 IPA 或 TestFlight 构建。
-- Windows 包使用项目自签名 Authenticode 证书，macOS 包使用未经过 Apple 公证的 ad-hoc 签名；用户首次启动时需要明确允许这些程序运行。
+- Windows 包未附带 Authenticode 签名，macOS 包使用未经过 Apple 公证的 ad-hoc 签名；用户首次启动时需要明确允许这些程序运行。项目没有公开可信的 CA 证书，可用签名材料只有项目自签名证书，因此无法提供受信任的发布者签名。
 
 ### English
 
@@ -104,4 +104,4 @@
 - Notebook 2.0 does not automatically import Notebook 1.x databases or object-storage files. Continue using the `master` or `dev-ios-adaptation` branch for existing 1.x installations.
 - Back up the entire Notebook data directory before replacing an installation. The backup contains private data and model credentials.
 - iOS source code remains in the repository, but v2.0.0 does not publish an IPA or TestFlight build.
-- Windows packages use a project self-signed Authenticode certificate, and macOS packages use ad-hoc signing without Apple notarization. Users must explicitly trust or allow these packages on first launch.
+- Windows packages ship without an Authenticode signature, and macOS packages use ad-hoc signing without Apple notarization. Users must explicitly trust or allow these packages on first launch. The project has no publicly trusted CA certificate and its only signing material is a self-signed certificate, so no trusted-publisher signature is available.
