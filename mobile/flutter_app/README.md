@@ -39,7 +39,7 @@ flutter run -d DEVICE_ID --dart-define=APP_FLAVOR=production
 
 iOS / Android 适配要点：
 
-- 正式应用包名沿用 `com.mathnotebook.mobile`
+- 正式应用包名沿用 `com.mathnotebook.mobile`：这是为兼容旧安装、保证升级被识别为同一应用而保留的安装标识
 - Android 侧已补充 `INTERNET` 与安装更新相关权限
 - 原生配置补充项见 [docs/IOS_SETUP.md](./docs/IOS_SETUP.md)
 - 开发阶段默认地址会按设备类型选择：

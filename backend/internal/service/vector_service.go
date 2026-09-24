@@ -3,9 +3,10 @@ package service
 import (
 	"crypto/sha256"
 	"encoding/hex"
-	"mathnotebook/backend/internal/domain/enum"
-	"mathnotebook/backend/internal/domain/model"
 	"strings"
+
+	"github.com/kukusuyi/Questrace/backend/internal/domain/enum"
+	"github.com/kukusuyi/Questrace/backend/internal/domain/model"
 )
 
 type VectorService struct{ Local *LocalVector }

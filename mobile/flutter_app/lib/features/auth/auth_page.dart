@@ -87,7 +87,7 @@ class _AuthPageState extends ConsumerState<AuthPage> {
                             size: 36,
                             color: Theme.of(context).colorScheme.primary),
                         const SizedBox(height: 20),
-                        Text('题迹 Notebook',
+                        Text('题迹 Questrace',
                             style: Theme.of(context)
                                 .textTheme
                                 .headlineMedium

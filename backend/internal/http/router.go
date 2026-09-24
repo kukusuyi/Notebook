@@ -4,11 +4,11 @@ import (
 	"log/slog"
 	"net/http"
 
-	"mathnotebook/backend/internal/http/handler"
-	v1 "mathnotebook/backend/internal/http/handler/v1"
-	"mathnotebook/backend/internal/http/middleware"
-	"mathnotebook/backend/internal/openapi"
-	"mathnotebook/backend/internal/service"
+	"github.com/kukusuyi/Questrace/backend/internal/http/handler"
+	v1 "github.com/kukusuyi/Questrace/backend/internal/http/handler/v1"
+	"github.com/kukusuyi/Questrace/backend/internal/http/middleware"
+	"github.com/kukusuyi/Questrace/backend/internal/openapi"
+	"github.com/kukusuyi/Questrace/backend/internal/service"
 )
 
 type V1Handlers struct {

@@ -7,7 +7,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
-	<string>题迹 Notebook</string>
+	<string>题迹 Questrace</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -15,7 +15,7 @@
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
-	<string>math_notebook_flutter</string>
+	<string>questrace_flutter</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
@@ -29,7 +29,7 @@
 	<key>NSCameraUsageDescription</key>
 	<string>需要访问相机以拍摄错题图片。</string>
 	<key>NSLocalNetworkUsageDescription</key>
-	<string>需要访问局域网以连接运行 Notebook 2.0 的电脑。</string>
+	<string>需要访问局域网以连接运行 Questrace 2.0 的电脑。</string>
 	<key>NSAppTransportSecurity</key>
 	<dict>
 		<key>NSAllowsLocalNetworking</key>

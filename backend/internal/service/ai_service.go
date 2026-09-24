@@ -13,12 +13,12 @@ import (
 	"sort"
 	"strings"
 
-	"mathnotebook/backend/internal/domain/dto"
-	"mathnotebook/backend/internal/domain/model"
-	aiclient "mathnotebook/backend/internal/infra/ai"
-	apperrors "mathnotebook/backend/internal/pkg/errors"
-	"mathnotebook/backend/internal/pkg/validator"
-	"mathnotebook/backend/internal/repository"
+	"github.com/kukusuyi/Questrace/backend/internal/domain/dto"
+	"github.com/kukusuyi/Questrace/backend/internal/domain/model"
+	aiclient "github.com/kukusuyi/Questrace/backend/internal/infra/ai"
+	apperrors "github.com/kukusuyi/Questrace/backend/internal/pkg/errors"
+	"github.com/kukusuyi/Questrace/backend/internal/pkg/validator"
+	"github.com/kukusuyi/Questrace/backend/internal/repository"
 )
 
 const (

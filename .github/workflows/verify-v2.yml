@@ -1,4 +1,4 @@
-name: Notebook v2 verification
+name: Questrace v2 verification
 
 on:
   push:
@@ -13,7 +13,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: notebook-v2-verification-${{ github.ref }}
+  group: questrace-v2-verification-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -55,7 +55,7 @@ jobs:
       - name: Build and smoke-test embedded Linux server
         run: |
           node scripts/build.mjs
-          python3 scripts/smoke.py dist/notebook-2.0.0-linux-amd64/notebook-server
+          python3 scripts/smoke.py dist/questrace-2.0.0-linux-amd64/questrace-server
 
   flutter-tests:
     runs-on: macos-latest

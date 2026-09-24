@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"mathnotebook/backend/internal/openapi"
+	"github.com/kukusuyi/Questrace/backend/internal/openapi"
 )
 
 type DocsHandler struct {

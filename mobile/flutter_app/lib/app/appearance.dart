@@ -4,7 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../core/storage/key_value_store.dart';
 import '../core/storage/storage_keys.dart';
 
-const appearanceKey = 'notebook:appearance:v1';
+const appearanceKey = 'questrace:appearance:v1';
 
 class AppearancePreferences {
   const AppearancePreferences(

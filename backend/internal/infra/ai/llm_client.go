@@ -12,8 +12,8 @@ import (
 	"strings"
 	"time"
 
-	"mathnotebook/backend/internal/config"
-	apperrors "mathnotebook/backend/internal/pkg/errors"
+	"github.com/kukusuyi/Questrace/backend/internal/config"
+	apperrors "github.com/kukusuyi/Questrace/backend/internal/pkg/errors"
 )
 
 const (

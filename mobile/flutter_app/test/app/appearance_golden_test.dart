@@ -4,18 +4,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:math_notebook_flutter/app/appearance.dart';
-import 'package:math_notebook_flutter/app/app_theme.dart';
-import 'package:math_notebook_flutter/core/storage/key_value_store.dart';
-import 'package:math_notebook_flutter/shared/widgets/appearance_card.dart';
+import 'package:questrace_flutter/app/appearance.dart';
+import 'package:questrace_flutter/app/app_theme.dart';
+import 'package:questrace_flutter/core/storage/key_value_store.dart';
+import 'package:questrace_flutter/shared/widgets/appearance_card.dart';
 
 void main() {
-  const fontPath = String.fromEnvironment('NOTEBOOK_UI_FONT');
+  const fontPath = String.fromEnvironment('QUESTRACE_UI_FONT');
   final reviewGoldenDir =
       Directory('${Directory.current.path}/build/ui-screenshots');
   setUpAll(() async {
     if (fontPath.isNotEmpty) reviewGoldenDir.createSync(recursive: true);
-    const iconPath = String.fromEnvironment('NOTEBOOK_ICON_FONT');
+    const iconPath = String.fromEnvironment('QUESTRACE_ICON_FONT');
     if (iconPath.isNotEmpty) {
       await (FontLoader('MaterialIcons')
             ..addFont(File(iconPath).readAsBytes().then(ByteData.sublistView)))

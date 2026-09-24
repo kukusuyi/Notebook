@@ -20,7 +20,7 @@
 </template>
 <script setup lang="ts">
 import { ref } from 'vue'
-import { appearance, defaults, setAppearance, themes, type AppearancePreferences } from '@/theme/appearance'
+import { appearance, appearanceKey, defaults, setAppearance, themes, type AppearancePreferences } from '@/theme/appearance'
 const backgroundError=ref('')
 function restore(){backgroundError.value='';setAppearance(defaults)}
 async function chooseBackground(e:Event){
@@ -30,7 +30,7 @@ async function chooseBackground(e:Event){
  try{
  const data=await new Promise<string>((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(String(reader.result));reader.onerror=reject;reader.readAsDataURL(file)})
  await new Promise<void>((resolve,reject)=>{const image=new Image();image.onload=()=>resolve();image.onerror=reject;image.src=data})
- localStorage.setItem('notebook:appearance:v1',JSON.stringify({...appearance,background:data}))
+ localStorage.setItem(appearanceKey,JSON.stringify({...appearance,background:data}))
  setAppearance({background:data})
  }catch{backgroundError.value='图片无法读取或本机存储空间不足，请换一张较小的图片。'}finally{input.value=''}
 }

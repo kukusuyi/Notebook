@@ -1,4 +1,4 @@
-import 'package:math_notebook_flutter/core/network/api_exception.dart';
+import 'package:questrace_flutter/core/network/api_exception.dart';
 import 'dart:convert';
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter/material.dart';

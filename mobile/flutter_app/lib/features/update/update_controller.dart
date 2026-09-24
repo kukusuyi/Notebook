@@ -1,4 +1,4 @@
-import 'package:math_notebook_flutter/core/network/api_exception.dart';
+import 'package:questrace_flutter/core/network/api_exception.dart';
 import 'dart:io';
 
 import 'package:dio/dio.dart';
@@ -62,7 +62,7 @@ class UpdateController extends Notifier<UpdateState> {
       }
 
       final dir = await getTemporaryDirectory();
-      final filePath = '${dir.path}/math-notebook-update.apk';
+      final filePath = '${dir.path}/questrace-update.apk';
 
       final dio = Dio();
       await dio.download(

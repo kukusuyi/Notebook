@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"golang.org/x/crypto/bcrypt"
 	"io"
 	"io/fs"
 	"log/slog"
@@ -20,16 +21,16 @@ import (
 	"sync"
 	"time"
 
-	"golang.org/x/crypto/bcrypt"
-	assets "mathnotebook/backend"
-	"mathnotebook/backend/internal/config"
-	"mathnotebook/backend/internal/domain/dto"
-	"mathnotebook/backend/internal/domain/model"
-	ai "mathnotebook/backend/internal/infra/ai"
-	"mathnotebook/backend/internal/infra/sqlite"
-	apperrors "mathnotebook/backend/internal/pkg/errors"
-	"mathnotebook/backend/internal/repository"
-	"mathnotebook/backend/internal/service"
+	assets "github.com/kukusuyi/Questrace/backend"
+	"github.com/kukusuyi/Questrace/backend/internal/config"
+	"github.com/kukusuyi/Questrace/backend/internal/domain/dto"
+	"github.com/kukusuyi/Questrace/backend/internal/domain/model"
+	ai "github.com/kukusuyi/Questrace/backend/internal/infra/ai"
+	"github.com/kukusuyi/Questrace/backend/internal/infra/sqlite"
+	apperrors "github.com/kukusuyi/Questrace/backend/internal/pkg/errors"
+	"github.com/kukusuyi/Questrace/backend/internal/pkg/session"
+	"github.com/kukusuyi/Questrace/backend/internal/repository"
+	"github.com/kukusuyi/Questrace/backend/internal/service"
 )
 
 type LocalRuntime struct {
@@ -76,9 +77,7 @@ func fail(w http.ResponseWriter, status int, message string) {
 func (s *LocalRuntime) user(r *http.Request) (model.User, error) {
 	token := strings.TrimPrefix(r.Header.Get("Authorization"), "Bearer ")
 	if token == "" {
-		if c, e := r.Cookie("notebook_session"); e == nil {
-			token = c.Value
-		}
+		token = session.Read(r)
 	}
 	cfg := s.Config()
 	repo := repository.NewSQLiteUserRepository(s.DB)
@@ -117,7 +116,7 @@ func (s *LocalRuntime) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			fail(w, 405, "Method not allowed")
 			return
 		}
-		http.SetCookie(w, &http.Cookie{Name: "notebook_session", Value: "", Path: "/", HttpOnly: true, SameSite: http.SameSiteStrictMode, MaxAge: -1})
+		session.Clear(w)
 		dto.WriteSuccess(w, true)
 		return
 
@@ -210,7 +209,7 @@ func (s *LocalRuntime) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 		data, _ := fs.ReadFile(web, "index.html")
 		if len(data) == 0 {
-			data = []byte("<!doctype html><title>Notebook</title><p>Build the web app with node scripts/build.mjs.</p>")
+			data = []byte("<!doctype html><title>Questrace</title><p>Build the web app with node scripts/build.mjs.</p>")
 		}
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
 		w.Write(data)

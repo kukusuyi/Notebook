@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"mathnotebook/backend/internal/domain/dto"
+	"github.com/kukusuyi/Questrace/backend/internal/domain/dto"
 )
 
 const testOCRJSONResponse = `{

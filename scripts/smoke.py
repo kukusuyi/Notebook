@@ -51,7 +51,7 @@ def stop(proc):
     assert proc.wait(timeout=15) == 0
 
 try:
-    with tempfile.TemporaryDirectory(prefix='notebook-smoke-') as temp:
+    with tempfile.TemporaryDirectory(prefix='questrace-smoke-') as temp:
         data = pathlib.Path(temp) / '中文 数据'
         busy = socket.socket()
         busy.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)

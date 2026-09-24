@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"io"
 	"log/slog"
-	apperrors "mathnotebook/backend/internal/pkg/errors"
 	"mime"
 	"net"
 	"net/http"
@@ -16,6 +15,8 @@ import (
 	"path/filepath"
 	"strings"
 	"time"
+
+	apperrors "github.com/kukusuyi/Questrace/backend/internal/pkg/errors"
 )
 
 const (

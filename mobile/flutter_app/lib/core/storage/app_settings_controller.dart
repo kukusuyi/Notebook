@@ -63,7 +63,7 @@ class AppSettingsController extends Notifier<AppSettings> {
       final response = await probe.get('$normalized/api/v1/system/status');
       if (response.data is! Map ||
           response.data['data']?['version'] != '2.0.0') {
-        throw const FormatException('该地址不是 Notebook 2.0 服务');
+        throw const FormatException('该地址不是 Questrace 2.0 服务');
       }
     } finally {
       probe.close();

@@ -1,4 +1,4 @@
-package com.mathnotebook.mobile
+package com.kukusuyi.questrace.mobile
 
 import io.flutter.embedding.android.FlutterActivity
 

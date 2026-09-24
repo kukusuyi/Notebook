@@ -1,6 +1,8 @@
-# 题迹 Notebook 2.0
+# 题迹 Questrace 2.0
 
 题迹是一款错题整理、图片录入、AI 分析与相似题复盘工具。2.0 将服务端和网页打包到电脑程序中：数据留在电脑，手机连接电脑使用。
+
+仓库地址：[kukusuyi/Questrace](https://github.com/kukusuyi/Questrace)。本产品原名 Notebook（旧称），自本版本起改名为题迹 Questrace；旧版本的数据、设置与登录状态可以直接沿用，见下方“从 Notebook 升级”。
 
 ## 下载与使用
 
@@ -21,22 +23,35 @@
 
 | 平台 | 位置 |
 |---|---|
-| Windows | `%APPDATA%\Notebook` |
-| macOS | `~/Library/Application Support/Notebook` |
-| Linux | `$XDG_DATA_HOME/Notebook`，未设置时为 `~/.local/share/Notebook` |
+| Windows | `%APPDATA%\Questrace` |
+| macOS | `~/Library/Application Support/Questrace` |
+| Linux | `$XDG_DATA_HOME/Questrace`，未设置时为 `~/.local/share/Questrace` |
 
-目录包含 `notebook.db`、`files/`、`settings.json`、`notebook.log`。重装或替换程序不会覆盖数据。备份含模型密钥与登录配置，应作为私人文件保存。
+目录包含 `questrace.db`、`files/`、`settings.json`、`questrace.log`。重装或替换程序不会覆盖数据。备份含模型密钥与登录配置，应作为私人文件保存。
 
-退出程序后执行（Windows 使用发行产物中的维护二进制 `notebook-server.exe`；macOS 可使用 `.app/Contents/Resources/backend/notebook-server`）：
+可用环境变量指定数据目录：`QUESTRACE_DATA_DIR` 优先，`NOTEBOOK_DATA_DIR` 作为旧名称兼容别名保留；命令行 `--data-dir` 始终优先。
+
+退出程序后执行（Windows 使用发行产物中的维护二进制 `questrace-server.exe`；macOS 可使用 `.app/Contents/Resources/backend/questrace-server`）：
 
 ```sh
-./notebook-server --backup /path/outside-data/notebook-backup.zip
-./notebook-server --restore /path/notebook-backup.zip
+./questrace-server --backup /path/outside-data/questrace-backup.zip
+./questrace-server --restore /path/questrace-backup.zip
 ```
 
 可加 `--data-dir /path/to/data` 指定目录。恢复先验证临时目录，成功后替换；恢复前数据保留在同级 `*.before-restore-*` 目录。数据目录加进程锁，不允许多个进程同时运行或在线恢复。首次 2.0 建库不导入 1.x 数据。
 
 默认端口为 8080，被占用时自动选择空闲端口；`--port 8090` 显式指定时，冲突会报错。`--host 127.0.0.1` 可限制为本机使用。公网 HTTPS、自动更新和跨电脑同步不在 2.0 首版范围内。
+
+## 从 Notebook 升级
+
+更名不影响既有安装；程序会继续原地使用旧数据，不复制、不移动任何文件。
+
+- **数据目录**：仅存在旧 `Notebook` 目录时继续使用该目录；仅存在新 `Questrace` 目录时使用新目录。两者同时存在时启动会报错并停止，避免静默选错数据，此时请保留一个，或用 `--data-dir` / `QUESTRACE_DATA_DIR` 指定。
+- **数据库文件**：数据目录内只有旧 `notebook.db` 时继续原地使用；只有新 `questrace.db` 时使用新文件；两者同时存在时报错停止。
+- **备份**：新备份统一使用 `questrace.db` 条目；恢复同时接受旧备份中的 `notebook.db`，并在恢复时规范化为新名称。
+- **浏览器与移动端**：启动时把旧 `math-notebook:*`、`notebook:appearance:v1` 本机数据复制到对应的 `questrace:*` 键，旧键保留以便回退；登录 Cookie 写入 `questrace_session`，同时继续读取并在退出时清理旧 `notebook_session`。
+- **安装标识**：Electron `appId`、Android `applicationId` 与 iOS Bundle Identifier 保持原值，确保系统仍把新版识别为同一应用、可以就地升级。这些标识是有意保留的兼容例外。
+- **签名开关**：`QUESTRACE_REQUIRE_RELEASE_SIGNING` 为正式变量，`NOTEBOOK_REQUIRE_RELEASE_SIGNING` 继续作为兼容别名生效。
 
 ## 源码构建
 
@@ -49,7 +64,7 @@ npm ci
 npm run dist
 ```
 
-`build.mjs` 不是纯 Node 打包器：它先检查本机是否存在 Go 1.25+，再构建 Vue、嵌入网页并生成独立 Go 程序，最后复制到 Electron 的 resources。第一阶段输出位于 `dist/notebook-2.0.0-<系统>-<架构>/`；随后必须在 `desktop/` 执行 `npm run dist` 才会生成 Windows/macOS 桌面包。可用 `GOOS`/`GOARCH` 选择后端目标；桌面外壳应在对应系统打包。Linux 输出包括 `start.sh`。
+`build.mjs` 不是纯 Node 打包器：它先检查本机是否存在 Go 1.25+，再构建 Vue、嵌入网页并生成独立 Go 程序，最后复制到 Electron 的 resources。第一阶段输出位于 `dist/questrace-2.0.0-<系统>-<架构>/`，其中的服务端程序名为 `questrace-server`；随后必须在 `desktop/` 执行 `npm run dist` 才会生成 Windows/macOS 桌面包。可用 `GOOS`/`GOARCH` 选择后端目标；桌面外壳应在对应系统打包。Linux 输出包括 `start.sh`。
 
 若出现 `Go compiler not found`，请先安装 Go 1.25+ 并确认 `go version` 可执行。
 
@@ -91,10 +106,11 @@ Electron 窗口 / 浏览器 / Flutter APK
 
 保留登录与用户数据隔离。向量生成是持久化后台任务：题目保存不等待模型；失败可重试；更换模型会排队重建。检索先过滤用户、科目和标签，再计算相似度，避免跨用户候选截断。
 
-- `backend/`：本地后端、API、存储与任务
+- `backend/`：本地后端、API、存储与任务（Go module `github.com/kukusuyi/Questrace/backend`）
 - `frontend/`：桌面窗口和浏览器共享的 Vue 页面
 - `desktop/`：Electron 生命周期、托盘和打包
-- `mobile/flutter_app/`：Android/iOS 客户端源码
+- `mobile/flutter_app/`：Android/iOS 客户端源码（Dart 包 `questrace_flutter`）
+- `design-system/questrace/`：主题与界面规范
 - `scripts/`：发行构建入口
 - `docs/API.md`：2.0 本地服务补充接口说明
 
@@ -108,7 +124,7 @@ cd frontend && npm ci && npm run build
 cd mobile/flutter_app && flutter analyze && flutter test
 ```
 
-开发服务端可运行 `go run ./cmd/api --data-dir /tmp/notebook-dev`，开发网页需先构建或单独运行 Vite。接口文档位于 `/docs`。
+开发服务端可运行 `go run ./cmd/api --data-dir /tmp/questrace-dev`，开发网页需先构建或单独运行 Vite。接口文档位于 `/docs`。
 
 ## 许可证
 

@@ -65,7 +65,7 @@ type MobileVersionConfig struct {
 
 func defaults() Config {
 	return Config{
-		App:            AppConfig{Name: "Notebook", Host: "0.0.0.0", Port: 8080, Env: "local"},
+		App:            AppConfig{Name: "Questrace", Host: "0.0.0.0", Port: 8080, Env: "local"},
 		File:           FileConfig{StorageProvider: "local", DefaultBucket: "images"},
 		JWT:            JWTConfig{ExpirationHours: 168},
 		ImageOcr:       ImageOcrConfig{Name: "qwen", Model: "qwen3.6-plus"},

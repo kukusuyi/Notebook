@@ -1,5 +1,5 @@
-const TOKEN_KEY = 'math-notebook:token'
-const AUTH_USER_KEY = 'math-notebook:auth-user'
+const TOKEN_KEY = 'questrace:token'
+const AUTH_USER_KEY = 'questrace:auth-user'
 
 export interface StoredAuthUser {
   user_id: number

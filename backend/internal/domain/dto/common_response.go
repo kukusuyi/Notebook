@@ -5,7 +5,7 @@ import (
 	"errors"
 	"net/http"
 
-	apperrors "mathnotebook/backend/internal/pkg/errors"
+	apperrors "github.com/kukusuyi/Questrace/backend/internal/pkg/errors"
 )
 
 type Response struct {

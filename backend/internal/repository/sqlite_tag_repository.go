@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	"mathnotebook/backend/internal/domain/model"
+	"github.com/kukusuyi/Questrace/backend/internal/domain/model"
 )
 
 type SQLiteTagRepository struct {

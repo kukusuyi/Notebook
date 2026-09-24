@@ -1,6 +1,6 @@
 # iOS 编译与安装
 
-Notebook 2.0 的 iOS 客户端源码位于 `mobile/flutter_app/`。iOS 构建必须在 macOS 上完成；仓库已经包含原生工程，不要再次执行 `flutter create .`。
+Questrace 2.0 的 iOS 客户端源码位于 `mobile/flutter_app/`。iOS 构建必须在 macOS 上完成；仓库已经包含原生工程，不要再次执行 `flutter create .`。
 
 ## 环境要求
 
@@ -55,7 +55,7 @@ Flutter 不支持 iOS 模拟器的 release 模式；请指定 `flutter devices` 
 2. 打开 `mobile/flutter_app/ios/Runner.xcworkspace`，不要打开 `.xcodeproj`。
 3. 在 Xcode 的 **Settings > Accounts** 登录 Apple ID。
 4. 选择 **Runner > Signing & Capabilities**，启用 **Automatically manage signing**，在 **Team** 中选择个人团队。
-5. 如果 `com.mathnotebook.mobile` 已被占用，把 Bundle Identifier 改为自己唯一的值，例如 `com.yourname.notebook`。这只影响本机签名身份，不影响服务端连接。
+5. `com.mathnotebook.mobile` 是为兼容旧安装而保留的标识。如果它已被占用，把 Bundle Identifier 改为自己唯一的值，例如 `com.yourname.questrace`。这只影响本机签名身份，不影响服务端连接。
 6. 选择已连接的 iPhone 后在 Xcode 中运行，或执行：
 
 ```sh
@@ -63,7 +63,7 @@ flutter devices
 flutter run -d IPHONE_DEVICE_ID --dart-define=APP_FLAVOR=production
 ```
 
-真机不能使用 `127.0.0.1` 连接电脑。请确保手机和电脑位于可互通的网络，并在应用设置页填写桌面端显示的地址，例如 `http://192.168.1.10:8080`。首次访问时允许“本地网络”权限，电脑防火墙也需允许 Notebook 接收入站连接。
+真机不能使用 `127.0.0.1` 连接电脑。请确保手机和电脑位于可互通的网络，并在应用设置页填写桌面端显示的地址，例如 `http://192.168.1.10:8080`。首次访问时允许“本地网络”权限，电脑防火墙也需允许 Questrace 接收入站连接。
 
 ## 付费开发者账号：归档、IPA 与 TestFlight
 

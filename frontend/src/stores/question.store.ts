@@ -6,7 +6,7 @@ import type { QuestionListItem } from '@/types/question'
 export const useQuestionStore = defineStore('question', () => {
   const recentQuestions = ref<QuestionListItem[]>([])
   const preferredListView = ref<'card' | 'table'>(
-    (window.localStorage.getItem('math-notebook:list-view') as 'card' | 'table') || 'card',
+    (window.localStorage.getItem('questrace:list-view') as 'card' | 'table') || 'card',
   )
 
   function setRecentQuestions(items: QuestionListItem[]) {
@@ -15,7 +15,7 @@ export const useQuestionStore = defineStore('question', () => {
 
   function setPreferredListView(mode: 'card' | 'table') {
     preferredListView.value = mode
-    window.localStorage.setItem('math-notebook:list-view', mode)
+    window.localStorage.setItem('questrace:list-view', mode)
   }
 
   return {

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"io"
 
-	"mathnotebook/backend/internal/config"
+	"github.com/kukusuyi/Questrace/backend/internal/config"
 )
 
 type ObjectStore interface {

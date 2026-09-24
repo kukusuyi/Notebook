@@ -6,7 +6,7 @@ import (
 	"os"
 	"testing"
 
-	"mathnotebook/backend/internal/config"
+	"github.com/kukusuyi/Questrace/backend/internal/config"
 )
 
 func TestEmbeddingClient(t *testing.T) {

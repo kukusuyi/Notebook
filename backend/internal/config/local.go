@@ -10,7 +10,21 @@ import (
 	"runtime"
 )
 
-func DefaultDataDir() (string, error) {
+const (
+	// AppName names the data directory of a fresh installation.
+	AppName = "Questrace"
+	// LegacyAppName is the pre-rename product name. An existing data directory
+	// keeps being used in place so upgrades never move user data.
+	LegacyAppName = "Notebook"
+
+	// EnvDataDir overrides the data directory without a command-line flag.
+	EnvDataDir = "QUESTRACE_DATA_DIR"
+	// EnvLegacyDataDir is the pre-rename alias, honoured at lower priority.
+	EnvLegacyDataDir = "NOTEBOOK_DATA_DIR"
+)
+
+// dataRoot is the platform directory that holds per-application data.
+func dataRoot() (string, error) {
 	if runtime.GOOS == "linux" {
 		base := os.Getenv("XDG_DATA_HOME")
 		if base == "" {
@@ -20,11 +34,68 @@ func DefaultDataDir() (string, error) {
 			}
 			base = filepath.Join(home, ".local", "share")
 		}
-		return filepath.Join(base, "Notebook"), nil
+		return base, nil
 	}
-	base, err := os.UserConfigDir()
-	return filepath.Join(base, "Notebook"), err
+	return os.UserConfigDir()
 }
+
+// DefaultDataDir is the directory a fresh installation uses.
+func DefaultDataDir() (string, error) {
+	base, err := dataRoot()
+	if err != nil {
+		return "", err
+	}
+	return filepath.Join(base, AppName), nil
+}
+
+// ResolveDataDir picks the data directory when neither a flag nor an environment
+// variable selects one. A lone legacy directory is reused in place; when both the
+// new and the legacy directory exist the choice is ambiguous, so startup stops
+// instead of silently opening the wrong data.
+func ResolveDataDir() (string, error) {
+	base, err := dataRoot()
+	if err != nil {
+		return "", err
+	}
+	current := filepath.Join(base, AppName)
+	legacy := filepath.Join(base, LegacyAppName)
+	hasCurrent := isDirectory(current)
+	hasLegacy := isDirectory(legacy)
+	if hasCurrent && hasLegacy {
+		return "", fmt.Errorf("同时存在数据目录 %s 与 %s，请保留其中一个，或用 --data-dir / %s 指定要使用的目录", current, legacy, EnvDataDir)
+	}
+	if hasLegacy {
+		return legacy, nil
+	}
+	return current, nil
+}
+
+// DataDirFromEnv reads the data directory from the environment, preferring the
+// current variable and falling back to the legacy alias.
+func DataDirFromEnv() string {
+	if dir := os.Getenv(EnvDataDir); dir != "" {
+		return dir
+	}
+	return os.Getenv(EnvLegacyDataDir)
+}
+
+// SelectDataDir returns the data directory to use. An explicit command-line value
+// always wins, then the environment, and only then the platform default.
+func SelectDataDir(explicit string) (string, error) {
+	if explicit != "" {
+		return explicit, nil
+	}
+	if dir := DataDirFromEnv(); dir != "" {
+		return dir, nil
+	}
+	return ResolveDataDir()
+}
+
+func isDirectory(path string) bool {
+	info, err := os.Stat(path)
+	return err == nil && info.IsDir()
+}
+
 func RandomSecret() string {
 	var b [32]byte
 	if _, err := rand.Read(b[:]); err != nil {

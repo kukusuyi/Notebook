@@ -1,14 +1,14 @@
 import 'package:dio/dio.dart';
-import 'package:math_notebook_flutter/app/app_theme.dart';
+import 'package:questrace_flutter/app/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_math_fork/flutter_math.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:math_notebook_flutter/features/question_detail/question_detail_page.dart';
-import 'package:math_notebook_flutter/features/question_list/question_repository.dart';
-import 'package:math_notebook_flutter/shared/models/common_models.dart';
-import 'package:math_notebook_flutter/shared/models/question_models.dart';
+import 'package:questrace_flutter/features/question_detail/question_detail_page.dart';
+import 'package:questrace_flutter/features/question_list/question_repository.dart';
+import 'package:questrace_flutter/shared/models/common_models.dart';
+import 'package:questrace_flutter/shared/models/question_models.dart';
 
 void main() {
   testWidgets('wraps LaTeX content in question detail sections',

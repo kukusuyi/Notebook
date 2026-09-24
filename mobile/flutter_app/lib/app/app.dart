@@ -43,7 +43,7 @@ class _AppState extends ConsumerState<App> {
     final appearance = ref.watch(appearanceProvider);
 
     return MaterialApp.router(
-      title: '题迹 Notebook',
+      title: '题迹 Questrace',
       debugShowCheckedModeBanner: false,
       theme: buildAppTheme(
           seedColor: appearance.accentColor,
@@ -59,7 +59,7 @@ class _AppState extends ConsumerState<App> {
           hasBackground: appearance.background != null,
           brightness: Brightness.dark),
       builder: (context, child) {
-        final surfaces = Theme.of(context).extension<NotebookSurfaces>()!;
+        final surfaces = Theme.of(context).extension<QuestraceSurfaces>()!;
         final background = appearance.background;
         return ColoredBox(
             color: surfaces.background,

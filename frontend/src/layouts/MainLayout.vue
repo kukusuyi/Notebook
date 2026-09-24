@@ -1,7 +1,7 @@
 <template>
  <div class="layout-root" :class="{'immersive':!topLevel}">
   <aside class="sidebar">
-   <RouterLink class="brand" to="/dashboard"><span class="brand-mark">∫</span><strong>题迹 <small>Notebook</small></strong></RouterLink>
+   <RouterLink class="brand" to="/dashboard"><span class="brand-mark">∫</span><strong>题迹 <small>Questrace</small></strong></RouterLink>
    <nav class="nav-list" aria-label="主要导航"><RouterLink v-for="item in navItems" :key="item.to" :to="item.to" class="nav-item" :class="{active:isActive(item.to)}" :aria-label="item.label"><el-icon><component :is="item.icon"/></el-icon><span>{{item.label}}</span></RouterLink></nav>
    <div class="sidebar-footer"><span class="avatar">{{username.slice(0,1).toUpperCase()}}</span><span class="user-label">{{username}}</span><el-button text aria-label="退出登录" @click="handleLogout"><el-icon><SwitchButton/></el-icon></el-button></div>
   </aside>

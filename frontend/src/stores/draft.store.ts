@@ -5,7 +5,7 @@ import type { DraftFlowMode, DraftStatus, MasteryStatus, SourceType } from '@/ty
 import type { AnalyzeWrongQuestionResponse } from '@/types/ai'
 import type { OCRContext, QuestionDraft, QuestionJSON, TagGroups } from '@/types/question'
 
-const STORAGE_KEY = 'math-notebook:draft'
+const STORAGE_KEY = 'questrace:draft'
 
 function createEmptyTags(): TagGroups {
   return {

@@ -1,10 +1,10 @@
 import { argbFromHex, hexFromArgb, TonalPalette } from '@material/material-color-utilities'
 import { reactive } from 'vue'
-import themes from '../../../design-system/notebook/themes.json'
+import themes from '../../../design-system/questrace/themes.json'
 export { themes }
 export type Preset = keyof typeof themes
 export type AppearancePreferences = {version:1; preset:Preset; mode:'system'|'light'|'dark'; accentSeed:string|null; material:'plain'|'glass'|'candy'; font:'system'|'rounded'|'serif'; background:string|null}
-export const appearanceKey = 'notebook:appearance:v1'
+export const appearanceKey = 'questrace:appearance:v1'
 export const defaults:AppearancePreferences = {version:1,preset:'blue',mode:'system',accentSeed:null,material:'plain',font:'system',background:null}
 export function normalizeAppearance(value: unknown): AppearancePreferences {
   const p = (value && typeof value==='object' ? value : {}) as Partial<AppearancePreferences>

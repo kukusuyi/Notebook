@@ -8,10 +8,10 @@ import (
 	"testing"
 	"time"
 
-	"mathnotebook/backend/internal/config"
-	"mathnotebook/backend/internal/domain/model"
-	"mathnotebook/backend/internal/infra/sqlite"
-	"mathnotebook/backend/internal/repository"
+	"github.com/kukusuyi/Questrace/backend/internal/config"
+	"github.com/kukusuyi/Questrace/backend/internal/domain/model"
+	"github.com/kukusuyi/Questrace/backend/internal/infra/sqlite"
+	"github.com/kukusuyi/Questrace/backend/internal/repository"
 )
 
 func TestLocalVectorsOwnershipRetryAndRevision(t *testing.T) {

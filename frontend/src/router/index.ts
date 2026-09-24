@@ -135,7 +135,7 @@ router.beforeEach(async (to,from) => {
 })
 
 router.afterEach((to) => {
-  document.title = `${to.meta.title ? `${String(to.meta.title)} · ` : ""}题迹 Notebook`;
+  document.title = `${to.meta.title ? `${String(to.meta.title)} · ` : ""}题迹 Questrace`;
 });
 
 export default router

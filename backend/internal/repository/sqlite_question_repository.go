@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"mathnotebook/backend/internal/domain/model"
+	"github.com/kukusuyi/Questrace/backend/internal/domain/model"
 )
 
 type SQLiteQuestionRepository struct {

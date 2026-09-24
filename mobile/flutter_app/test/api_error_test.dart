@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:math_notebook_flutter/core/network/api_exception.dart';
+import 'package:questrace_flutter/core/network/api_exception.dart';
 import 'package:dio/dio.dart';
 
 void main() {

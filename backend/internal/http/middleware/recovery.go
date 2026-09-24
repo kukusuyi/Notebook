@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"runtime/debug"
 
-	"mathnotebook/backend/internal/domain/dto"
+	"github.com/kukusuyi/Questrace/backend/internal/domain/dto"
 )
 
 func Recovery(appLogger *slog.Logger) func(http.Handler) http.Handler {

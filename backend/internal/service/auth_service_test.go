@@ -5,10 +5,10 @@ import (
 	"testing"
 	"time"
 
-	"mathnotebook/backend/internal/config"
-	"mathnotebook/backend/internal/domain/dto"
-	"mathnotebook/backend/internal/domain/model"
-	apperrors "mathnotebook/backend/internal/pkg/errors"
+	"github.com/kukusuyi/Questrace/backend/internal/config"
+	"github.com/kukusuyi/Questrace/backend/internal/domain/dto"
+	"github.com/kukusuyi/Questrace/backend/internal/domain/model"
+	apperrors "github.com/kukusuyi/Questrace/backend/internal/pkg/errors"
 )
 
 type authTestUserRepo struct{}

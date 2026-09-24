@@ -70,7 +70,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                       child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text('题迹 Notebook',
+                            Text('题迹 Questrace',
                                 style: Theme.of(context).textTheme.titleLarge),
                             const SizedBox(height: 8),
                             const Text('2.0 · 让每一道错题都有收获'),

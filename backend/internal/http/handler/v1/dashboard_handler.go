@@ -4,8 +4,8 @@ import (
 	"net/http"
 	"strconv"
 
-	"mathnotebook/backend/internal/domain/dto"
-	"mathnotebook/backend/internal/service"
+	"github.com/kukusuyi/Questrace/backend/internal/domain/dto"
+	"github.com/kukusuyi/Questrace/backend/internal/service"
 )
 
 type DashboardHandler struct {

@@ -3,7 +3,7 @@ package repository
 import (
 	"database/sql"
 
-	"mathnotebook/backend/internal/domain/model"
+	"github.com/kukusuyi/Questrace/backend/internal/domain/model"
 )
 
 type AIAnalysisRecordRepository interface {

@@ -11,17 +11,17 @@ import (
 	"testing"
 	"time"
 
-	"mathnotebook/backend/internal/config"
-	"mathnotebook/backend/internal/domain/model"
-	"mathnotebook/backend/internal/infra/sqlite"
-	"mathnotebook/backend/internal/repository"
+	"github.com/kukusuyi/Questrace/backend/internal/config"
+	"github.com/kukusuyi/Questrace/backend/internal/domain/model"
+	"github.com/kukusuyi/Questrace/backend/internal/infra/sqlite"
+	"github.com/kukusuyi/Questrace/backend/internal/repository"
 )
 
 // Opt-in: creates a 100k-question / 1024-dimension dataset in a temporary directory.
 // Embedding HTTP is a local stub; timings measure persistence/filtering/scoring.
 func TestCapacity(t *testing.T) {
-	if os.Getenv("NOTEBOOK_CAPACITY_TEST") != "1" {
-		t.Skip("set NOTEBOOK_CAPACITY_TEST=1 for the 100k-question capacity test")
+	if os.Getenv("QUESTRACE_CAPACITY_TEST") != "1" {
+		t.Skip("set QUESTRACE_CAPACITY_TEST=1 for the 100k-question capacity test")
 	}
 	db, err := sqlite.Open(t.TempDir())
 	if err != nil {

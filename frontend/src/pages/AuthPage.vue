@@ -1,4 +1,4 @@
-<template><main class="auth-page"><section class="auth-intro"><span class="auth-symbol">∫</span><h1>题迹 Notebook</h1><p>让每一道错题<br/>都有收获。</p><span class="meta-text">收集 · 整理 · 理解 · 再练习</span></section><section class="auth-card paper-card">
+<template><main class="auth-page"><section class="auth-intro"><span class="auth-symbol">∫</span><h1>题迹 Questrace</h1><p>让每一道错题<br/>都有收获。</p><span class="meta-text">收集 · 整理 · 理解 · 再练习</span></section><section class="auth-card paper-card">
                 <div class="auth-header">
                     <div>
                         <h2>

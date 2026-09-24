@@ -4,11 +4,13 @@ import (
 	"database/sql"
 	_ "embed"
 	"fmt"
-	_ "modernc.org/sqlite"
 	"net/url"
+	"os"
 	"path/filepath"
 	"strings"
 	"time"
+
+	_ "modernc.org/sqlite"
 )
 
 //go:embed schema.sql
@@ -16,8 +18,42 @@ var schema string
 
 const Version = 1
 
+const (
+	// DatabaseName is the database file of a fresh installation.
+	DatabaseName = "questrace.db"
+	// LegacyDatabaseName is the pre-rename database file. An existing database
+	// keeps being used in place so upgrades never copy or move user data.
+	LegacyDatabaseName = "notebook.db"
+)
+
+// ResolvePath returns the database file a data directory uses. A directory that
+// holds both the current and the legacy database is ambiguous, so it fails
+// instead of silently opening the wrong data.
+func ResolvePath(dir string) (string, error) {
+	current := filepath.Join(dir, DatabaseName)
+	legacy := filepath.Join(dir, LegacyDatabaseName)
+	hasCurrent := fileExists(current)
+	hasLegacy := fileExists(legacy)
+	switch {
+	case hasCurrent && hasLegacy:
+		return "", fmt.Errorf("数据目录同时存在 %s 与 %s，请保留其中一个后重新启动", DatabaseName, LegacyDatabaseName)
+	case hasLegacy:
+		return legacy, nil
+	default:
+		return current, nil
+	}
+}
+
+func fileExists(path string) bool {
+	info, err := os.Stat(path)
+	return err == nil && !info.IsDir()
+}
+
 func Open(dir string) (*sql.DB, error) {
-	path := filepath.Join(dir, "notebook.db")
+	path, err := ResolvePath(dir)
+	if err != nil {
+		return nil, err
+	}
 	u := databaseURL(path)
 	db, err := sql.Open("sqlite", u.String()+"?_pragma=foreign_keys(1)&_pragma=busy_timeout(5000)&_pragma=journal_mode(WAL)&_time_format=sqlite")
 	if err != nil {

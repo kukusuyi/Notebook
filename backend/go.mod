@@ -1,4 +1,4 @@
-module mathnotebook/backend
+module github.com/kukusuyi/Questrace/backend
 
 go 1.25.0
 

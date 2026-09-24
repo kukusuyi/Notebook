@@ -1,4 +1,4 @@
-name: Notebook 2.0 release
+name: Questrace 2.0 release
 
 on:
   push:
@@ -10,7 +10,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: notebook-release-${{ github.ref }}
+  group: questrace-release-${{ github.ref }}
   cancel-in-progress: false
 
 jobs:
@@ -131,7 +131,7 @@ jobs:
 
       - name: Native server lifecycle smoke
         if: matrix.goos == 'windows' || (matrix.goos == 'linux' && matrix.goarch == 'amd64') || matrix.goos == 'darwin'
-        run: python scripts/smoke.py dist/notebook-${{ needs.preflight.outputs.version }}-${{ matrix.goos }}-${{ matrix.goarch }}/notebook-server${{ matrix.goos == 'windows' && '.exe' || '' }}
+        run: python scripts/smoke.py dist/questrace-${{ needs.preflight.outputs.version }}-${{ matrix.goos }}-${{ matrix.goarch }}/questrace-server${{ matrix.goos == 'windows' && '.exe' || '' }}
 
       - name: Install desktop dependencies
         if: matrix.goos != 'linux'
@@ -158,7 +158,7 @@ jobs:
           WIN_CSC_LINK: ${{ secrets.WIN_CSC_LINK }}
           WIN_CSC_KEY_PASSWORD: ${{ secrets.WIN_CSC_KEY_PASSWORD }}
         run: |
-          $file = Resolve-Path "dist/desktop/Notebook-$env:RELEASE_VERSION-windows-x64.exe"
+          $file = Resolve-Path "dist/desktop/Questrace-$env:RELEASE_VERSION-windows-x64.exe"
           $signature = Get-AuthenticodeSignature $file
           $signature | Format-List
           if ($null -eq $signature.SignerCertificate) {
@@ -193,11 +193,11 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          archive="dist/desktop/Notebook-${RELEASE_VERSION}-macos-${{ matrix.electron }}.zip"
-          verify_dir="${RUNNER_TEMP}/notebook-signature-check"
+          archive="dist/desktop/Questrace-${RELEASE_VERSION}-macos-${{ matrix.electron }}.zip"
+          verify_dir="${RUNNER_TEMP}/questrace-signature-check"
           mkdir -p "${verify_dir}"
           ditto -x -k "${archive}" "${verify_dir}"
-          app="${verify_dir}/Notebook.app"
+          app="${verify_dir}/Questrace.app"
           codesign --verify --deep --strict --verbose=2 "${app}"
           details="$(codesign -dv --verbose=4 "${app}" 2>&1)"
           printf '%s\n' "${details}"
@@ -208,18 +208,18 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          tar -czf "dist/Notebook-${RELEASE_VERSION}-linux-${{ matrix.goarch }}.tar.gz" \
-            -C dist "notebook-${RELEASE_VERSION}-linux-${{ matrix.goarch }}"
+          tar -czf "dist/Questrace-${RELEASE_VERSION}-linux-${{ matrix.goarch }}.tar.gz" \
+            -C dist "questrace-${RELEASE_VERSION}-linux-${{ matrix.goarch }}"
 
       - uses: actions/upload-artifact@v7
         with:
-          name: notebook-release-${{ matrix.goos }}-${{ matrix.goarch }}
+          name: questrace-release-${{ matrix.goos }}-${{ matrix.goarch }}
           if-no-files-found: error
           retention-days: 14
           path: |
-            dist/desktop/Notebook-*.exe
-            dist/desktop/Notebook-*.zip
-            dist/Notebook-*.tar.gz
+            dist/desktop/Questrace-*.exe
+            dist/desktop/Questrace-*.zip
+            dist/Questrace-*.tar.gz
 
   flutter-tests:
     needs: preflight
@@ -315,7 +315,7 @@ jobs:
         run: flutter build apk --release --dart-define=APP_FLAVOR=production
         working-directory: mobile/flutter_app
         env:
-          NOTEBOOK_REQUIRE_RELEASE_SIGNING: 'true'
+          QUESTRACE_REQUIRE_RELEASE_SIGNING: 'true'
 
       - name: Verify and name Android APK
         shell: bash
@@ -325,14 +325,14 @@ jobs:
           apk="mobile/flutter_app/build/app/outputs/flutter-apk/app-release.apk"
           "${build_tools}/apksigner" verify --verbose --print-certs "${apk}"
           mkdir -p dist
-          cp "${apk}" "dist/Notebook-${RELEASE_VERSION}-android.apk"
+          cp "${apk}" "dist/Questrace-${RELEASE_VERSION}-android.apk"
 
       - uses: actions/upload-artifact@v7
         with:
-          name: notebook-release-android
+          name: questrace-release-android
           if-no-files-found: error
           retention-days: 14
-          path: dist/Notebook-*-android.apk
+          path: dist/Questrace-*-android.apk
 
   draft-release:
     needs:
@@ -348,7 +348,7 @@ jobs:
 
       - uses: actions/download-artifact@v8
         with:
-          pattern: notebook-release-*
+          pattern: questrace-release-*
           path: release-assets
           merge-multiple: true
 
@@ -358,16 +358,16 @@ jobs:
         run: |
           set -euo pipefail
           if [ -d desktop ]; then
-            mv desktop/Notebook-* .
+            mv desktop/Questrace-* .
             rmdir desktop
           fi
           expected=(
-            "Notebook-${RELEASE_VERSION}-windows-x64.exe"
-            "Notebook-${RELEASE_VERSION}-macos-x64.zip"
-            "Notebook-${RELEASE_VERSION}-macos-arm64.zip"
-            "Notebook-${RELEASE_VERSION}-linux-amd64.tar.gz"
-            "Notebook-${RELEASE_VERSION}-linux-arm64.tar.gz"
-            "Notebook-${RELEASE_VERSION}-android.apk"
+            "Questrace-${RELEASE_VERSION}-windows-x64.exe"
+            "Questrace-${RELEASE_VERSION}-macos-x64.zip"
+            "Questrace-${RELEASE_VERSION}-macos-arm64.zip"
+            "Questrace-${RELEASE_VERSION}-linux-amd64.tar.gz"
+            "Questrace-${RELEASE_VERSION}-linux-arm64.tar.gz"
+            "Questrace-${RELEASE_VERSION}-android.apk"
           )
           for file in "${expected[@]}"; do
             test -s "${file}" || { echo "Missing release asset: ${file}" >&2; exit 1; }
@@ -383,7 +383,7 @@ jobs:
           if [ ! -f "${notes}" ]; then
             notes="CHANGELOG.md"
           fi
-          assets=(release-assets/Notebook-* release-assets/SHA256SUMS)
+          assets=(release-assets/Questrace-* release-assets/SHA256SUMS)
           if gh release view "${GITHUB_REF_NAME}" >/dev/null 2>&1; then
             is_draft="$(gh release view "${GITHUB_REF_NAME}" --json isDraft --jq .isDraft)"
             test "${is_draft}" = "true" || { echo 'Refusing to replace an already-published release.' >&2; exit 1; }
@@ -392,6 +392,6 @@ jobs:
             gh release create "${GITHUB_REF_NAME}" "${assets[@]}" \
               --draft \
               --verify-tag \
-              --title "Notebook ${RELEASE_VERSION}" \
+              --title "Questrace ${RELEASE_VERSION}" \
               --notes-file "${notes}"
           fi

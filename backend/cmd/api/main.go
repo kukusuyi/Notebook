@@ -17,28 +17,30 @@ import (
 	"time"
 
 	"github.com/gofrs/flock"
-	"mathnotebook/backend/internal/app"
-	"mathnotebook/backend/internal/config"
+	"github.com/kukusuyi/Questrace/backend/internal/app"
+	"github.com/kukusuyi/Questrace/backend/internal/config"
 )
 
 func main() {
 	if err := run(); err != nil {
-		fmt.Fprintln(os.Stderr, "Notebook:", err)
+		fmt.Fprintln(os.Stderr, "Questrace:", err)
 		os.Exit(1)
 	}
 }
 func run() error {
-	defaultDir, err := config.DefaultDataDir()
-	if err != nil {
-		return err
-	}
-	dir := flag.String("data-dir", defaultDir, "Data directory")
+	dir := flag.String("data-dir", "", "Data directory")
 	port := flag.Int("port", 8080, "HTTP port (0 selects a free port)")
 	host := flag.String("host", "0.0.0.0", "Listening interface")
 	parent := flag.Bool("parent-stdio", false, "Exit when parent closes stdin")
 	backup := flag.String("backup", "", "Export offline backup archive and exit")
 	restore := flag.String("restore", "", "Restore offline backup archive and exit")
 	flag.Parse()
+	var err error
+	// An explicit --data-dir wins; then the environment; then the platform data
+	// directory, which reuses a pre-rename Notebook directory in place.
+	if *dir, err = config.SelectDataDir(*dir); err != nil {
+		return err
+	}
 	if *dir, err = filepath.Abs(*dir); err != nil {
 		return err
 	}
@@ -52,7 +54,7 @@ func run() error {
 		return err
 	}
 	if !ok {
-		return fmt.Errorf("此数据目录已有 Notebook 进程运行")
+		return fmt.Errorf("此数据目录已有 Questrace 进程运行")
 	}
 	defer lock.Unlock()
 	if *backup != "" {
@@ -65,7 +67,7 @@ func run() error {
 	if err != nil {
 		return err
 	}
-	logFile, err := os.OpenFile(filepath.Join(*dir, "notebook.log"), os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0600)
+	logFile, err := os.OpenFile(filepath.Join(*dir, "questrace.log"), os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0600)
 	if err != nil {
 		return err
 	}

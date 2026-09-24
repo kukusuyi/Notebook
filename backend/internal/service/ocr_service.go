@@ -4,16 +4,16 @@ import (
 	"context"
 	"encoding/json"
 	"io/fs"
-	assets "mathnotebook/backend"
 	"net/http"
 	"path/filepath"
 	"runtime"
 	"strings"
 
-	"mathnotebook/backend/internal/domain/dto"
-	ocrclient "mathnotebook/backend/internal/infra/ocr"
-	apperrors "mathnotebook/backend/internal/pkg/errors"
-	"mathnotebook/backend/internal/pkg/validator"
+	assets "github.com/kukusuyi/Questrace/backend"
+	"github.com/kukusuyi/Questrace/backend/internal/domain/dto"
+	ocrclient "github.com/kukusuyi/Questrace/backend/internal/infra/ocr"
+	apperrors "github.com/kukusuyi/Questrace/backend/internal/pkg/errors"
+	"github.com/kukusuyi/Questrace/backend/internal/pkg/validator"
 )
 
 var promptFiles fs.FS = assets.Files

@@ -6,8 +6,8 @@ import (
 	"strings"
 	"time"
 
-	"mathnotebook/backend/internal/domain/enum"
-	"mathnotebook/backend/internal/domain/model"
+	"github.com/kukusuyi/Questrace/backend/internal/domain/enum"
+	"github.com/kukusuyi/Questrace/backend/internal/domain/model"
 )
 
 type rowScanner interface {

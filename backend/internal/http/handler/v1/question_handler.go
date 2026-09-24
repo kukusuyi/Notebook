@@ -5,10 +5,10 @@ import (
 	"strconv"
 	"strings"
 
-	"mathnotebook/backend/internal/domain/dto"
-	apperrors "mathnotebook/backend/internal/pkg/errors"
-	"mathnotebook/backend/internal/pkg/pagination"
-	"mathnotebook/backend/internal/service"
+	"github.com/kukusuyi/Questrace/backend/internal/domain/dto"
+	apperrors "github.com/kukusuyi/Questrace/backend/internal/pkg/errors"
+	"github.com/kukusuyi/Questrace/backend/internal/pkg/pagination"
+	"github.com/kukusuyi/Questrace/backend/internal/service"
 )
 
 type QuestionHandler struct {

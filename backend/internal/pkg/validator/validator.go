@@ -3,7 +3,7 @@ package validator
 import (
 	"strings"
 
-	apperrors "mathnotebook/backend/internal/pkg/errors"
+	apperrors "github.com/kukusuyi/Questrace/backend/internal/pkg/errors"
 )
 
 func RequireString(value, field string) error {

@@ -1,9 +1,9 @@
 {
-  "name": "notebook-desktop",
+  "name": "questrace-desktop",
   "version": "2.0.0",
   "private": true,
-  "description": "题迹 Notebook — local-first study notebook",
-  "author": "Notebook contributors",
+  "description": "题迹 Questrace — local-first study companion",
+  "author": "Questrace contributors",
   "main": "main.cjs",
   "scripts": {
     "start": "electron .",
@@ -16,7 +16,7 @@
   },
   "build": {
     "appId": "com.mathnotebook.desktop",
-    "productName": "Notebook",
+    "productName": "Questrace",
     "files": [
       "main.cjs",
       "external-links.cjs"
@@ -26,7 +26,7 @@
         "from": "resources/",
         "to": "backend",
         "filter": [
-          "notebook-server*"
+          "questrace-server*"
         ]
       }
     ],
@@ -35,7 +35,7 @@
     },
     "win": {
       "target": "portable",
-      "artifactName": "Notebook-${version}-windows-${arch}.exe"
+      "artifactName": "Questrace-${version}-windows-${arch}.exe"
     },
     "mac": {
       "target": "zip",
@@ -45,7 +45,7 @@
       "notarize": false,
       "entitlements": "build/entitlements.mac.plist",
       "entitlementsInherit": "build/entitlements.mac.inherit.plist",
-      "artifactName": "Notebook-${version}-macos-${arch}.zip"
+      "artifactName": "Questrace-${version}-macos-${arch}.zip"
     }
   }
 }

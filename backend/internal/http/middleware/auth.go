@@ -4,9 +4,10 @@ import (
 	"net/http"
 	"strings"
 
-	"mathnotebook/backend/internal/domain/dto"
-	apperrors "mathnotebook/backend/internal/pkg/errors"
-	"mathnotebook/backend/internal/service"
+	"github.com/kukusuyi/Questrace/backend/internal/domain/dto"
+	apperrors "github.com/kukusuyi/Questrace/backend/internal/pkg/errors"
+	"github.com/kukusuyi/Questrace/backend/internal/pkg/session"
+	"github.com/kukusuyi/Questrace/backend/internal/service"
 )
 
 var errMissingToken = apperrors.New(http.StatusUnauthorized, 40100, "缺少认证令牌")
@@ -41,7 +42,7 @@ func Auth(authService *service.AuthService) func(http.Handler) http.Handler {
 			}
 
 			if strings.HasPrefix(r.Header.Get("Authorization"), "Bearer ") {
-				http.SetCookie(w, &http.Cookie{Name: "notebook_session", Value: tokenString, Path: "/", HttpOnly: true, SameSite: http.SameSiteStrictMode, Secure: r.TLS != nil})
+				session.Set(w, r, tokenString)
 			}
 			ctx := service.SetUserID(r.Context(), userID)
 			next.ServeHTTP(w, r.WithContext(ctx))
@@ -65,8 +66,8 @@ func readBearerToken(r *http.Request) (string, bool) {
 		}
 	}
 
-	if c, err := r.Cookie("notebook_session"); err == nil && c.Value != "" {
-		return c.Value, true
+	if tokenString := session.Read(r); tokenString != "" {
+		return tokenString, true
 	}
 	return "", false
 }

@@ -3,8 +3,9 @@ package v1
 import (
 	"net/http"
 
-	"mathnotebook/backend/internal/domain/dto"
-	"mathnotebook/backend/internal/service"
+	"github.com/kukusuyi/Questrace/backend/internal/domain/dto"
+	"github.com/kukusuyi/Questrace/backend/internal/pkg/session"
+	"github.com/kukusuyi/Questrace/backend/internal/service"
 )
 
 type AuthHandler struct {
@@ -28,7 +29,7 @@ func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	http.SetCookie(w, &http.Cookie{Name: "notebook_session", Value: resp.Token, Path: "/", HttpOnly: true, SameSite: http.SameSiteStrictMode, Secure: r.TLS != nil})
+	session.Set(w, r, resp.Token)
 	dto.WriteSuccess(w, resp)
 }
 
@@ -45,6 +46,6 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	http.SetCookie(w, &http.Cookie{Name: "notebook_session", Value: resp.Token, Path: "/", HttpOnly: true, SameSite: http.SameSiteStrictMode, Secure: r.TLS != nil})
+	session.Set(w, r, resp.Token)
 	dto.WriteSuccess(w, resp)
 }

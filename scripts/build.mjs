@@ -82,11 +82,11 @@ cpSync(resolve(root, 'frontend/dist'), resolve(root, 'backend/web'), {
   recursive: true,
 })
 
-const executableName = `notebook-server${target === 'windows' ? '.exe' : ''}`
+const executableName = `questrace-server${target === 'windows' ? '.exe' : ''}`
 const output = resolve(
   root,
   'dist',
-  `notebook-${version}-${target}-${arch}`,
+  `questrace-${version}-${target}-${arch}`,
 )
 rmSync(output, { recursive: true, force: true })
 mkdirSync(output, { recursive: true })
@@ -109,7 +109,7 @@ run(
 if (target === 'linux') {
   writeFileSync(
     resolve(output, 'start.sh'),
-    '#!/bin/sh\nset -eu\nHERE=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)\nexec "$HERE/notebook-server" "$@"\n',
+    '#!/bin/sh\nset -eu\nHERE=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)\nexec "$HERE/questrace-server" "$@"\n',
   )
   chmodSync(resolve(output, 'start.sh'), 0o755)
 }

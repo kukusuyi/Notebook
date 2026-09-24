@@ -10,7 +10,10 @@ plugins {
 
 val keystoreProperties = Properties()
 val keystorePropertiesFile = rootProject.file("key.properties")
-val requireReleaseSigning = providers.environmentVariable("NOTEBOOK_REQUIRE_RELEASE_SIGNING").orNull == "true"
+// QUESTRACE_REQUIRE_RELEASE_SIGNING is the current switch;
+// NOTEBOOK_REQUIRE_RELEASE_SIGNING stays accepted for existing automation.
+val requireReleaseSigning = listOf("QUESTRACE_REQUIRE_RELEASE_SIGNING", "NOTEBOOK_REQUIRE_RELEASE_SIGNING")
+    .any { providers.environmentVariable(it).orNull == "true" }
 if (requireReleaseSigning && !keystorePropertiesFile.exists()) {
     throw GradleException("Formal release signing is required, but android/key.properties is missing")
 }
@@ -19,7 +22,7 @@ if (keystorePropertiesFile.exists()) {
 }
 
 android {
-    namespace = "com.mathnotebook.mobile"
+    namespace = "com.kukusuyi.questrace.mobile"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = "27.0.12077973"
 
@@ -33,6 +36,8 @@ android {
     }
 
     defaultConfig {
+        // The install identity keeps the pre-rename value so Android and the
+        // stores still recognise an update as the same application.
         applicationId = "com.mathnotebook.mobile"
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion

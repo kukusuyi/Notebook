@@ -6,14 +6,14 @@ import (
 	"log/slog"
 	"net/http"
 
-	"mathnotebook/backend/internal/config"
-	httpx "mathnotebook/backend/internal/http"
-	v1 "mathnotebook/backend/internal/http/handler/v1"
-	aiinfra "mathnotebook/backend/internal/infra/ai"
-	"mathnotebook/backend/internal/infra/ocr"
-	"mathnotebook/backend/internal/infra/oss"
-	"mathnotebook/backend/internal/repository"
-	"mathnotebook/backend/internal/service"
+	"github.com/kukusuyi/Questrace/backend/internal/config"
+	httpx "github.com/kukusuyi/Questrace/backend/internal/http"
+	v1 "github.com/kukusuyi/Questrace/backend/internal/http/handler/v1"
+	aiinfra "github.com/kukusuyi/Questrace/backend/internal/infra/ai"
+	"github.com/kukusuyi/Questrace/backend/internal/infra/ocr"
+	"github.com/kukusuyi/Questrace/backend/internal/infra/oss"
+	"github.com/kukusuyi/Questrace/backend/internal/repository"
+	"github.com/kukusuyi/Questrace/backend/internal/service"
 )
 
 func BuildHTTPHandler(cfg config.Config, appLogger *slog.Logger, db *sql.DB) (http.Handler, error) {

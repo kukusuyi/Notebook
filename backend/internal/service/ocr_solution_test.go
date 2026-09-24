@@ -2,9 +2,10 @@ package service
 
 import (
 	"context"
-	"mathnotebook/backend/internal/domain/dto"
 	"strings"
 	"testing"
+
+	"github.com/kukusuyi/Questrace/backend/internal/domain/dto"
 )
 
 func TestSolutionOCROnlyReturnsAnswer(t *testing.T) {

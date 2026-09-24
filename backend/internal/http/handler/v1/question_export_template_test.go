@@ -1,10 +1,11 @@
 package v1
 
 import (
-	"mathnotebook/backend/internal/domain/dto"
 	"net/http/httptest"
 	"strings"
 	"testing"
+
+	"github.com/kukusuyi/Questrace/backend/internal/domain/dto"
 )
 
 func TestPrintPairsAndOmitsAnswers(t *testing.T) {

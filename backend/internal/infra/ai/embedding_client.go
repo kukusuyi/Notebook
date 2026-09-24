@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"mathnotebook/backend/internal/config"
+	"github.com/kukusuyi/Questrace/backend/internal/config"
 )
 
 type EmbeddingClient interface {

@@ -13,7 +13,7 @@ import (
 	"strings"
 	"testing"
 
-	"mathnotebook/backend/internal/config"
+	"github.com/kukusuyi/Questrace/backend/internal/config"
 )
 
 func request(t *testing.T, h http.Handler, method, path, token string, body any) (int, map[string]any) {

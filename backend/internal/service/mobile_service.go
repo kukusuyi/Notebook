@@ -1,8 +1,8 @@
 package service
 
 import (
-	"mathnotebook/backend/internal/config"
-	"mathnotebook/backend/internal/domain/dto"
+	"github.com/kukusuyi/Questrace/backend/internal/config"
+	"github.com/kukusuyi/Questrace/backend/internal/domain/dto"
 )
 
 type MobileService struct {

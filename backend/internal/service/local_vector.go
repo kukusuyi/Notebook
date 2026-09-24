@@ -11,11 +11,11 @@ import (
 	"strings"
 	"time"
 
-	"mathnotebook/backend/internal/config"
-	"mathnotebook/backend/internal/domain/model"
-	ai "mathnotebook/backend/internal/infra/ai"
-	apperrors "mathnotebook/backend/internal/pkg/errors"
-	"mathnotebook/backend/internal/repository"
+	"github.com/kukusuyi/Questrace/backend/internal/config"
+	"github.com/kukusuyi/Questrace/backend/internal/domain/model"
+	ai "github.com/kukusuyi/Questrace/backend/internal/infra/ai"
+	apperrors "github.com/kukusuyi/Questrace/backend/internal/pkg/errors"
+	"github.com/kukusuyi/Questrace/backend/internal/repository"
 )
 
 type LocalVector struct {

@@ -1,6 +1,8 @@
 abstract final class StorageKeys {
-  static const authSession = 'math-notebook:auth-session';
-  static const questionDraft = 'math-notebook:question-draft';
-  static const apiBaseUrl = 'math-notebook:api-base-url';
-  static const themeColorSeed = 'math-notebook:theme-color-seed';
+  // Entries stored under the pre-rename keys are copied to these names by
+  // storage_migration.dart before any repository reads them.
+  static const authSession = 'questrace:auth-session';
+  static const questionDraft = 'questrace:question-draft';
+  static const apiBaseUrl = 'questrace:api-base-url';
+  static const themeColorSeed = 'questrace:theme-color-seed';
 }

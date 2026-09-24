@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:math_notebook_flutter/app/appearance.dart';
-import 'package:math_notebook_flutter/app/app_theme.dart';
-import 'package:math_notebook_flutter/core/storage/key_value_store.dart';
-import 'package:math_notebook_flutter/core/storage/storage_keys.dart';
+import 'package:questrace_flutter/app/appearance.dart';
+import 'package:questrace_flutter/app/app_theme.dart';
+import 'package:questrace_flutter/core/storage/key_value_store.dart';
+import 'package:questrace_flutter/core/storage/storage_keys.dart';
 
 void main() {
   test(

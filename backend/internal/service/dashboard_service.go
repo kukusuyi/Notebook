@@ -5,11 +5,11 @@ import (
 	"sort"
 	"time"
 
-	"mathnotebook/backend/internal/domain/dto"
-	"mathnotebook/backend/internal/domain/enum"
-	"mathnotebook/backend/internal/domain/model"
-	"mathnotebook/backend/internal/pkg/timeutil"
-	"mathnotebook/backend/internal/repository"
+	"github.com/kukusuyi/Questrace/backend/internal/domain/dto"
+	"github.com/kukusuyi/Questrace/backend/internal/domain/enum"
+	"github.com/kukusuyi/Questrace/backend/internal/domain/model"
+	"github.com/kukusuyi/Questrace/backend/internal/pkg/timeutil"
+	"github.com/kukusuyi/Questrace/backend/internal/repository"
 )
 
 type DashboardService struct {

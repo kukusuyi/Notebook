@@ -1,16 +1,16 @@
 import 'dart:convert';
-import 'package:math_notebook_flutter/shared/models/ai_models.dart';
+import 'package:questrace_flutter/shared/models/ai_models.dart';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'package:math_notebook_flutter/core/storage/key_value_store.dart';
-import 'package:math_notebook_flutter/core/storage/storage_keys.dart';
-import 'package:math_notebook_flutter/features/question_create/question_draft_controller.dart';
-import 'package:math_notebook_flutter/shared/models/common_models.dart';
-import 'package:math_notebook_flutter/shared/models/question_models.dart';
-import 'package:math_notebook_flutter/shared/utils/draft_navigation.dart';
+import 'package:questrace_flutter/core/storage/key_value_store.dart';
+import 'package:questrace_flutter/core/storage/storage_keys.dart';
+import 'package:questrace_flutter/features/question_create/question_draft_controller.dart';
+import 'package:questrace_flutter/shared/models/common_models.dart';
+import 'package:questrace_flutter/shared/models/question_models.dart';
+import 'package:questrace_flutter/shared/utils/draft_navigation.dart';
 
 void main() {
   test('rejecting repeated AI analysis restores original draft after restart',

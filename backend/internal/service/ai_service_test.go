@@ -9,9 +9,9 @@ import (
 	"strings"
 	"testing"
 
-	"mathnotebook/backend/internal/config"
-	"mathnotebook/backend/internal/domain/dto"
-	aiclient "mathnotebook/backend/internal/infra/ai"
+	"github.com/kukusuyi/Questrace/backend/internal/config"
+	"github.com/kukusuyi/Questrace/backend/internal/domain/dto"
+	aiclient "github.com/kukusuyi/Questrace/backend/internal/infra/ai"
 )
 
 type stubAIProvider struct {

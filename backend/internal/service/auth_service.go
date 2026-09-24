@@ -2,18 +2,17 @@ package service
 
 import (
 	"fmt"
+	"golang.org/x/crypto/bcrypt"
 	"net/http"
 	"strings"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
-	"golang.org/x/crypto/bcrypt"
-
-	"mathnotebook/backend/internal/config"
-	"mathnotebook/backend/internal/domain/dto"
-	"mathnotebook/backend/internal/domain/model"
-	apperrors "mathnotebook/backend/internal/pkg/errors"
-	"mathnotebook/backend/internal/repository"
+	"github.com/kukusuyi/Questrace/backend/internal/config"
+	"github.com/kukusuyi/Questrace/backend/internal/domain/dto"
+	"github.com/kukusuyi/Questrace/backend/internal/domain/model"
+	apperrors "github.com/kukusuyi/Questrace/backend/internal/pkg/errors"
+	"github.com/kukusuyi/Questrace/backend/internal/repository"
 )
 
 type AuthService struct {

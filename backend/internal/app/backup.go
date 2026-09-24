@@ -5,13 +5,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"mathnotebook/backend/internal/config"
 	"os"
 	"path/filepath"
 	"strings"
 	"time"
 
-	"mathnotebook/backend/internal/infra/sqlite"
+	"github.com/kukusuyi/Questrace/backend/internal/config"
+	"github.com/kukusuyi/Questrace/backend/internal/infra/sqlite"
 )
 
 // Backup and Restore require the CLI's exclusive data-directory lock.
@@ -23,6 +23,11 @@ func Backup(dir, target string) error {
 	if rel, e := filepath.Rel(dir, target); e == nil && filepath.IsLocal(rel) {
 		return fmt.Errorf("备份文件必须位于数据目录之外")
 	}
+	dbPath, err := sqlite.ResolvePath(dir)
+	if err != nil {
+		return err
+	}
+	dbName := filepath.Base(dbPath)
 	db, err := sqlite.Open(dir)
 	if err != nil {
 		return err
@@ -34,7 +39,7 @@ func Backup(dir, target string) error {
 	if err = db.Close(); err != nil {
 		return err
 	}
-	f, err := os.CreateTemp(filepath.Dir(target), ".notebook-backup-*")
+	f, err := os.CreateTemp(filepath.Dir(target), ".questrace-backup-*")
 	if err != nil {
 		return err
 	}
@@ -51,8 +56,12 @@ func Backup(dir, target string) error {
 		if e != nil {
 			return e
 		}
-		if rel != "notebook.db" && rel != "settings.json" && !strings.HasPrefix(filepath.ToSlash(rel), "files/") {
+		archiveName := filepath.ToSlash(rel)
+		if rel != dbName && rel != "settings.json" && !strings.HasPrefix(archiveName, "files/") {
 			return nil
+		}
+		if rel == dbName {
+			archiveName = sqlite.DatabaseName
 		}
 		info, e := d.Info()
 		if e != nil {
@@ -65,7 +74,7 @@ func Backup(dir, target string) error {
 		if e != nil {
 			return e
 		}
-		h.Name = filepath.ToSlash(rel)
+		h.Name = archiveName
 		h.Method = zip.Deflate
 		w, e := zw.CreateHeader(h)
 		if e != nil {
@@ -98,7 +107,7 @@ func Restore(dir, source string) error {
 		return err
 	}
 	defer reader.Close()
-	stage, err := os.MkdirTemp(filepath.Dir(dir), ".notebook-restore-*")
+	stage, err := os.MkdirTemp(filepath.Dir(dir), ".questrace-restore-*")
 	if err != nil {
 		return err
 	}
@@ -110,7 +119,11 @@ func Restore(dir, source string) error {
 		if !filepath.IsLocal(name) || strings.Contains(name, "\\") || entry.Mode()&os.ModeSymlink != 0 {
 			return fmt.Errorf("invalid backup path")
 		}
-		if name != "notebook.db" && name != "settings.json" && !strings.HasPrefix(name, "files/") {
+		// Backups written before the rename carry the legacy database name.
+		if name == sqlite.LegacyDatabaseName {
+			name = sqlite.DatabaseName
+		}
+		if name != sqlite.DatabaseName && name != "settings.json" && !strings.HasPrefix(name, "files/") {
 			return fmt.Errorf("unexpected backup entry %s", name)
 		}
 		if seen[name] {
@@ -147,7 +160,7 @@ func Restore(dir, source string) error {
 			return ce
 		}
 	}
-	if !seen["notebook.db"] || !seen["settings.json"] {
+	if !seen[sqlite.DatabaseName] || !seen["settings.json"] {
 		return fmt.Errorf("incomplete backup")
 	}
 	data, err := os.ReadFile(filepath.Join(stage, "settings.json"))

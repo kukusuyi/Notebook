@@ -1,3 +1,6 @@
+// Imported first: it copies pre-rename storage keys before any module reads them.
+import './utils/storage-migration'
+
 import ElementPlus from 'element-plus'
 import 'element-plus/dist/index.css'
 import 'element-plus/theme-chalk/dark/css-vars.css'

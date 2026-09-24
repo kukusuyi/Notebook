@@ -12,10 +12,10 @@ import (
 	"testing"
 	"time"
 
-	"mathnotebook/backend/internal/app"
-	"mathnotebook/backend/internal/config"
-	"mathnotebook/backend/internal/domain/dto"
-	"mathnotebook/backend/internal/infra/sqlite"
+	"github.com/kukusuyi/Questrace/backend/internal/app"
+	"github.com/kukusuyi/Questrace/backend/internal/config"
+	"github.com/kukusuyi/Questrace/backend/internal/domain/dto"
+	"github.com/kukusuyi/Questrace/backend/internal/infra/sqlite"
 )
 
 var (
@@ -58,7 +58,7 @@ func TestMain(m *testing.M) {
 		}
 	}))
 
-	dir, err := os.MkdirTemp("", "notebook-api-test-*")
+	dir, err := os.MkdirTemp("", "questrace-api-test-*")
 	if err != nil {
 		panic(err)
 	}

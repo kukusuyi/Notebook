@@ -1,6 +1,52 @@
 # 更新日志 / Changelog
 
+## 未发布 / Unreleased
+
+### 中文
+
+#### 变更
+
+- 正式展示名由 Notebook（旧称）更改为**题迹 Questrace**，仓库迁移至 [kukusuyi/Questrace](https://github.com/kukusuyi/Questrace)。
+- Go module 改为 `github.com/kukusuyi/Questrace/backend`；npm 包改为 `questrace-frontend`、`questrace-desktop`；Flutter 包改为 `questrace_flutter`。
+- 服务端程序与发行产物改为 `questrace-server`、`Questrace-<版本>-<平台>`；GitHub Actions 工作流名称、并发组、临时产物与 Release 标题同步改名。
+- Android 源码 namespace 改为 `com.kukusuyi.questrace.mobile`，设计系统目录改为 `design-system/questrace/`。
+
+#### 兼容
+
+- 新安装默认使用 `Questrace` 数据目录、`questrace.db`、`questrace.log` 与 `questrace-backup.zip`。
+- 升级时若只存在旧 `Notebook` 数据目录或 `notebook.db`，继续原地使用，不复制或移动用户数据；新旧目录或数据库同时存在时明确报错停止。
+- 新增 `QUESTRACE_DATA_DIR`，`NOTEBOOK_DATA_DIR` 作为低优先级兼容别名保留；`--data-dir` 始终优先。
+- 备份统一写出 `questrace.db`；恢复同时接受旧备份中的 `notebook.db` 并规范化为新名称。
+- 浏览器与 Flutter 启动时把旧 `math-notebook:*`、`notebook:appearance:v1` 数据复制到 `questrace:*` 键，旧键保留以支持回退。
+- 登录 Cookie 写入 `questrace_session`，继续读取并在退出时清理旧 `notebook_session`。
+- Electron `appId`、Android `applicationId` 与 iOS Bundle Identifier 保持原值，确保系统仍识别为同一应用；`NOTEBOOK_REQUIRE_RELEASE_SIGNING` 保留为兼容别名。
+- HTTP API 路径与数据结构不变。
+
+### English
+
+#### Changed
+
+- The product is now shown as **题迹 Questrace**; the former name Notebook is kept only in historical and compatibility notes. The repository moved to [kukusuyi/Questrace](https://github.com/kukusuyi/Questrace).
+- The Go module is `github.com/kukusuyi/Questrace/backend`; the npm packages are `questrace-frontend` and `questrace-desktop`; the Flutter package is `questrace_flutter`.
+- The server binary and release assets are now `questrace-server` and `Questrace-<version>-<platform>`; workflow names, concurrency groups, temporary artifacts and release titles follow.
+- The Android source namespace is `com.kukusuyi.questrace.mobile` and the design system moved to `design-system/questrace/`.
+
+#### Compatibility
+
+- Fresh installations use the `Questrace` data directory, `questrace.db`, `questrace.log` and `questrace-backup.zip`.
+- An installation that only has the former `Notebook` directory or `notebook.db` keeps using it in place; when both exist, startup stops instead of guessing.
+- `QUESTRACE_DATA_DIR` is the current environment variable with `NOTEBOOK_DATA_DIR` as a lower-priority alias; `--data-dir` always wins.
+- Backups always store `questrace.db`; restore still accepts `notebook.db` from older archives and normalises the name.
+- Browsers and the Flutter app copy former `math-notebook:*` and `notebook:appearance:v1` values to the `questrace:*` keys on startup and keep the old keys for rollback.
+- The session cookie is `questrace_session`; the former `notebook_session` is still read and cleared on logout.
+- The Electron `appId`, Android `applicationId` and iOS bundle identifier keep their former values so the system still recognises an update as the same application; `NOTEBOOK_REQUIRE_RELEASE_SIGNING` stays accepted.
+- HTTP API paths and payloads are unchanged.
+
 ## 2.0.0 — 2026-09-23
+
+> 该版本发布时产品名为 Notebook（旧称）；自本版本之后的版本更名为「题迹 Questrace」。下方条目保留发布时的原始名称。
+>
+> This version was published as Notebook, the former product name; later versions are named 题迹 Questrace. The entries below keep the name used at release time.
 
 ### 中文
 

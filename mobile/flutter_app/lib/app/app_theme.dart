@@ -8,21 +8,21 @@ Color parseThemeColor(String hex) =>
     Color(int.parse(hex.substring(1), radix: 16) | 0xff000000);
 
 @immutable
-class NotebookSurfaces extends ThemeExtension<NotebookSurfaces> {
-  const NotebookSurfaces(
+class QuestraceSurfaces extends ThemeExtension<QuestraceSurfaces> {
+  const QuestraceSurfaces(
       {required this.background, required this.border, required this.muted});
   final Color background, border, muted;
   @override
-  NotebookSurfaces copyWith({Color? background, Color? border, Color? muted}) =>
-      NotebookSurfaces(
+  QuestraceSurfaces copyWith({Color? background, Color? border, Color? muted}) =>
+      QuestraceSurfaces(
           background: background ?? this.background,
           border: border ?? this.border,
           muted: muted ?? this.muted);
   @override
-  NotebookSurfaces lerp(covariant NotebookSurfaces? other, double t) =>
+  QuestraceSurfaces lerp(covariant QuestraceSurfaces? other, double t) =>
       other == null
           ? this
-          : NotebookSurfaces(
+          : QuestraceSurfaces(
               background: Color.lerp(background, other.background, t)!,
               border: Color.lerp(border, other.border, t)!,
               muted: Color.lerp(muted, other.muted, t)!);
@@ -81,7 +81,7 @@ ThemeData buildAppTheme(
       side: BorderSide(color: border));
   return base.copyWith(
     extensions: [
-      NotebookSurfaces(background: background, border: border, muted: muted)
+      QuestraceSurfaces(background: background, border: border, muted: muted)
     ],
     scaffoldBackgroundColor: hasBackground ? Colors.transparent : background,
     textTheme: base.textTheme.copyWith(

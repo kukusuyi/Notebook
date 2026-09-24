@@ -32,4 +32,4 @@ if (process.env.GITHUB_OUTPUT) {
   appendFileSync(process.env.GITHUB_OUTPUT, `version=${expectedVersion}\n`)
 }
 
-console.log(`Notebook version ${expectedVersion} is consistent across all packages.`)
+console.log(`Questrace version ${expectedVersion} is consistent across all packages.`)
