@@ -51,7 +51,7 @@ npm run dist
 
 `build.mjs` 不是纯 Node 打包器：它先检查本机是否存在 Go 1.25+，再构建 Vue、嵌入网页并生成独立 Go 程序，最后复制到 Electron 的 resources。第一阶段输出位于 `dist/notebook-2.0.0-<系统>-<架构>/`；随后必须在 `desktop/` 执行 `npm run dist` 才会生成 Windows/macOS 桌面包。可用 `GOOS`/`GOARCH` 选择后端目标；桌面外壳应在对应系统打包。Linux 输出包括 `start.sh`。
 
-若出现 `Go compiler not found`，请先安装 Go 1.25+ 并确认 `go version` 可执行。官方产物由 GitHub Actions 在对应平台 runner 上调用同一脚本构建，不依赖开发电脑预装完整的跨平台工具链。
+若出现 `Go compiler not found`，请先安装 Go 1.25+ 并确认 `go version` 可执行。
 
 移动端：
 
@@ -73,17 +73,9 @@ flutter pub get
 flutter build ios --release --no-codesign --dart-define=APP_FLAVOR=production
 ```
 
-上述命令输出 `build/ios/iphoneos/Runner.app`，但无签名应用不能直接安装到 iPhone。模拟器运行无需开发者账号；使用个人 Apple ID 可以通过 Xcode 自动签名安装到自己的 iPhone，但配置描述文件通常只有短期有效期。生成可对外分发的 IPA 或上传 TestFlight/App Store 必须加入 Apple Developer Program。模拟器运行、证书选择、真机调试、归档导出和常见问题见 [iOS 编译说明](mobile/flutter_app/docs/IOS_SETUP.md)。v2.0.0 的自动发布流程不生成 iOS 包。
+上述命令输出 `build/ios/iphoneos/Runner.app`，但无签名应用不能直接安装到 iPhone。模拟器运行无需开发者账号；使用个人 Apple ID 可以通过 Xcode 自动签名安装到自己的 iPhone，但配置描述文件通常只有短期有效期。生成可对外分发的 IPA 或上传 TestFlight/App Store 必须加入 Apple Developer Program。模拟器运行、证书选择、真机调试、归档导出和常见问题见 [iOS 编译说明](mobile/flutter_app/docs/IOS_SETUP.md)。
 
-GitHub Actions 的 `release-v2.yml` 仅允许从 `master-v2.0` 手动预检，或由该分支提交上的 `v2.*` 标签正式发布。它构建 Windows x64、macOS arm64/x64、Linux amd64/arm64 和 Android。Windows 使用项目自签名 Authenticode 证书，macOS 使用 ad-hoc 签名且不进行 Apple 公证，Android 使用项目 release keystore。Windows 和 macOS 包不具备公开 CA/Apple 信任，首次启动会显示安全警告。标签构建成功后自动创建 Draft Release，人工验收通过后再公开。
-
-发布前需要配置以下 Actions Secrets：
-
-- Windows：`WIN_CSC_LINK`、`WIN_CSC_KEY_PASSWORD`（项目自签名 PFX）
-- macOS：不需要 Secret；构建使用 ad-hoc 签名，不进行 notarization/stapling
-- Android：`ANDROID_KEYSTORE_BASE64`、`ANDROID_STORE_PASSWORD`、`ANDROID_KEY_PASSWORD`、`ANDROID_KEY_ALIAS`
-
-确认凭据齐全后，先在 GitHub Actions 手动运行 `Notebook 2.0 release`，分支选择 `master-v2.0`。该预检会执行全部构建、测试、签名验证，汇总并核对六个平台临时产物和 `SHA256SUMS`，但不会创建 Release。预检全绿后再在同一提交创建并推送 `v2.0.0` 标签；标签工作流会重新验证并生成 Draft Release。正式产物包含六个平台包及 `SHA256SUMS`。
+GitHub Actions 的 `release-v2.yml` 仅允许从 `master-v2.0` 手动预检，或由该分支提交上的 `v2.*` 标签正式发布。它构建 Windows x64、macOS arm64/x64、Linux amd64/arm64 和 Android。Windows 使用项目自签名 Authenticode 证书，macOS 使用 ad-hoc 签名且不进行 Apple 公证，Android 使用项目 release keystore。Windows 和 macOS 包不具备公开 CA/Apple 信任，首次启动会显示安全警告。
 
 ## 架构
 
