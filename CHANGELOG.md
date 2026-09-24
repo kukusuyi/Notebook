@@ -11,6 +11,13 @@
 - 服务端程序与发行产物改为 `questrace-server`、`Questrace-<版本>-<平台>`；GitHub Actions 工作流名称、并发组、临时产物与 Release 标题同步改名。
 - Android 源码 namespace 改为 `com.kukusuyi.questrace.mobile`，设计系统目录改为 `design-system/questrace/`。
 
+#### Windows 安装修复
+
+- Windows 发行包改为带向导的 `Setup.exe` 安装程序，提供快捷方式、控制面板卸载入口和独立卸载程序。
+- 关闭 Windows 窗口时退出应用并停止后台服务，增加退出超时清理并避免启动过程中退出后重新打开窗口。
+- 卸载时可选择是否保留用户数据，默认保留；明确取消勾选并确认后清理当前用户 AppData 中本应用的数据与缓存，自定义数据目录保留。
+- 补齐桌面启动所需的 `branding.cjs` 和 `data-dir.cjs`，修复 macOS 交叉构建的卸载程序校验值，新增启动、退出和安装包完整性检查。
+
 #### 兼容
 
 - 新安装默认使用 `Questrace` 数据目录、`questrace.db`、`questrace.log` 与 `questrace-backup.zip`。
@@ -30,6 +37,13 @@
 - The Go module is `github.com/kukusuyi/Questrace/backend`; the npm packages are `questrace-frontend` and `questrace-desktop`; the Flutter package is `questrace_flutter`.
 - The server binary and release assets are now `questrace-server` and `Questrace-<version>-<platform>`; workflow names, concurrency groups, temporary artifacts and release titles follow.
 - The Android source namespace is `com.kukusuyi.questrace.mobile` and the design system moved to `design-system/questrace/`.
+
+#### Windows installer fixes
+
+- Replace the portable Windows package with a `Setup.exe` wizard, shortcuts, a Control Panel entry and a standalone uninstaller.
+- Closing the Windows window stops the application and its backend, with a shutdown deadline and protection against reopening during startup cancellation.
+- Offer a keep-data choice during uninstall, selected by default. Explicit opt-out and confirmation remove this application's current-user AppData and cache; custom data directories are preserved.
+- Bundle the missing `branding.cjs` and `data-dir.cjs` modules, correct uninstaller checksums in macOS cross-builds, and add startup, shutdown and package integrity checks.
 
 #### Compatibility
 

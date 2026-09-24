@@ -17,9 +17,13 @@
   "build": {
     "appId": "com.mathnotebook.desktop",
     "productName": "Questrace",
+    "beforePack": "build/nsis-before-pack.cjs",
+    "afterAllArtifactBuild": "build/nsis-verify-artifacts.cjs",
     "files": [
       "main.cjs",
-      "external-links.cjs"
+      "external-links.cjs",
+      "branding.cjs",
+      "data-dir.cjs"
     ],
     "extraResources": [
       {
@@ -34,8 +38,17 @@
       "output": "../dist/desktop"
     },
     "win": {
-      "target": "portable",
-      "artifactName": "Questrace-${version}-windows-${arch}.exe"
+      "target": "nsis",
+      "artifactName": "Questrace-${version}-windows-${arch}-Setup.exe"
+    },
+    "nsis": {
+      "include": "build/installer.nsh",
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "deleteAppDataOnUninstall": false,
+      "runAfterFinish": true
     },
     "mac": {
       "target": "zip",
