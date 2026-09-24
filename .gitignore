@@ -36,6 +36,7 @@ mobile/flutter_app/config/app_config.json
 **/android/key.properties
 
 .vscode/
+.reasonix/
 .DS_Store
 **/.gradle/
 **/__pycache__/
