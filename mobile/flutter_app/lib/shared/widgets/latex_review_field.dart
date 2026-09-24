@@ -129,9 +129,10 @@ class _LatexReviewFieldState extends State<LatexReviewField> {
                   child: content.isEmpty
                       ? Text(
                           widget.emptyPreviewText,
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                color: onSurfaceVariant,
-                              ),
+                          style:
+                              Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                    color: onSurfaceVariant,
+                                  ),
                         )
                       : LatexBlock(content),
                 ),

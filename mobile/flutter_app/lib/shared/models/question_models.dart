@@ -196,9 +196,8 @@ class QuestionDraft {
       providerName: providerName ?? this.providerName,
       modelName: modelName ?? this.modelName,
       sourceType: sourceType ?? this.sourceType,
-      sourceImageId: clearSourceImageId
-          ? null
-          : (sourceImageId ?? this.sourceImageId),
+      sourceImageId:
+          clearSourceImageId ? null : (sourceImageId ?? this.sourceImageId),
       sourceImageUrl: sourceImageUrl ?? this.sourceImageUrl,
       subject: subject ?? this.subject,
       chapter: chapter ?? this.chapter,
@@ -615,9 +614,8 @@ class ListQuestionFilter {
       subject: subject ?? this.subject,
       chapter: chapter ?? this.chapter,
       keyword: keyword ?? this.keyword,
-      masteryStatus: clearMasteryStatus
-          ? null
-          : (masteryStatus ?? this.masteryStatus),
+      masteryStatus:
+          clearMasteryStatus ? null : (masteryStatus ?? this.masteryStatus),
       difficultyLevel: clearDifficultyLevel
           ? null
           : (difficultyLevel ?? this.difficultyLevel),

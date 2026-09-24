@@ -13,4 +13,3 @@ final effectiveApiBaseUrlProvider = Provider<String>((ref) {
 
   return environment.defaultApiBaseUrl;
 });
-

@@ -1,85 +1,397 @@
-name: Notebook 2.0 builds
+name: Notebook 2.0 release
+
 on:
-  workflow_dispatch:
   push:
-    tags: ['v2.*']
+    tags:
+      - 'v2.*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: notebook-release-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
-  pc:
+  preflight:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Verify release ref
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch --no-tags origin master-v2.0
+          if [ "${GITHUB_REF_TYPE}" = "tag" ]; then
+            git merge-base --is-ancestor "${GITHUB_SHA}" origin/master-v2.0
+          else
+            test "${GITHUB_REF}" = "refs/heads/master-v2.0"
+            test "${GITHUB_SHA}" = "$(git rev-parse origin/master-v2.0)"
+          fi
+
+      - name: Verify package versions
+        id: version
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ "${GITHUB_REF_TYPE}" = "tag" ]; then
+            node scripts/check-version.mjs "${GITHUB_REF_NAME#v}"
+          else
+            node scripts/check-version.mjs
+          fi
+
+      - name: Require Windows and Android signing credentials
+        shell: bash
+        env:
+          WIN_CSC_LINK: ${{ secrets.WIN_CSC_LINK }}
+          WIN_CSC_KEY_PASSWORD: ${{ secrets.WIN_CSC_KEY_PASSWORD }}
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_STORE_PASSWORD: ${{ secrets.ANDROID_STORE_PASSWORD }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+        run: |
+          set -euo pipefail
+          missing=()
+          for name in \
+            WIN_CSC_LINK WIN_CSC_KEY_PASSWORD \
+            ANDROID_KEYSTORE_BASE64 ANDROID_STORE_PASSWORD \
+            ANDROID_KEY_PASSWORD ANDROID_KEY_ALIAS
+          do
+            if [ -z "${!name:-}" ]; then
+              missing+=("${name}")
+            fi
+          done
+          if [ "${#missing[@]}" -ne 0 ]; then
+            printf 'Missing required release secret: %s\n' "${missing[@]}" >&2
+            exit 1
+          fi
+
+  desktop-and-linux:
+    needs: preflight
     strategy:
       fail-fast: false
       matrix:
         include:
-          - {os: windows-latest, goos: windows, goarch: amd64, electron: x64}
-          - {os: macos-latest, goos: darwin, goarch: arm64, electron: arm64}
-          - {os: macos-15-intel, goos: darwin, goarch: amd64, electron: x64}
-          - {os: ubuntu-latest, goos: linux, goarch: amd64}
-          - {os: ubuntu-latest, goos: linux, goarch: arm64}
+          - os: windows-latest
+            goos: windows
+            goarch: amd64
+            electron: x64
+          - os: macos-latest
+            goos: darwin
+            goarch: arm64
+            electron: arm64
+          - os: macos-15-intel
+            goos: darwin
+            goarch: amd64
+            electron: x64
+          - os: ubuntu-latest
+            goos: linux
+            goarch: amd64
+          - os: ubuntu-latest
+            goos: linux
+            goarch: arm64
     runs-on: ${{ matrix.os }}
+    env:
+      RELEASE_VERSION: ${{ needs.preflight.outputs.version }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
-        with: {go-version: '1.25.x'}
-      - uses: actions/setup-node@v4
-        with: {node-version: '22'}
-      - run: go test ./...
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-go@v7
+        with:
+          go-version: '1.25.x'
+          cache-dependency-path: backend/go.sum
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: |
+            frontend/package-lock.json
+            desktop/package-lock.json
+
+      - name: Verify package versions
+        run: node scripts/check-version.mjs "$RELEASE_VERSION"
+        shell: bash
+
+      - name: Test backend
+        run: go test ./...
         working-directory: backend
-      - run: node scripts/build.mjs
+
+      - name: Build embedded server
+        run: node scripts/build.mjs
         env:
           GOOS: ${{ matrix.goos }}
           GOARCH: ${{ matrix.goarch }}
+
       - name: Native server lifecycle smoke
-        if: matrix.goos == 'windows' || matrix.goos == 'linux' && matrix.goarch == 'amd64' || matrix.goos == 'darwin'
-        run: python scripts/smoke.py dist/notebook-2.0.0-${{ matrix.goos }}-${{ matrix.goarch }}/notebook-server${{ matrix.goos == 'windows' && '.exe' || '' }}
-      - if: matrix.goos != 'linux'
+        if: matrix.goos == 'windows' || (matrix.goos == 'linux' && matrix.goarch == 'amd64') || matrix.goos == 'darwin'
+        run: python scripts/smoke.py dist/notebook-${{ needs.preflight.outputs.version }}-${{ matrix.goos }}-${{ matrix.goarch }}/notebook-server${{ matrix.goos == 'windows' && '.exe' || '' }}
+
+      - name: Install desktop dependencies
+        if: matrix.goos != 'linux'
         run: npm ci
         working-directory: desktop
-      - if: matrix.goos != 'linux'
-        run: npx electron-builder --${{ matrix.goos == 'windows' && 'win' || 'mac' }} --${{ matrix.electron }}
+
+      - name: Package self-signed Windows application
+        if: matrix.goos == 'windows'
+        run: npx electron-builder --win --${{ matrix.electron }} --publish never
         working-directory: desktop
         env:
-          NOTEBOOK_RELEASE_KIND: ${{ (matrix.goos == 'windows' && secrets.WIN_CSC_LINK != '' || matrix.goos == 'darwin' && secrets.MAC_CSC_LINK != '') && 'signed' || 'unsigned-test' }}
-          CSC_LINK: ${{ matrix.goos == 'windows' && secrets.WIN_CSC_LINK || secrets.MAC_CSC_LINK }}
-          CSC_KEY_PASSWORD: ${{ matrix.goos == 'windows' && secrets.WIN_CSC_KEY_PASSWORD || secrets.MAC_CSC_KEY_PASSWORD }}
-          APPLE_ID: ${{ secrets.APPLE_ID }}
-          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
-          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
-      - if: matrix.goos == 'linux'
-        run: tar -czf dist/notebook-2.0.0-linux-${{ matrix.goarch }}.tar.gz -C dist notebook-2.0.0-linux-${{ matrix.goarch }}
-      - uses: actions/upload-artifact@v4
+          CSC_LINK: ${{ secrets.WIN_CSC_LINK }}
+          CSC_KEY_PASSWORD: ${{ secrets.WIN_CSC_KEY_PASSWORD }}
+
+      - name: Package ad-hoc signed macOS application
+        if: matrix.goos == 'darwin'
+        run: npx electron-builder --mac --${{ matrix.electron }} --publish never
+        working-directory: desktop
+
+      - name: Verify Windows signature
+        if: matrix.goos == 'windows'
+        shell: pwsh
+        env:
+          WIN_CSC_LINK: ${{ secrets.WIN_CSC_LINK }}
+          WIN_CSC_KEY_PASSWORD: ${{ secrets.WIN_CSC_KEY_PASSWORD }}
+        run: |
+          $file = Resolve-Path "dist/desktop/Notebook-$env:RELEASE_VERSION-windows-x64.exe"
+          $signature = Get-AuthenticodeSignature $file
+          $signature | Format-List
+          if ($null -eq $signature.SignerCertificate) {
+            throw "The Windows artifact has no Authenticode signer certificate."
+          }
+          $pfxBytes = [Convert]::FromBase64String($env:WIN_CSC_LINK)
+          $flags = [System.Security.Cryptography.X509Certificates.X509KeyStorageFlags]::EphemeralKeySet
+          $expected = [System.Security.Cryptography.X509Certificates.X509Certificate2]::new(
+            $pfxBytes,
+            $env:WIN_CSC_KEY_PASSWORD,
+            $flags
+          )
+          try {
+            if ($signature.SignerCertificate.Thumbprint -ne $expected.Thumbprint) {
+              throw "The artifact signer does not match WIN_CSC_LINK."
+            }
+          } finally {
+            $expected.Dispose()
+          }
+          if ($signature.Status -eq "Valid") {
+            exit 0
+          }
+          $isUntrustedSelfSigned =
+            $signature.Status -eq "UnknownError" -and
+            $signature.StatusMessage -like "*root certificate which is not trusted*"
+          if (-not $isUntrustedSelfSigned) {
+            throw "Invalid self-signed Authenticode signature: $($signature.Status) - $($signature.StatusMessage)"
+          }
+
+      - name: Verify macOS ad-hoc signature
+        if: matrix.goos == 'darwin'
+        shell: bash
+        run: |
+          set -euo pipefail
+          archive="dist/desktop/Notebook-${RELEASE_VERSION}-macos-${{ matrix.electron }}.zip"
+          verify_dir="${RUNNER_TEMP}/notebook-signature-check"
+          mkdir -p "${verify_dir}"
+          ditto -x -k "${archive}" "${verify_dir}"
+          app="${verify_dir}/Notebook.app"
+          codesign --verify --deep --strict --verbose=2 "${app}"
+          details="$(codesign -dv --verbose=4 "${app}" 2>&1)"
+          printf '%s\n' "${details}"
+          grep -q 'Signature=adhoc' <<< "${details}"
+
+      - name: Package Linux archive
+        if: matrix.goos == 'linux'
+        shell: bash
+        run: |
+          set -euo pipefail
+          tar -czf "dist/Notebook-${RELEASE_VERSION}-linux-${{ matrix.goarch }}.tar.gz" \
+            -C dist "notebook-${RELEASE_VERSION}-linux-${{ matrix.goarch }}"
+
+      - uses: actions/upload-artifact@v7
         with:
-          name: notebook-${{ matrix.goos }}-${{ matrix.goarch }}
+          name: notebook-release-${{ matrix.goos }}-${{ matrix.goarch }}
+          if-no-files-found: error
+          retention-days: 14
           path: |
-            dist/desktop/*.exe
-            dist/desktop/*.zip
-            dist/*.tar.gz
-            dist/notebook-*/notebook-server*
-  android:
-    runs-on: ubuntu-latest
+            dist/desktop/Notebook-*.exe
+            dist/desktop/Notebook-*.zip
+            dist/Notebook-*.tar.gz
+
+  flutter-tests:
+    needs: preflight
+    runs-on: macos-latest
+    env:
+      RELEASE_VERSION: ${{ needs.preflight.outputs.version }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-java@v4
-        with: {distribution: temurin, java-version: '17'}
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+
       - uses: subosito/flutter-action@v2
-        with: {channel: stable}
-      - run: printf '{"flavor":"production","apiBaseUrl":""}\n' > mobile/flutter_app/config/app_config.json
-      - run: flutter pub get
+        with:
+          flutter-version: '3.44.0'
+          cache: true
+
+      - name: Verify package versions
+        run: node scripts/check-version.mjs "$RELEASE_VERSION"
+
+      - name: Install Flutter dependencies
+        run: flutter pub get
         working-directory: mobile/flutter_app
-      - run: flutter analyze --no-fatal-infos && flutter test
+
+      - name: Analyze Flutter application
+        run: flutter analyze
         working-directory: mobile/flutter_app
-      - name: Configure optional release signing
+
+      - name: Run Flutter widget and golden tests
+        run: flutter test
+        working-directory: mobile/flutter_app
+
+      - name: Upload golden failures
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: flutter-golden-failures
+          if-no-files-found: ignore
+          retention-days: 7
+          path: mobile/flutter_app/test/**/failures/*.png
+
+  android:
+    needs:
+      - preflight
+      - flutter-tests
+    runs-on: ubuntu-latest
+    env:
+      RELEASE_VERSION: ${{ needs.preflight.outputs.version }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.44.0'
+          cache: true
+
+      - name: Verify package versions
+        run: node scripts/check-version.mjs "$RELEASE_VERSION"
+
+      - name: Configure production client
+        shell: bash
+        run: printf '{"flavor":"production","apiBaseUrl":""}\n' > mobile/flutter_app/config/app_config.json
+
+      - name: Install Flutter dependencies
+        run: flutter pub get
+        working-directory: mobile/flutter_app
+
+      - name: Configure Android release signing
+        shell: bash
         env:
           KEYSTORE: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
           STORE_PASSWORD: ${{ secrets.ANDROID_STORE_PASSWORD }}
           KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
           KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
         run: |
-          if [ -n "$KEYSTORE" ]; then
-            echo "$KEYSTORE" | base64 --decode > mobile/flutter_app/android/app/release.jks
-            printf 'storeFile=release.jks\nstorePassword=%s\nkeyPassword=%s\nkeyAlias=%s\n' "$STORE_PASSWORD" "$KEY_PASSWORD" "$KEY_ALIAS" > mobile/flutter_app/android/key.properties
-          fi
-      - run: flutter build apk --release --dart-define=APP_FLAVOR=production
+          set -euo pipefail
+          printf '%s' "$KEYSTORE" | base64 --decode > mobile/flutter_app/android/release.jks
+          printf 'storeFile=release.jks\nstorePassword=%s\nkeyPassword=%s\nkeyAlias=%s\n' \
+            "$STORE_PASSWORD" "$KEY_PASSWORD" "$KEY_ALIAS" \
+            > mobile/flutter_app/android/key.properties
+
+      - name: Build signed Android APK
+        run: flutter build apk --release --dart-define=APP_FLAVOR=production
         working-directory: mobile/flutter_app
-      - uses: actions/upload-artifact@v4
+        env:
+          NOTEBOOK_REQUIRE_RELEASE_SIGNING: 'true'
+
+      - name: Verify and name Android APK
+        shell: bash
+        run: |
+          set -euo pipefail
+          build_tools="$(find "${ANDROID_HOME}/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -1)"
+          apk="mobile/flutter_app/build/app/outputs/flutter-apk/app-release.apk"
+          "${build_tools}/apksigner" verify --verbose --print-certs "${apk}"
+          mkdir -p dist
+          cp "${apk}" "dist/Notebook-${RELEASE_VERSION}-android.apk"
+
+      - uses: actions/upload-artifact@v7
         with:
-          name: notebook-android-${{ secrets.ANDROID_KEYSTORE_BASE64 != '' && 'signed' || 'test-debug-signed' }}
-          path: mobile/flutter_app/build/app/outputs/flutter-apk/app-release.apk
+          name: notebook-release-android
+          if-no-files-found: error
+          retention-days: 14
+          path: dist/Notebook-*-android.apk
+
+  draft-release:
+    needs:
+      - preflight
+      - desktop-and-linux
+      - android
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+      RELEASE_VERSION: ${{ needs.preflight.outputs.version }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/download-artifact@v8
+        with:
+          pattern: notebook-release-*
+          path: release-assets
+          merge-multiple: true
+
+      - name: Verify release assets and checksums
+        shell: bash
+        working-directory: release-assets
+        run: |
+          set -euo pipefail
+          if [ -d desktop ]; then
+            mv desktop/Notebook-* .
+            rmdir desktop
+          fi
+          expected=(
+            "Notebook-${RELEASE_VERSION}-windows-x64.exe"
+            "Notebook-${RELEASE_VERSION}-macos-x64.zip"
+            "Notebook-${RELEASE_VERSION}-macos-arm64.zip"
+            "Notebook-${RELEASE_VERSION}-linux-amd64.tar.gz"
+            "Notebook-${RELEASE_VERSION}-linux-arm64.tar.gz"
+            "Notebook-${RELEASE_VERSION}-android.apk"
+          )
+          for file in "${expected[@]}"; do
+            test -s "${file}" || { echo "Missing release asset: ${file}" >&2; exit 1; }
+          done
+          printf '%s\n' "${expected[@]}" | sort | xargs sha256sum > SHA256SUMS
+
+      - name: Create or update Draft Release
+        if: github.ref_type == 'tag'
+        shell: bash
+        run: |
+          set -euo pipefail
+          notes=".github/release-notes/${RELEASE_VERSION}.md"
+          if [ ! -f "${notes}" ]; then
+            notes="CHANGELOG.md"
+          fi
+          assets=(release-assets/Notebook-* release-assets/SHA256SUMS)
+          if gh release view "${GITHUB_REF_NAME}" >/dev/null 2>&1; then
+            is_draft="$(gh release view "${GITHUB_REF_NAME}" --json isDraft --jq .isDraft)"
+            test "${is_draft}" = "true" || { echo 'Refusing to replace an already-published release.' >&2; exit 1; }
+            gh release upload "${GITHUB_REF_NAME}" "${assets[@]}" --clobber
+          else
+            gh release create "${GITHUB_REF_NAME}" "${assets[@]}" \
+              --draft \
+              --verify-tag \
+              --title "Notebook ${RELEASE_VERSION}" \
+              --notes-file "${notes}"
+          fi

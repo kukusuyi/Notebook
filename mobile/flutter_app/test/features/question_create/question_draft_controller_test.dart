@@ -53,7 +53,7 @@ void main() {
       sourceType: SourceType.image,
       sourceImageId: 7,
       sourceImageUrl: 'https://example.com/question.png',
-      questionJson: const QuestionJson(questionCore: r'x^2+1=0'),
+      questionJson: QuestionJson(questionCore: r'x^2+1=0'),
       status: DraftStatus.aiProcessing,
     );
 

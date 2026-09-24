@@ -134,7 +134,7 @@ class _AiReviewPageState extends ConsumerState<AiReviewPage> {
                   ),
                   const SizedBox(height: 16),
                   DropdownButtonFormField<MasteryStatus>(
-                    value: _masteryStatus,
+                    initialValue: _masteryStatus,
                     decoration: const InputDecoration(labelText: '掌握状态'),
                     items: MasteryStatus.values
                         .map(

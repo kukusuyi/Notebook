@@ -12,10 +12,12 @@
 
 ```bash
 cp config/app_config.example.json config/app_config.json
-flutter create . --platforms=ios --project-name math_notebook_flutter --org com.mathnotebook
 flutter pub get
-flutter run
+flutter devices
+flutter run -d DEVICE_ID --dart-define=APP_FLAVOR=production
 ```
+
+仓库已经包含 `ios/` 和 `android/` 原生工程，不要再次执行 `flutter create .`，以免覆盖项目已有的包名、权限和原生配置。
 
 移动端默认 API 地址优先读取：
 
@@ -39,7 +41,6 @@ iOS / Android 适配要点：
 
 - 正式应用包名沿用 `com.mathnotebook.mobile`
 - Android 侧已补充 `INTERNET` 与安装更新相关权限
-- iOS 侧需要通过 `flutter create . --platforms=ios` 生成原生工程后，再执行 `flutter pub get`
 - 原生配置补充项见 [docs/IOS_SETUP.md](./docs/IOS_SETUP.md)
 - 开发阶段默认地址会按设备类型选择：
   - Android 模拟器：`http://10.0.2.2:8080`

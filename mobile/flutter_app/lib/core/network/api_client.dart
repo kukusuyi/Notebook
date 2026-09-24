@@ -114,4 +114,3 @@ DioException _normalizeDioException(DioException error) {
     stackTrace: error.stackTrace,
   );
 }
-

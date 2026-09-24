@@ -91,9 +91,10 @@ class QuestionDraftController extends Notifier<QuestionDraft?> {
     await flush();
     final repository = ref.read(questionDraftRepositoryProvider);
     final old = repository.readAnalysisSnapshot();
-    if (old != null)
+    if (old != null) {
       _commit(old.copyWith(
           status: DraftStatus.draft, flowMode: DraftFlowMode.manual));
+    }
     await repository.clearAnalysisSnapshot();
     await flush();
   }

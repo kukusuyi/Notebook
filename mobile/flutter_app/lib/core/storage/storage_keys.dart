@@ -4,4 +4,3 @@ abstract final class StorageKeys {
   static const apiBaseUrl = 'math-notebook:api-base-url';
   static const themeColorSeed = 'math-notebook:theme-color-seed';
 }
-

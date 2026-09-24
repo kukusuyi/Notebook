@@ -30,4 +30,3 @@ class KeyValueStore {
     return _preferences.remove(key);
   }
 }
-

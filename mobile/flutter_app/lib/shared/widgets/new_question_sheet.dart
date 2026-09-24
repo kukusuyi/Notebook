@@ -87,7 +87,8 @@ Future<void> showNewQuestionSheet(BuildContext context, WidgetRef ref) async {
     await ref.read(questionDraftControllerProvider.notifier).flush();
     if (!context.mounted) return;
   }
-  if (choice == 'manual')
+  if (choice == 'manual') {
     ref.read(questionDraftControllerProvider.notifier).ensureManualDraft();
+  }
   context.push(choice == 'upload' ? '/questions/upload' : '/questions/create');
 }

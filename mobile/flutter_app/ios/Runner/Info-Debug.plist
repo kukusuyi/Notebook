@@ -31,6 +31,8 @@
 	</dict>
 	<key>NSCameraUsageDescription</key>
 	<string>需要访问相机以拍摄错题图片。</string>
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>需要访问局域网以连接运行 Notebook 2.0 的电脑。</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>需要访问相册以选择错题图片。</string>
 	<key>UILaunchStoryboardName</key>

@@ -31,7 +31,7 @@ class _QuestionCreatePageState extends ConsumerState<QuestionCreatePage> {
   bool _submitting = false;
   bool _advanced = false;
   String? _error;
-  String _operation = "";
+  String _operation = '';
   String? _jsonError;
   QuestionCreateMode _mode = QuestionCreateMode.form;
 
@@ -76,10 +76,11 @@ class _QuestionCreatePageState extends ConsumerState<QuestionCreatePage> {
                 onSelected: (v) {
                   if (v == 'advanced') {
                     setState(() => _advanced = !_advanced);
-                  } else if (v == 'image')
+                  } else if (v == 'image') {
                     context.push('/questions/upload');
-                  else
+                  } else {
                     _confirmDiscard();
+                  }
                 },
                 itemBuilder: (_) => const [
                       PopupMenuItem(value: 'image', child: Text('改用图片录入')),
@@ -99,7 +100,9 @@ class _QuestionCreatePageState extends ConsumerState<QuestionCreatePage> {
                             : () async {
                                 _persistDraft();
                                 if (await showAnalysisPicker(context) &&
-                                    mounted) await _analyze();
+                                    mounted) {
+                                  await _analyze();
+                                }
                               },
                         child: Text(_submitting && _operation == 'analysis'
                             ? '分析中…'
@@ -137,7 +140,9 @@ class _QuestionCreatePageState extends ConsumerState<QuestionCreatePage> {
                     final next = selection.first;
                     if (next == QuestionCreateMode.json) {
                       _syncJsonFromForm();
-                    } else if (!_applyJsonToForm(showError: true)) return;
+                    } else if (!_applyJsonToForm(showError: true)) {
+                      return;
+                    }
                     setState(() => _mode = next);
                   }),
               const SizedBox(height: 16)
@@ -247,7 +252,7 @@ class _QuestionCreatePageState extends ConsumerState<QuestionCreatePage> {
 
   Future<void> _saveDirectly() async {
     if (_submitting) return;
-    _operation = "save";
+    _operation = 'save';
     _error = null;
     if (_mode == QuestionCreateMode.json &&
         !_applyJsonToForm(showError: true)) {
@@ -277,7 +282,7 @@ class _QuestionCreatePageState extends ConsumerState<QuestionCreatePage> {
 
   Future<void> _analyze() async {
     if (_submitting) return;
-    _operation = "analysis";
+    _operation = 'analysis';
     _error = null;
     if (_mode == QuestionCreateMode.json &&
         !_applyJsonToForm(showError: true)) {

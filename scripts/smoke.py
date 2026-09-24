@@ -13,16 +13,30 @@ binary = str(pathlib.Path(sys.argv[1]).resolve())
 processes = []
 
 def start(directory, *args):
-    proc = subprocess.Popen([binary, '--data-dir', str(directory), '--parent-stdio', *args], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+    proc = subprocess.Popen(
+        [binary, '--data-dir', str(directory), '--parent-stdio', *args],
+        stdin=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
+        encoding='utf-8',
+        errors='replace',
+    )
     processes.append(proc)
     lines = queue.Queue()
     threading.Thread(target=lambda: lines.put(proc.stdout.readline()), daemon=True).start()
-    line = lines.get(timeout=20)
-    if not line:
-        raise RuntimeError(proc.stderr.read())
-    ready = json.loads(line)
-    assert ready['event'] == 'ready'
-    return proc, ready
+    try:
+        line = lines.get(timeout=20)
+        if not line:
+            raise RuntimeError(proc.stderr.read())
+        ready = json.loads(line)
+        assert ready['event'] == 'ready'
+        return proc, ready
+    except BaseException:
+        if proc.poll() is None:
+            proc.kill()
+            proc.wait()
+        raise
 
 def request(ready, path, body=None, token=''):
     headers = {'Content-Type': 'application/json'}

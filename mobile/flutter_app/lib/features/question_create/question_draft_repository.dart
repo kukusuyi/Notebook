@@ -37,9 +37,10 @@ class QuestionDraftRepository {
   }
 
   Future<void> saveAnalysisSnapshot(QuestionDraft draft) async {
-    if (_store.readString('$_key:before-analysis') == null)
+    if (_store.readString('$_key:before-analysis') == null) {
       await _store.writeString(
           '$_key:before-analysis', jsonEncode(draft.toJson()));
+    }
   }
 
   QuestionDraft? readAnalysisSnapshot() {

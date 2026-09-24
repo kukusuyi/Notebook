@@ -50,7 +50,8 @@ class RemoteImageCard extends ConsumerWidget {
                     return Container(
                       height: height,
                       width: double.infinity,
-                      color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                      color:
+                          Theme.of(context).colorScheme.surfaceContainerHighest,
                       padding: const EdgeInsets.all(20),
                       alignment: Alignment.center,
                       child: Column(
@@ -83,7 +84,8 @@ class RemoteImageCard extends ConsumerWidget {
                   borderRadius: BorderRadius.circular(999),
                 ),
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [

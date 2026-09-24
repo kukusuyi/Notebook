@@ -96,8 +96,8 @@ ThemeData buildAppTheme(
         surfaceTintColor: Colors.transparent,
         elevation: 0,
         centerTitle: false,
-        titleTextStyle:
-            base.textTheme.titleLarge?.copyWith(fontSize: 22, fontWeight: FontWeight.w700, color: text)),
+        titleTextStyle: base.textTheme.titleLarge
+            ?.copyWith(fontSize: 22, fontWeight: FontWeight.w700, color: text)),
     cardTheme: CardThemeData(
         color: surface,
         surfaceTintColor: Colors.transparent,

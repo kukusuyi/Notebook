@@ -18,6 +18,9 @@ frontend/dist.tar.gz
 **/.packages
 **/.metadata
 **/build/
+!/desktop/build/
+!/desktop/build/entitlements.mac.plist
+!/desktop/build/entitlements.mac.inherit.plist
 **/.idea/
 **/*.iml
 **/android/local.properties
@@ -31,3 +34,12 @@ mobile/flutter_app/config/app_config.json
 *.jks
 
 **/android/key.properties
+
+.vscode/
+.DS_Store
+**/.gradle/
+**/__pycache__/
+**/.runtime/
+
+# Local release signing material (certificates, private keys and CI secrets)
+/.release-secrets/

@@ -45,7 +45,7 @@ class AppShell extends ConsumerWidget {
     final bodyBottomInset =
         useLiquidGlassTabBar ? _liquidTabBarReservedHeight(mediaQuery) : 0.0;
     final selectedIndex = _selectedIndex();
-    final destinations = _destinations;
+    const destinations = _destinations;
     final allowTabBarHorizontalSwipe = useLiquidGlassTabBar;
     final allowBodyHorizontalSwipe =
         useLiquidGlassTabBar && _supportsBodyHorizontalTabSwipe();
@@ -391,7 +391,7 @@ class _IosLiquidGlassTabBar extends StatelessWidget {
             borderRadius: BorderRadius.circular(28),
             boxShadow: [
               BoxShadow(
-                color: colorScheme.primary.withOpacity(0.06),
+                color: colorScheme.primary.withValues(alpha: 0.06),
                 blurRadius: 24,
                 spreadRadius: -2,
                 offset: const Offset(0, 14),
@@ -408,14 +408,22 @@ class _IosLiquidGlassTabBar extends StatelessWidget {
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
                     colors: [
-                      Theme.of(context).colorScheme.surface.withOpacity(0.70),
-                      Theme.of(context).colorScheme.surface.withOpacity(0.42),
+                      Theme.of(context)
+                          .colorScheme
+                          .surface
+                          .withValues(alpha: 0.70),
+                      Theme.of(context)
+                          .colorScheme
+                          .surface
+                          .withValues(alpha: 0.42),
                     ],
                   ),
                   borderRadius: BorderRadius.circular(28),
                   border: Border.all(
-                    color:
-                        Theme.of(context).colorScheme.surface.withOpacity(0.68),
+                    color: Theme.of(context)
+                        .colorScheme
+                        .surface
+                        .withValues(alpha: 0.68),
                     width: 0.9,
                   ),
                 ),
@@ -442,15 +450,15 @@ class _IosLiquidGlassTabBar extends StatelessWidget {
                                       Theme.of(context)
                                           .colorScheme
                                           .surface
-                                          .withOpacity(0.0),
+                                          .withValues(alpha: 0.0),
                                       Theme.of(context)
                                           .colorScheme
                                           .surface
-                                          .withOpacity(0.88),
+                                          .withValues(alpha: 0.88),
                                       Theme.of(context)
                                           .colorScheme
                                           .surface
-                                          .withOpacity(0.0),
+                                          .withValues(alpha: 0.0),
                                     ],
                                   ),
                                 ),
@@ -588,19 +596,19 @@ class _IosLiquidSelectionCapsule extends StatelessWidget {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            Theme.of(context).colorScheme.surface.withOpacity(0.72),
-            colorScheme.primaryContainer.withOpacity(0.68),
-            colorScheme.secondaryContainer.withOpacity(0.52),
+            Theme.of(context).colorScheme.surface.withValues(alpha: 0.72),
+            colorScheme.primaryContainer.withValues(alpha: 0.68),
+            colorScheme.secondaryContainer.withValues(alpha: 0.52),
           ],
           stops: const [0.0, 0.52, 1.0],
         ),
         border: Border.all(
-          color: Theme.of(context).colorScheme.surface.withOpacity(0.78),
+          color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.78),
           width: 0.8,
         ),
         boxShadow: [
           BoxShadow(
-            color: colorScheme.primary.withOpacity(0.10),
+            color: colorScheme.primary.withValues(alpha: 0.10),
             blurRadius: 12,
             spreadRadius: -3,
             offset: const Offset(0, 8),
@@ -621,8 +629,14 @@ class _IosLiquidSelectionCapsule extends StatelessWidget {
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                   colors: [
-                    Theme.of(context).colorScheme.surface.withOpacity(0.82),
-                    Theme.of(context).colorScheme.surface.withOpacity(0.0),
+                    Theme.of(context)
+                        .colorScheme
+                        .surface
+                        .withValues(alpha: 0.82),
+                    Theme.of(context)
+                        .colorScheme
+                        .surface
+                        .withValues(alpha: 0.0),
                   ],
                 ),
               ),
@@ -638,8 +652,14 @@ class _IosLiquidSelectionCapsule extends StatelessWidget {
                 shape: BoxShape.circle,
                 gradient: RadialGradient(
                   colors: [
-                    Theme.of(context).colorScheme.surface.withOpacity(0.72),
-                    Theme.of(context).colorScheme.surface.withOpacity(0.0),
+                    Theme.of(context)
+                        .colorScheme
+                        .surface
+                        .withValues(alpha: 0.72),
+                    Theme.of(context)
+                        .colorScheme
+                        .surface
+                        .withValues(alpha: 0.0),
                   ],
                 ),
               ),
@@ -667,7 +687,7 @@ class _IosLiquidGlassTabItem extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final foregroundColor = selected
         ? colorScheme.onPrimaryContainer
-        : colorScheme.onSurface.withOpacity(0.70);
+        : colorScheme.onSurface.withValues(alpha: 0.70);
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 1),
@@ -684,7 +704,10 @@ class _IosLiquidGlassTabItem extends StatelessWidget {
               borderRadius: BorderRadius.circular(22),
               color: selected
                   ? Colors.transparent
-                  : Theme.of(context).colorScheme.surface.withOpacity(0.08),
+                  : Theme.of(context)
+                      .colorScheme
+                      .surface
+                      .withValues(alpha: 0.08),
             ),
             child: Column(
               mainAxisSize: MainAxisSize.min,

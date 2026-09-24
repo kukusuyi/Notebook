@@ -201,11 +201,12 @@ class _AuthPageState extends ConsumerState<AuthPage> {
       await ref
           .read(appSettingsControllerProvider.notifier)
           .setApiBaseUrlOverride(_apiUrlController.text.trim());
-      if (mounted)
+      if (mounted) {
         setState(() {
           _apiUrlExpanded = false;
           _apiUrlHydrated = false;
         });
+      }
     } catch (_) {
       if (mounted) setState(() => _connectionError = '连接失败，请检查电脑地址、程序和网络。');
     } finally {

@@ -87,22 +87,25 @@ class _SolutionOcrPageState extends ConsumerState<_SolutionOcrPage> {
       if (image == null || !mounted) return;
       final cropped = await Navigator.of(context).push<XFile>(MaterialPageRoute(
           builder: (_) => QuestionImageCropPage(image: image)));
-      if (cropped != null && mounted)
+      if (cropped != null && mounted) {
         setState(() {
           _image = cropped;
           _result.clear();
           _warning = null;
         });
+      }
     } catch (e) {
-      if (mounted)
+      if (mounted) {
         setState(() {
           _error = describeError(e, fallback: '无法读取照片，请检查相机或相册权限后重试。');
         });
+      }
     } finally {
-      if (mounted)
+      if (mounted) {
         setState(() {
           _busy = false;
         });
+      }
     }
   }
 
@@ -131,15 +134,17 @@ class _SolutionOcrPageState extends ConsumerState<_SolutionOcrPage> {
         if (_result.text.trim().isEmpty) _error = '未识别到答案文字，请裁剪答案区域后重试，或手动填写。';
       });
     } catch (e) {
-      if (mounted)
+      if (mounted) {
         setState(() {
           _error = describeError(e, fallback: '答案识别失败，请重试或手动填写。');
         });
+      }
     } finally {
-      if (mounted)
+      if (mounted) {
         setState(() {
           _busy = false;
         });
+      }
     }
   }
 

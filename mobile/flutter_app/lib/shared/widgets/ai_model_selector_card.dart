@@ -95,7 +95,7 @@ class _AIModelSelectorCardState extends ConsumerState<AIModelSelectorCard> {
                 return Column(
                   children: [
                     DropdownButtonFormField<String>(
-                      value: _matchValue(
+                      initialValue: _matchValue(
                         widget.providerName,
                         providers.map((item) => item.providerName),
                       ),
@@ -144,11 +144,9 @@ class _AIModelSelectorCardState extends ConsumerState<AIModelSelectorCard> {
   Widget _buildModelDropdown({
     required bool hasProviders,
   }) {
-    if (!hasProviders ||
-        widget.providerName.isEmpty ||
-        _modelsFuture == null) {
+    if (!hasProviders || widget.providerName.isEmpty || _modelsFuture == null) {
       return DropdownButtonFormField<String>(
-        value: null,
+        initialValue: null,
         decoration: const InputDecoration(
           labelText: '模型名称',
         ),
@@ -161,13 +159,12 @@ class _AIModelSelectorCardState extends ConsumerState<AIModelSelectorCard> {
       future: _modelsFuture,
       builder: (context, snapshot) {
         final models = snapshot.data ?? const <AIProviderModelItem>[];
-        final loading =
-            snapshot.connectionState == ConnectionState.waiting;
+        final loading = snapshot.connectionState == ConnectionState.waiting;
 
         return Column(
           children: [
             DropdownButtonFormField<String>(
-              value: _matchValue(
+              initialValue: _matchValue(
                 widget.modelName,
                 models.map((item) => item.modelName),
               ),
@@ -245,7 +242,8 @@ class _AIModelSelectorCardState extends ConsumerState<AIModelSelectorCard> {
     }
 
     final matchedProvider = _findProvider(providers, widget.providerName);
-    final nextProvider = matchedProvider?.providerName ?? providers.first.providerName;
+    final nextProvider =
+        matchedProvider?.providerName ?? providers.first.providerName;
     if (nextProvider != widget.providerName) {
       widget.onProviderChanged(nextProvider);
     }
@@ -270,8 +268,8 @@ class _AIModelSelectorCardState extends ConsumerState<AIModelSelectorCard> {
     });
 
     final matchedModel = _findModel(models, widget.modelName);
-    final nextModel =
-        matchedModel?.modelName ?? (models.isNotEmpty ? models.first.modelName : '');
+    final nextModel = matchedModel?.modelName ??
+        (models.isNotEmpty ? models.first.modelName : '');
     if (nextModel != widget.modelName) {
       widget.onModelChanged(nextModel);
     }

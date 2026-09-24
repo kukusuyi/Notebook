@@ -69,7 +69,7 @@ class _TagManagePageState extends ConsumerState<TagManagePage> {
                     ),
                     const SizedBox(height: 16),
                     DropdownButtonFormField<TagType?>(
-                      value: _selectedType,
+                      initialValue: _selectedType,
                       decoration: const InputDecoration(labelText: '标签类型'),
                       items: [
                         const DropdownMenuItem<TagType?>(
@@ -267,7 +267,7 @@ class _TagManagePageState extends ConsumerState<TagManagePage> {
                   ),
                   const SizedBox(height: 12),
                   DropdownButtonFormField<TagType>(
-                    value: _createType,
+                    initialValue: _createType,
                     decoration: const InputDecoration(labelText: '标签类型'),
                     items: TagType.values
                         .map(

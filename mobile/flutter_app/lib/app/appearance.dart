@@ -74,9 +74,10 @@ class AppearanceController extends Notifier<AppearancePreferences> {
     final store = ref.read(keyValueStoreProvider);
     try {
       final raw = store.readString(appearanceKey);
-      if (raw != null)
+      if (raw != null) {
         return AppearancePreferences.fromJson(
             jsonDecode(raw) as Map<String, dynamic>);
+      }
     } catch (_) {
       /* Invalid preferences fall back without affecting credentials. */
     }

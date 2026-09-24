@@ -23,11 +23,13 @@ String resolveRemoteUrl(String rawUrl, String apiBaseUrl) {
         ? assetUri.port
         : (baseUri.hasPort ? baseUri.port : null);
 
-    return assetUri.replace(
-      scheme: baseUri.scheme,
-      host: baseUri.host,
-      port: port,
-    ).toString();
+    return assetUri
+        .replace(
+          scheme: baseUri.scheme,
+          host: baseUri.host,
+          port: port,
+        )
+        .toString();
   }
 
   return normalized;

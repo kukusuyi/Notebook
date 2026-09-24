@@ -1,0 +1,121 @@
+name: Notebook v2 verification
+
+on:
+  push:
+    branches:
+      - master-v2.0
+  pull_request:
+    branches:
+      - master-v2.0
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: notebook-v2-verification-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend-web-desktop:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-go@v7
+        with:
+          go-version: '1.25.x'
+          cache-dependency-path: backend/go.sum
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: |
+            frontend/package-lock.json
+            desktop/package-lock.json
+
+      - name: Verify versions and generated themes
+        run: |
+          node scripts/check-version.mjs 2.0.0
+          python3 scripts/generate-themes.py --check
+
+      - name: Test backend
+        run: go test ./...
+        working-directory: backend
+
+      - name: Test and build web application
+        run: npm ci && npm test && npm run build
+        working-directory: frontend
+
+      - name: Test desktop shell
+        run: npm ci && node --test
+        working-directory: desktop
+
+      - name: Build and smoke-test embedded Linux server
+        run: |
+          node scripts/build.mjs
+          python3 scripts/smoke.py dist/notebook-2.0.0-linux-amd64/notebook-server
+
+  flutter-tests:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.44.0'
+          cache: true
+
+      - name: Configure production client
+        run: printf '{"flavor":"production","apiBaseUrl":""}\n' > config/app_config.json
+        working-directory: mobile/flutter_app
+
+      - name: Install Flutter dependencies
+        run: flutter pub get
+        working-directory: mobile/flutter_app
+
+      - name: Analyze Flutter application
+        run: flutter analyze
+        working-directory: mobile/flutter_app
+
+      - name: Run Flutter widget and golden tests
+        run: flutter test
+        working-directory: mobile/flutter_app
+
+      - name: Upload golden failures
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: flutter-golden-failures
+          if-no-files-found: ignore
+          retention-days: 7
+          path: mobile/flutter_app/test/**/failures/*.png
+
+  android:
+    needs: flutter-tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.44.0'
+          cache: true
+
+      - name: Configure production client
+        run: printf '{"flavor":"production","apiBaseUrl":""}\n' > config/app_config.json
+        working-directory: mobile/flutter_app
+
+      - name: Install Flutter dependencies
+        run: flutter pub get
+        working-directory: mobile/flutter_app
+
+      - name: Build release-mode verification APK
+        run: flutter build apk --release --dart-define=APP_FLAVOR=production
+        working-directory: mobile/flutter_app

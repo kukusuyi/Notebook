@@ -11,9 +11,16 @@ import 'package:math_notebook_flutter/shared/widgets/appearance_card.dart';
 
 void main() {
   const fontPath = String.fromEnvironment('NOTEBOOK_UI_FONT');
+  final reviewGoldenDir =
+      Directory('${Directory.current.path}/build/ui-screenshots');
   setUpAll(() async {
-    const iconPath=String.fromEnvironment('NOTEBOOK_ICON_FONT');
-    if(iconPath.isNotEmpty) await (FontLoader('MaterialIcons')..addFont(File(iconPath).readAsBytes().then(ByteData.sublistView))).load();
+    if (fontPath.isNotEmpty) reviewGoldenDir.createSync(recursive: true);
+    const iconPath = String.fromEnvironment('NOTEBOOK_ICON_FONT');
+    if (iconPath.isNotEmpty) {
+      await (FontLoader('MaterialIcons')
+            ..addFont(File(iconPath).readAsBytes().then(ByteData.sublistView)))
+          .load();
+    }
     if (fontPath.isNotEmpty) {
       final bytes = ByteData.sublistView(await File(fontPath).readAsBytes());
       for (final family in ['Ahem', 'Roboto', 'PingFang SC']) {
@@ -52,7 +59,8 @@ void main() {
             find.byType(MaterialApp),
             matchesGoldenFile(fontPath.isEmpty
                 ? 'goldens/appearance_${preset}_${brightness.name}.png'
-                : '../../../../docs/v2/ui-screenshots/flutter_${preset}_${brightness.name}.png'));
+                : Uri.file(
+                    '${reviewGoldenDir.path}/flutter_${preset}_${brightness.name}.png')));
       });
     }
   }

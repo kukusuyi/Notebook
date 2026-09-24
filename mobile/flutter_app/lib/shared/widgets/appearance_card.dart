@@ -34,7 +34,7 @@ class AppearanceCard extends ConsumerWidget {
               ]),
               const SizedBox(height: 16),
               DropdownButtonFormField<String>(
-                  value: prefs.mode,
+                  initialValue: prefs.mode,
                   decoration: const InputDecoration(labelText: '显示模式'),
                   items: const [
                     DropdownMenuItem(value: 'system', child: Text('跟随系统')),
@@ -54,7 +54,7 @@ class AppearanceCard extends ConsumerWidget {
                   onTap: () => _chooseColor(context, ref)),
               const SizedBox(height: 12),
               DropdownButtonFormField<String>(
-                  value: prefs.material,
+                  initialValue: prefs.material,
                   decoration: const InputDecoration(labelText: '界面质感'),
                   items: const [
                     DropdownMenuItem(value: 'plain', child: Text('简洁纸面')),
@@ -64,7 +64,7 @@ class AppearanceCard extends ConsumerWidget {
                   onChanged: (value) => controller.update(material: value)),
               const SizedBox(height: 16),
               DropdownButtonFormField<String>(
-                  value: prefs.font,
+                  initialValue: prefs.font,
                   decoration: const InputDecoration(labelText: '字体风格'),
                   items: const [
                     DropdownMenuItem(value: 'system', child: Text('现代黑体')),
@@ -116,9 +116,10 @@ class AppearanceCard extends ConsumerWidget {
           .read(appearanceProvider.notifier)
           .update(background: 'data:image/$mime;base64,${base64Encode(bytes)}');
     } catch (error) {
-      if (context.mounted)
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text('背景设置失败：${describeError(error)}')));
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('背景设置失败：${describeError(error)}')));
+      }
     }
   }
 
@@ -165,9 +166,11 @@ class AppearanceCard extends ConsumerWidget {
                                 hintText: '#2563EB',
                                 errorText: error),
                             onChanged: (value) {
-                              if (RegExp(r'^#[a-fA-F0-9]{6}$').hasMatch(value))
+                              if (RegExp(r'^#[a-fA-F0-9]{6}$')
+                                  .hasMatch(value)) {
                                 setState(() => hsv =
                                     HSVColor.fromColor(parseThemeColor(value)));
+                              }
                             }),
                         const SizedBox(height: 16),
                         const Text('色相'),
@@ -198,8 +201,9 @@ class AppearanceCard extends ConsumerWidget {
                                   await ref
                                       .read(appearanceProvider.notifier)
                                       .update(accentSeed: value);
-                                  if (sheetContext.mounted)
+                                  if (sheetContext.mounted) {
                                     Navigator.pop(sheetContext);
+                                  }
                                 },
                                 child: const Text('应用颜色'))),
                       ])));

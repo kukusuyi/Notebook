@@ -63,4 +63,3 @@ String formatQuestionJson(QuestionJson value) {
   const encoder = JsonEncoder.withIndent('  ');
   return encoder.convert(value.toJson());
 }
-

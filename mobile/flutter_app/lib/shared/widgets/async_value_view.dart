@@ -31,4 +31,3 @@ class AsyncValueView<T> extends StatelessWidget {
     );
   }
 }
-

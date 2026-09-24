@@ -10,6 +10,10 @@ plugins {
 
 val keystoreProperties = Properties()
 val keystorePropertiesFile = rootProject.file("key.properties")
+val requireReleaseSigning = providers.environmentVariable("NOTEBOOK_REQUIRE_RELEASE_SIGNING").orNull == "true"
+if (requireReleaseSigning && !keystorePropertiesFile.exists()) {
+    throw GradleException("Formal release signing is required, but android/key.properties is missing")
+}
 if (keystorePropertiesFile.exists()) {
     keystoreProperties.load(FileInputStream(keystorePropertiesFile))
 }

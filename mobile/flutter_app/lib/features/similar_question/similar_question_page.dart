@@ -41,7 +41,7 @@ class _SimilarQuestionPageState extends ConsumerState<SimilarQuestionPage> {
         padding: const EdgeInsets.all(20),
         children: [
           DropdownButtonFormField<VectorType>(
-            value: _vectorType,
+            initialValue: _vectorType,
             decoration: const InputDecoration(
               labelText: '相似策略',
             ),

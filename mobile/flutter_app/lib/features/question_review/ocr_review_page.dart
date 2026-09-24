@@ -146,7 +146,8 @@ class _OcrReviewPageState extends ConsumerState<OcrReviewPage> {
                       return Column(
                         children: [
                           DropdownButtonFormField<String>(
-                            value: _matchChapterValue(draft.chapter, chapters),
+                            initialValue:
+                                _matchChapterValue(draft.chapter, chapters),
                             decoration: const InputDecoration(
                               labelText: '章节',
                             ),
@@ -193,8 +194,9 @@ class _OcrReviewPageState extends ConsumerState<OcrReviewPage> {
             onPressed: _submitting
                 ? null
                 : () async {
-                    if (await showAnalysisPicker(context) && mounted)
+                    if (await showAnalysisPicker(context) && mounted) {
                       await _analyze();
+                    }
                   },
             child: Text(_submitting ? '分析中...' : 'AI 辅助分析'),
           ),
