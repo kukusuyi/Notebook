@@ -27,6 +27,26 @@ function verify(buffer) {
   return result;
 }
 
+// Report the unpacked executables that the NSIS header marks as uninstallers.
+// Entry names differ between NSIS versions and build hosts, so the header flags
+// decide; every candidate that claims to be an uninstaller must also match its
+// stored CRC, and anything else is ignored.
+function findUninstallers(candidates) {
+  const found = [];
+  for (const {name, buffer} of candidates) {
+    let flags;
+    try {
+      flags = inspect(buffer).flags;
+    } catch {
+      continue;
+    }
+    if (!(flags & 1)) continue;
+    verify(buffer);
+    found.push(name);
+  }
+  return found;
+}
+
 // Only for a freshly reconstructed, unsigned uninstaller, before signing.
 // Never call this on a downloaded installer or an installed user file.
 function finalizeUninstaller(buffer) {
@@ -39,4 +59,4 @@ function finalizeUninstaller(buffer) {
   return buffer;
 }
 
-module.exports = {inspect, verify, finalizeUninstaller};
+module.exports = {inspect, verify, findUninstallers, finalizeUninstaller};

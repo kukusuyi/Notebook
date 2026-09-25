@@ -1,8 +1,15 @@
 # 更新日志 / Changelog
 
-## 未发布 / Unreleased
+## 2.1.0 — 2026-09-26
 
 ### 中文
+
+#### 新增
+
+- 复习计划：自动组卷、自评、续练与历史，掌握状态随到期复习逐步变化。
+- 各端增加 GitHub 正式版本更新提醒，可关闭自动检查并手动检查。
+- 手机外观新增松林绿、樱雾粉、落日橙、星夜靛、石墨灰五种配色与“自定义”选项：调色盘提供 16 个常用色、拖动选色和整套浅深外观的实时预览。
+- 错题支持按标签 ID 多选筛选，标签管理可直达对应题目。
 
 #### 变更
 
@@ -10,13 +17,22 @@
 - Go module 改为 `github.com/kukusuyi/Questrace/backend`；npm 包改为 `questrace-frontend`、`questrace-desktop`；Flutter 包改为 `questrace_flutter`。
 - 服务端程序与发行产物改为 `questrace-server`、`Questrace-<版本>-<平台>`；GitHub Actions 工作流名称、并发组、临时产物与 Release 标题同步改名。
 - Android 源码 namespace 改为 `com.kukusuyi.questrace.mobile`，设计系统目录改为 `design-system/questrace/`。
-
-#### Windows 安装修复
-
+- 手机端强调色改为跟随外观色，不再单独设置；旧的自选强调色自动迁移为“自定义”外观。
+- 手机设置分离服务与索引状态；背景图片上限提升至 10 MiB，并迁移至专用本地存储。
+- 移除手机首页快捷入口及应用内图形 Logo，保留文字名称与系统应用图标。
+- 公式搜索兼容空格和常见 LaTeX 排版差异。
 - Windows 发行包改为带向导的 `Setup.exe` 安装程序，提供快捷方式、控制面板卸载入口和独立卸载程序。
+
+#### 修复
+
+- 手机读取请求遇到短暂断线或超时时最多重试一次；缩短空闲连接保留时间，避免无关设置重建网络客户端。连接地址检测同步支持有限重试。
+- 修复手机连接验证锁定旧版本的问题。
+- 复习组卷表单的上下输入框之间留出间距，不再贴在一起。
 - 关闭 Windows 窗口时退出应用并停止后台服务，增加退出超时清理并避免启动过程中退出后重新打开窗口。
 - 卸载时可选择是否保留用户数据，默认保留；明确取消勾选并确认后清理当前用户 AppData 中本应用的数据与缓存，自定义数据目录保留。
 - 补齐桌面启动所需的 `branding.cjs` 和 `data-dir.cjs`，修复 macOS 交叉构建的卸载程序校验值，新增启动、退出和安装包完整性检查。
+- 修复发布流水线校验 Windows 安装包内置卸载程序时的误报：Windows 构建主机上 7-Zip 只解包应用自身的可执行文件，不再因此中断发布；改为按 NSIS 头标记识别卸载器条目，并继续校验安装包与卸载器的 CRC。
+- SQLite 增量升级前自动备份，保留现有题目、掌握状态和账户。
 
 #### 兼容
 
@@ -29,7 +45,19 @@
 - Electron `appId`、Android `applicationId` 与 iOS Bundle Identifier 保持原值，确保系统仍识别为同一应用；`NOTEBOOK_REQUIRE_RELEASE_SIGNING` 保留为兼容别名。
 - HTTP API 路径与数据结构不变。
 
+#### 升级说明
+
+- 从 2.0.0 覆盖安装即可升级：数据目录、数据库与账户保留，SQLite 会在升级前自动备份。
+- 手机外观偏好沿用 `questrace:appearance:v1` 键，旧的自选强调色迁移为“自定义”外观（偏好写入版本 2）。
+
 ### English
+
+#### Added
+
+- Review planner with automatic sessions, self-assessment, continuing a session and history; mastery states follow due reviews.
+- Official GitHub release update notices on every client, with automatic checks that can be turned off and a manual check.
+- Five more phone appearance presets (pine, rose, amber, indigo, graphite) plus a custom option with a palette picker: 16 common colours, drag selection and a live preview of the whole light and dark appearance.
+- Wrong questions can be filtered by multiple tag IDs, and tag management links straight to the matching questions.
 
 #### Changed
 
@@ -37,13 +65,22 @@
 - The Go module is `github.com/kukusuyi/Questrace/backend`; the npm packages are `questrace-frontend` and `questrace-desktop`; the Flutter package is `questrace_flutter`.
 - The server binary and release assets are now `questrace-server` and `Questrace-<version>-<platform>`; workflow names, concurrency groups, temporary artifacts and release titles follow.
 - The Android source namespace is `com.kukusuyi.questrace.mobile` and the design system moved to `design-system/questrace/`.
-
-#### Windows installer fixes
-
+- The phone accent colour now follows the selected appearance colour instead of being configured separately; a former custom accent is migrated to the custom appearance.
+- Phone settings separate service health from index status; the background image limit rises to 10 MiB and moves to dedicated local storage.
+- The phone home shortcuts and the in-app graphic logo are gone; the wordmark and the system application icon remain.
+- Formula search tolerates extra spaces and common LaTeX formatting differences.
 - Replace the portable Windows package with a `Setup.exe` wizard, shortcuts, a Control Panel entry and a standalone uninstaller.
+
+#### Fixed
+
+- Phone reads that hit a brief disconnect or timeout are retried once; idle sockets are released sooner so unrelated settings changes no longer rebuild the network client, and connection checks retry the same way.
+- Fixed connection validation keeping an outdated version locked in.
+- The review setup form now leaves a gap between stacked input fields instead of butting them together.
 - Closing the Windows window stops the application and its backend, with a shutdown deadline and protection against reopening during startup cancellation.
 - Offer a keep-data choice during uninstall, selected by default. Explicit opt-out and confirmation remove this application's current-user AppData and cache; custom data directories are preserved.
 - Bundle the missing `branding.cjs` and `data-dir.cjs` modules, correct uninstaller checksums in macOS cross-builds, and add startup, shutdown and package integrity checks.
+- Fixed a false failure in the release check for the Windows installer's bundled uninstaller: 7-Zip only unpacks the application executables on Windows build hosts, so the check now recognises uninstaller entries by their NSIS header instead of failing, and keeps verifying the CRC of both the installer and any uninstaller it finds.
+- SQLite backs up automatically before an incremental upgrade, keeping existing questions, mastery states and accounts.
 
 #### Compatibility
 
@@ -55,6 +92,11 @@
 - The session cookie is `questrace_session`; the former `notebook_session` is still read and cleared on logout.
 - The Electron `appId`, Android `applicationId` and iOS bundle identifier keep their former values so the system still recognises an update as the same application; `NOTEBOOK_REQUIRE_RELEASE_SIGNING` stays accepted.
 - HTTP API paths and payloads are unchanged.
+
+#### Upgrade notes
+
+- Installing 2.1.0 over 2.0.0 keeps the data directory, database and accounts; SQLite backs up before migrating.
+- Phone appearance preferences stay under `questrace:appearance:v1`; a former custom accent becomes the custom appearance (preferences are written as version 2).
 
 ## 2.0.0 — 2026-09-23
 

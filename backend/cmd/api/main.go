@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"github.com/kukusuyi/Questrace/backend/internal/pkg/buildinfo"
 	"io"
 	"log/slog"
 	"net"
@@ -111,7 +112,7 @@ func run() error {
 		defer c()
 		_ = server.Shutdown(shutdown)
 	}()
-	ready := map[string]any{"event": "ready", "url": local, "urls": rt.URLs, "data_dir": *dir, "log": logFile.Name(), "version": "2.0.0"}
+	ready := map[string]any{"event": "ready", "url": local, "urls": rt.URLs, "data_dir": *dir, "log": logFile.Name(), "version": buildinfo.Version}
 	if rt.NeedsSetup() {
 		ready["setup_token"] = cfg.SetupToken
 	}

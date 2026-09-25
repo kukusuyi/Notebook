@@ -1,11 +1,11 @@
+import 'dart:io';
 import 'dart:convert';
-import 'package:flutter/foundation.dart';
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'appearance.dart';
-import '../core/update/version_checker.dart';
-import '../features/update/update_dialog.dart';
+import '../features/update/update_check.dart';
 import 'app_scroll_behavior.dart';
 import 'app_router.dart';
 import 'app_theme.dart';
@@ -18,23 +18,12 @@ class App extends ConsumerStatefulWidget {
 }
 
 class _AppState extends ConsumerState<App> {
+  Timer? _updateTimer;
+  bool _initialCheckScheduled = false;
   @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _checkForUpdate();
-    });
-  }
-
-  Future<void> _checkForUpdate() async {
-    if (kIsWeb || defaultTargetPlatform != TargetPlatform.android) {
-      return;
-    }
-
-    final result = await ref.read(versionCheckerProvider.future);
-    if (result.hasUpdate && result.latestVersion != null && mounted) {
-      UpdateDialog.show(context, result.latestVersion!);
-    }
+  void dispose() {
+    _updateTimer?.cancel();
+    super.dispose();
   }
 
   @override
@@ -46,36 +35,74 @@ class _AppState extends ConsumerState<App> {
       title: '题迹 Questrace',
       debugShowCheckedModeBanner: false,
       theme: buildAppTheme(
-          seedColor: appearance.accentColor,
-          preset: appearance.preset,
-          material: appearance.material,
-          font: appearance.font,
-          hasBackground: appearance.background != null),
+        seedColor: appearance.themeSeedColor,
+        preset: appearance.preset,
+        material: appearance.material,
+        font: appearance.font,
+        hasBackground: appearance.background != null,
+      ),
       darkTheme: buildAppTheme(
-          seedColor: appearance.accentColor,
-          preset: appearance.preset,
-          material: appearance.material,
-          font: appearance.font,
-          hasBackground: appearance.background != null,
-          brightness: Brightness.dark),
+        seedColor: appearance.themeSeedColor,
+        preset: appearance.preset,
+        material: appearance.material,
+        font: appearance.font,
+        hasBackground: appearance.background != null,
+        brightness: Brightness.dark,
+      ),
       builder: (context, child) {
+        _updateTimer ??= Timer.periodic(const Duration(hours: 6), (_) {
+          final navigatorContext = ref
+              .read(appRouterProvider)
+              .routerDelegate
+              .navigatorKey
+              .currentContext;
+          if (navigatorContext != null) checkForUpdates(navigatorContext, ref);
+        });
+        if (!_initialCheckScheduled) {
+          _initialCheckScheduled = true;
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            final navigatorContext = ref
+                .read(appRouterProvider)
+                .routerDelegate
+                .navigatorKey
+                .currentContext;
+            if (navigatorContext != null) {
+              checkForUpdates(navigatorContext, ref);
+            }
+          });
+        }
         final surfaces = Theme.of(context).extension<QuestraceSurfaces>()!;
         final background = appearance.background;
         return ColoredBox(
-            color: surfaces.background,
-            child: Stack(fit: StackFit.expand, children: [
+          color: surfaces.background,
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
               if (background != null && !MediaQuery.highContrastOf(context))
                 Positioned.fill(
-                    child: ExcludeSemantics(
-                        child: Opacity(
-                            opacity: .25,
-                            child: Image.memory(
-                                base64Decode(background.split(',').last),
-                                fit: BoxFit.cover,
-                                errorBuilder: (_, __, ___) =>
-                                    const SizedBox.shrink())))),
+                  child: ExcludeSemantics(
+                    child: Opacity(
+                      opacity: .25,
+                      child: background.startsWith('file:')
+                          ? Image.file(
+                              File.fromUri(Uri.parse(background)),
+                              fit: BoxFit.cover,
+                              errorBuilder: (_, __, ___) =>
+                                  const SizedBox.shrink(),
+                            )
+                          : Image.memory(
+                              base64Decode(background.split(',').last),
+                              fit: BoxFit.cover,
+                              errorBuilder: (_, __, ___) =>
+                                  const SizedBox.shrink(),
+                            ),
+                    ),
+                  ),
+                ),
               if (child != null) child,
-            ]));
+            ],
+          ),
+        );
       },
       themeMode: appearance.themeMode,
       scrollBehavior: const AppScrollBehavior(),

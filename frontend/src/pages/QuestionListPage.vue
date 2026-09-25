@@ -7,7 +7,7 @@
                     整理每一次思考，找到值得再练的一道题。
                 </p>
             </div>
-            <div class="header-actions">
+            <div class="header-actions"><RouterLink to="/reviews"><el-button>复习与组卷</el-button></RouterLink>
                 <el-radio-group v-if="!isMobile"
                     :model-value="questionStore.preferredListView"
                     @update:model-value="questionStore.setPreferredListView"
@@ -29,7 +29,8 @@
                             placeholder="搜索题目主干、标签等关键信息"
                         />
                     </el-form-item>
-                    <el-form-item label="学科">
+                    <el-form-item label="标签"><TagFilter v-model="selectedTags"/></el-form-item>
+<el-form-item label="学科">
                         <el-input
                             v-model="filters.subject"
                             placeholder="例如 math / 高等数学"
@@ -162,6 +163,7 @@
 </template>
 
 <script setup lang="ts">
+import TagFilter from '@/components/TagFilter/index.vue';
 import {useViewport} from "@/composables/useViewport";
 import QuestionDetailPage from "@/pages/QuestionDetailPage.vue";
 import { ElMessage, ElDrawer } from "element-plus";
@@ -194,8 +196,9 @@ const previewID=computed(()=>Number(route.query.preview)||undefined);
 const filterLabels={subject:'学科',mastery_status:'掌握状态',source_type:'来源'} as const;
 function openQuestion(id:number){if(wide.value)router.push({path:'/questions',query:{...route.query,preview:String(id)}});else router.push(`/questions/${id}`)}
 function clearFilter(key:keyof typeof filterLabels){filters[key]='';applyFilters()}
-function applyFilters(){filterOpen.value=false;router.push({path:'/questions',query:{keyword:filters.keyword||undefined,subject:filters.subject||undefined,chapter:filters.chapter||undefined,mastery_status:filters.mastery_status||undefined,source_type:filters.source_type||undefined,tagName:route.query.tagName||undefined,tagType:route.query.tagType||undefined,page:'1'}});loadQuestions()}
+function applyFilters(){filterOpen.value=false;router.push({path:'/questions',query:{keyword:filters.keyword||undefined,subject:filters.subject||undefined,chapter:filters.chapter||undefined,mastery_status:filters.mastery_status||undefined,source_type:filters.source_type||undefined,tag_ids:selectedTags.value.join(',')||undefined,page:'1'}})}
 
+const selectedTags=ref<number[]>([]);
 const total = ref(0);
 const list = ref<QuestionListItem[]>([]);
 const activeTagHint = ref("");
@@ -246,6 +249,7 @@ function normalizeSourceType(value: unknown): SourceType | "" {
 }
 
 function syncFiltersFromRoute() {
+ selectedTags.value=String(route.query.tag_ids||'').split(',').map(Number).filter(n=>n>0);
     filters.page=Math.max(1,Number(route.query.page)||1);
     filters.keyword =
         typeof route.query.keyword === "string" ? route.query.keyword : "";
@@ -258,6 +262,7 @@ function syncFiltersFromRoute() {
 }
 
 async function syncTagFilterFromRoute() {
+ if(route.query.tag_ids){filters.tag_ids=String(route.query.tag_ids);activeTagHint.value=`已选 ${selectedTags.value.length} 个标签`;return;}
     if (!routeTagName.value) {
         filters.tag_ids = "";
         activeTagHint.value = "";
@@ -280,7 +285,8 @@ async function syncTagFilterFromRoute() {
     const matched = response.list.find(
         (item) => item.tag_name === routeTagName.value,
     );
-    filters.tag_ids = matched ? String(matched.tag_id) : "";
+    filters.tag_ids = matched ? String(matched.tag_id) : "-1";
+    selectedTags.value=matched?[matched.tag_id]:[];
     activeTagHint.value = matched
         ? routeTagName.value
         : "标签已不存在";
@@ -344,6 +350,7 @@ async function resetFilters() {
     filters.mastery_status = "";
     filters.source_type = "";
     filters.tag_ids = "";
+    selectedTags.value=[];
     activeTagHint.value = "";
 
     if (Object.keys(route.query).length) {

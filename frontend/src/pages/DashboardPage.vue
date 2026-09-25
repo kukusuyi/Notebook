@@ -11,7 +11,8 @@
         </header>
 
         <section v-if="draftStore.currentDraft" class="paper-card resume-card"><div><h3>继续上次的整理</h3><p class="meta-text">{{draftStore.currentDraft.question_json.question_core||'有一份尚未完成的草稿'}}</p></div><div class="draft-actions"><RouterLink :to="draftStore.currentDraft.flow_mode==='upload'?'/questions/upload':'/questions/create'"><el-button>继续草稿</el-button></RouterLink><el-button text type="danger" @click="discardDraft">删除草稿</el-button></div></section>
-        <section class="stats-grid">
+        <section class="paper-card resume-card"><div><h3>温故知新</h3><p class="meta-text">按复习计划再练一遍，让知识真正留下来。</p></div><RouterLink to="/reviews"><el-button type="primary">开始复习</el-button></RouterLink></section>
+<section class="stats-grid">
             <button
                 type="button"
                 v-for="card in statsCards"

@@ -43,8 +43,8 @@ class DashboardPage extends ConsumerWidget {
               Text(
                 '学习概览',
                 style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                      fontWeight: FontWeight.w800,
-                    ),
+                  fontWeight: FontWeight.w800,
+                ),
               ),
               const SizedBox(height: 8),
               Text(
@@ -76,20 +76,15 @@ class DashboardPage extends ConsumerWidget {
                         children: [
                           Text(
                             '仪表盘数据加载失败',
-                            style: Theme.of(context)
-                                .textTheme
-                                .titleLarge
-                                ?.copyWith(
-                                  fontWeight: FontWeight.w700,
-                                ),
+                            style: Theme.of(context).textTheme.titleLarge
+                                ?.copyWith(fontWeight: FontWeight.w700),
                           ),
                           const SizedBox(height: 12),
                           Text(describeError(error)),
                           const SizedBox(height: 16),
                           FilledButton(
-                            onPressed: () => ref.invalidate(
-                              dashboardSnapshotProvider,
-                            ),
+                            onPressed: () =>
+                                ref.invalidate(dashboardSnapshotProvider),
                             child: const Text('重试'),
                           ),
                         ],
@@ -128,10 +123,7 @@ class DashboardPage extends ConsumerWidget {
 }
 
 class _DashboardContent extends StatelessWidget {
-  const _DashboardContent({
-    required this.snapshot,
-    required this.apiBaseUrl,
-  });
+  const _DashboardContent({required this.snapshot, required this.apiBaseUrl});
 
   final DashboardSnapshot snapshot;
   final String apiBaseUrl;
@@ -158,9 +150,8 @@ class _DashboardContent extends StatelessWidget {
                     labelBuilder: (item) =>
                         _masteryLabel(item.type, item.count),
                     progressColor: Theme.of(context).colorScheme.primary,
-                    onTap: (item) => context.go(
-                      '/questions?mastery_status=${item.type}',
-                    ),
+                    onTap: (item) =>
+                        context.go('/questions?mastery_status=${item.type}'),
                   ),
                   const SizedBox(height: 16),
                   _DistributionCard(
@@ -169,9 +160,8 @@ class _DashboardContent extends StatelessWidget {
                     items: summary.sourceDistribution,
                     labelBuilder: (item) => _sourceLabel(item.type, item.count),
                     progressColor: Theme.of(context).colorScheme.tertiary,
-                    onTap: (item) => context.go(
-                      '/questions?source_type=${item.type}',
-                    ),
+                    onTap: (item) =>
+                        context.go('/questions?source_type=${item.type}'),
                   ),
                 ],
               );
@@ -188,9 +178,8 @@ class _DashboardContent extends StatelessWidget {
                     labelBuilder: (item) =>
                         _masteryLabel(item.type, item.count),
                     progressColor: Theme.of(context).colorScheme.primary,
-                    onTap: (item) => context.go(
-                      '/questions?mastery_status=${item.type}',
-                    ),
+                    onTap: (item) =>
+                        context.go('/questions?mastery_status=${item.type}'),
                   ),
                 ),
                 const SizedBox(width: 16),
@@ -201,9 +190,8 @@ class _DashboardContent extends StatelessWidget {
                     items: summary.sourceDistribution,
                     labelBuilder: (item) => _sourceLabel(item.type, item.count),
                     progressColor: Theme.of(context).colorScheme.tertiary,
-                    onTap: (item) => context.go(
-                      '/questions?source_type=${item.type}',
-                    ),
+                    onTap: (item) =>
+                        context.go('/questions?source_type=${item.type}'),
                   ),
                 ),
               ],
@@ -211,10 +199,13 @@ class _DashboardContent extends StatelessWidget {
           },
         ),
         const SizedBox(height: 16),
-        _QuickLinksCard(
-          onFocus: () => context.go('/questions?mastery_status=unmastered'),
-          onUpload: () => context.go('/questions/upload'),
-          onTags: () => context.go('/tags'),
+        Card(
+          child: ListTile(
+            title: const Text('温故知新'),
+            subtitle: const Text('按计划复习，或自动组卷练习'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => context.push('/reviews'),
+          ),
         ),
         const SizedBox(height: 16),
         _RecentQuestionsCard(items: snapshot.recentQuestions),
@@ -229,9 +220,9 @@ class _DashboardContent extends StatelessWidget {
               children: [
                 Text(
                   '环境信息',
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.w700,
-                      ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
                 ),
                 const SizedBox(height: 12),
                 Text('API Base URL: $apiBaseUrl'),
@@ -285,9 +276,9 @@ class _DraftResumeCard extends StatelessWidget {
           children: [
             Text(
               '发现未完成草稿',
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.w700,
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
             ),
             const SizedBox(height: 8),
             Text('模式：$modeLabel · 状态：${draft.status.value}'),
@@ -301,10 +292,7 @@ class _DraftResumeCard extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 12),
-                OutlinedButton(
-                  onPressed: onDiscard,
-                  child: const Text('丢弃草稿'),
-                ),
+                OutlinedButton(onPressed: onDiscard, child: const Text('丢弃草稿')),
               ],
             ),
           ],
@@ -315,9 +303,7 @@ class _DraftResumeCard extends StatelessWidget {
 }
 
 class _StatsGrid extends StatelessWidget {
-  const _StatsGrid({
-    required this.summary,
-  });
+  const _StatsGrid({required this.summary});
 
   final DashboardSummary summary;
 
@@ -366,8 +352,8 @@ class _StatsGrid extends StatelessWidget {
         final columns = width >= 1120
             ? 5
             : width >= 820
-                ? 3
-                : 2;
+            ? 3
+            : 2;
         final itemWidth = (width - (columns - 1) * 12) / columns;
 
         return Wrap(
@@ -404,9 +390,7 @@ class _StatCardData {
 }
 
 class _StatCard extends StatelessWidget {
-  const _StatCard({
-    required this.item,
-  });
+  const _StatCard({required this.item});
 
   final _StatCardData item;
 
@@ -423,8 +407,8 @@ class _StatCard extends StatelessWidget {
                 child: Text(
                   item.label,
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
                 ),
               ),
               DecoratedBox(
@@ -433,14 +417,16 @@ class _StatCard extends StatelessWidget {
                   borderRadius: BorderRadius.circular(999),
                 ),
                 child: Padding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 6,
+                  ),
                   child: Text(
                     item.badge,
                     style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                          color: Theme.of(context).colorScheme.primary,
-                          fontWeight: FontWeight.w700,
-                        ),
+                      color: Theme.of(context).colorScheme.primary,
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
                 ),
               ),
@@ -450,16 +436,16 @@ class _StatCard extends StatelessWidget {
           Text(
             item.value,
             style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                  fontWeight: FontWeight.w800,
-                  color: Theme.of(context).colorScheme.primary,
-                ),
+              fontWeight: FontWeight.w800,
+              color: Theme.of(context).colorScheme.primary,
+            ),
           ),
           const SizedBox(height: 10),
           Text(
             item.description,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
           ),
         ],
       ),
@@ -509,9 +495,9 @@ class _DistributionCard extends StatelessWidget {
           children: [
             Text(
               title,
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.w700,
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
             ),
             const SizedBox(height: 6),
             Text(subtitle),
@@ -527,7 +513,8 @@ class _DistributionCard extends StatelessWidget {
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(18),
                       border: Border.all(
-                          color: Theme.of(context).colorScheme.outlineVariant),
+                        color: Theme.of(context).colorScheme.outlineVariant,
+                      ),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -537,9 +524,7 @@ class _DistributionCard extends StatelessWidget {
                             Expanded(child: Text(labelBuilder(item))),
                             Text(
                               '${item.count}',
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .titleMedium
+                              style: Theme.of(context).textTheme.titleMedium
                                   ?.copyWith(fontWeight: FontWeight.w700),
                             ),
                           ],
@@ -550,9 +535,9 @@ class _DistributionCard extends StatelessWidget {
                           child: LinearProgressIndicator(
                             minHeight: 10,
                             value: maxCount <= 0 ? 0 : item.count / maxCount,
-                            backgroundColor: Theme.of(context)
-                                .colorScheme
-                                .surfaceContainerHighest,
+                            backgroundColor: Theme.of(
+                              context,
+                            ).colorScheme.surfaceContainerHighest,
                             color: progressColor,
                           ),
                         ),
@@ -569,112 +554,8 @@ class _DistributionCard extends StatelessWidget {
   }
 }
 
-class _QuickLinksCard extends StatelessWidget {
-  const _QuickLinksCard({
-    required this.onFocus,
-    required this.onUpload,
-    required this.onTags,
-  });
-
-  final VoidCallback onFocus;
-  final VoidCallback onUpload;
-  final VoidCallback onTags;
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              '快捷入口',
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.w700,
-                  ),
-            ),
-            const SizedBox(height: 6),
-            const Text('把最常用的动作放在首页，减少来回切换。'),
-            const SizedBox(height: 16),
-            _QuickLinkTile(
-              title: '进入待掌握列表',
-              subtitle: '优先处理还没吃透的题目',
-              highlighted: true,
-              onTap: onFocus,
-            ),
-            const SizedBox(height: 12),
-            _QuickLinkTile(
-              title: '继续上传识别',
-              subtitle: '把纸面错题尽快沉淀进系统',
-              onTap: onUpload,
-            ),
-            const SizedBox(height: 12),
-            _QuickLinkTile(
-              title: '整理标签体系',
-              subtitle: '统一知识点与错因命名口径',
-              onTap: onTags,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _QuickLinkTile extends StatelessWidget {
-  const _QuickLinkTile({
-    required this.title,
-    required this.subtitle,
-    required this.onTap,
-    this.highlighted = false,
-  });
-
-  final String title;
-  final String subtitle;
-  final VoidCallback onTap;
-  final bool highlighted;
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(18),
-      child: Ink(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(18),
-          border: Border.all(
-            color: highlighted
-                ? Theme.of(context).colorScheme.outlineVariant
-                : Theme.of(context).colorScheme.outlineVariant,
-          ),
-          color: highlighted
-              ? Theme.of(context).colorScheme.primaryContainer
-              : Theme.of(context).colorScheme.surface,
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              title,
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w700,
-                  ),
-            ),
-            const SizedBox(height: 4),
-            Text(subtitle),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
 class _RecentQuestionsCard extends StatelessWidget {
-  const _RecentQuestionsCard({
-    required this.items,
-  });
+  const _RecentQuestionsCard({required this.items});
 
   final List<QuestionListItem> items;
 
@@ -690,9 +571,9 @@ class _RecentQuestionsCard extends StatelessWidget {
               children: [
                 Text(
                   '最近错题',
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.w700,
-                      ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
                 ),
                 const Spacer(),
                 TextButton(
@@ -714,16 +595,15 @@ class _RecentQuestionsCard extends StatelessWidget {
                 (item) => Padding(
                   padding: const EdgeInsets.only(bottom: 12),
                   child: ListTile(
-                    tileColor:
-                        Theme.of(context).colorScheme.surfaceContainerLow,
+                    tileColor: Theme.of(
+                      context,
+                    ).colorScheme.surfaceContainerLow,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(18),
                     ),
                     contentPadding: const EdgeInsets.all(16),
                     title: RepaintBoundary(
-                      child: QuestionCompactPreview(
-                        content: item.questionCore,
-                      ),
+                      child: QuestionCompactPreview(content: item.questionCore),
                     ),
                     subtitle: Padding(
                       padding: const EdgeInsets.only(top: 8),
@@ -746,9 +626,7 @@ class _RecentQuestionsCard extends StatelessWidget {
 }
 
 class _TopTagsCard extends StatelessWidget {
-  const _TopTagsCard({
-    required this.tags,
-  });
+  const _TopTagsCard({required this.tags});
 
   final DashboardTopTags tags;
 
@@ -764,9 +642,9 @@ class _TopTagsCard extends StatelessWidget {
               children: [
                 Text(
                   '标签热点',
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.w700,
-                      ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
                 ),
                 const Spacer(),
                 TextButton(
@@ -873,9 +751,9 @@ class _TagGroupPanel extends StatelessWidget {
           children: [
             Text(
               title,
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w700,
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
             ),
             const SizedBox(height: 12),
             if (items.isEmpty)
@@ -897,19 +775,16 @@ class _TagGroupPanel extends StatelessWidget {
                       ),
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(16),
-                        color: Theme.of(context)
-                            .colorScheme
-                            .surface
-                            .withValues(alpha: 0.8),
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.surface.withValues(alpha: 0.8),
                       ),
                       child: Row(
                         children: [
                           Expanded(child: Text(item.tagName)),
                           Text(
                             '${item.usageCount}',
-                            style: Theme.of(context)
-                                .textTheme
-                                .titleSmall
+                            style: Theme.of(context).textTheme.titleSmall
                                 ?.copyWith(fontWeight: FontWeight.w700),
                           ),
                         ],

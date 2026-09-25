@@ -66,7 +66,7 @@ npm ci
 npm run dist
 ```
 
-`build.mjs` 不是纯 Node 打包器：它先检查本机是否存在 Go 1.25+，再构建 Vue、嵌入网页并生成独立 Go 程序，最后复制到 Electron 的 resources。第一阶段输出位于 `dist/questrace-2.0.0-<系统>-<架构>/`，其中的服务端程序名为 `questrace-server`；随后必须在 `desktop/` 执行 `npm run dist` 才会生成 Windows/macOS 桌面包。可用 `GOOS`/`GOARCH` 选择后端目标；桌面外壳应在对应系统打包。Linux 输出包括 `start.sh`。
+`build.mjs` 不是纯 Node 打包器：它先检查本机是否存在 Go 1.25+，再构建 Vue、嵌入网页并生成独立 Go 程序，最后复制到 Electron 的 resources。第一阶段输出位于 `dist/questrace-<版本>-<系统>-<架构>/`（例如 `dist/questrace-2.1.0-macos-arm64/`），其中的服务端程序名为 `questrace-server`；随后必须在 `desktop/` 执行 `npm run dist` 才会生成 Windows/macOS 桌面包。可用 `GOOS`/`GOARCH` 选择后端目标；桌面外壳应在对应系统打包。Linux 输出包括 `start.sh`。
 
 若出现 `Go compiler not found`，请先安装 Go 1.25+ 并确认 `go version` 可执行。
 

@@ -1,4 +1,4 @@
-<template><main class="auth-page"><section class="auth-intro"><span class="auth-symbol">∫</span><h1>题迹 Questrace</h1><p>让每一道错题<br/>都有收获。</p><span class="meta-text">收集 · 整理 · 理解 · 再练习</span></section><section class="auth-card paper-card">
+<template><main class="auth-page"><section class="auth-intro"><h1>题迹 Questrace</h1><p>让每一道错题<br/>都有收获。</p><span class="meta-text">收集 · 整理 · 理解 · 再练习</span></section><section class="auth-card paper-card">
                 <div class="auth-header">
                     <div>
                         <h2>
@@ -148,5 +148,5 @@ async function submitRegister() {
 </script>
 
 <style scoped>
-.auth-page{min-height:100dvh;display:grid;grid-template-columns:1fr 1fr;align-items:center;gap:64px;max-width:1050px;margin:auto;padding:48px}.auth-intro{padding:24px}.auth-symbol{display:grid;place-items:center;width:56px;height:56px;border-radius:14px;background:var(--primary);color:var(--on-primary);font-size:40px}.auth-intro h1{font-size:24px;margin-top:28px}.auth-intro p{font-size:38px;line-height:1.4;letter-spacing:-1px}.auth-card{padding:32px}.auth-header h2{font-size:24px;margin-top:0}.submit-btn{width:100%;margin-top:12px}@media(max-width:767px){.auth-page{display:block;padding:24px 16px}.auth-intro{padding:8px 8px 24px}.auth-intro p,.auth-intro .meta-text{display:none}.auth-intro h1{font-size:24px;margin:12px 0 0}.auth-symbol{width:40px;height:40px;font-size:30px}.auth-card{padding:24px}}
+.auth-page{min-height:100dvh;display:grid;grid-template-columns:1fr 1fr;align-items:center;gap:64px;max-width:1050px;margin:auto;padding:48px}.auth-intro{padding:24px}.auth-intro h1{font-size:24px;margin-top:28px}.auth-intro p{font-size:38px;line-height:1.4;letter-spacing:-1px}.auth-card{padding:32px}.auth-header h2{font-size:24px;margin-top:0}.submit-btn{width:100%;margin-top:12px}@media(max-width:767px){.auth-page{display:block;padding:24px 16px}.auth-intro{padding:8px 8px 24px}.auth-intro p,.auth-intro .meta-text{display:none}.auth-intro h1{font-size:24px;margin:12px 0 0}.auth-card{padding:24px}}
 </style>

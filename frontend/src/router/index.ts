@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 
 import { settingsPageEnabled } from '@/config/features'
+import ReviewPage from '@/pages/ReviewPage.vue'
 import SetupPage from '@/pages/SetupPage.vue'
 import AuthPage from '@/pages/AuthPage.vue'
 import MainLayout from '@/layouts/MainLayout.vue'
@@ -36,6 +37,7 @@ const router = createRouter({
       meta: { requiresAuth: true },
       redirect: '/dashboard',
       children: [
+ {path:'reviews',component:ReviewPage,meta:{title:'复习'}},
         {
           path: 'dashboard',
           name: 'dashboard',

@@ -4,8 +4,10 @@ class MobileVersionInfo {
     required this.apkUrl,
     required this.forceUpdate,
     this.updateDescription,
+    this.releaseUrl = '',
   });
 
+  final String releaseUrl;
   final String version;
   final String apkUrl;
   final bool forceUpdate;
@@ -33,7 +35,11 @@ class AppVersion {
   final int patch;
 
   factory AppVersion.parse(String version) {
-    final parts = version.split('.');
+    final parts = version
+        .replaceFirst(RegExp(r'^v'), '')
+        .split('+')
+        .first
+        .split('.');
     if (parts.length < 3) {
       throw FormatException('Invalid version format: $version');
     }

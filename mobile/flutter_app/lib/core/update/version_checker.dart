@@ -23,28 +23,20 @@ class VersionCheckResult {
 
 class VersionChecker {
   static Future<VersionCheckResult> check(UpdateRepository repository) async {
-    try {
-      final packageInfo = await PackageInfo.fromPlatform();
-      final currentVersionStr = packageInfo.version;
+    final packageInfo = await PackageInfo.fromPlatform();
+    final currentVersionStr = packageInfo.version;
 
-      final latestInfo = await repository.getLatestVersion();
+    final latestInfo = await repository.getLatestVersion();
 
-      final currentVersion = AppVersion.parse(currentVersionStr);
-      final latestVersion = AppVersion.parse(latestInfo.version);
+    final currentVersion = AppVersion.parse(currentVersionStr);
+    final latestVersion = AppVersion.parse(latestInfo.version);
 
-      final hasUpdate = latestInfo.apkUrl.isNotEmpty &&
-          currentVersion.isOlderThan(latestVersion);
+    final hasUpdate = currentVersion.isOlderThan(latestVersion);
 
-      return VersionCheckResult(
-        hasUpdate: hasUpdate,
-        currentVersion: currentVersionStr,
-        latestVersion: hasUpdate ? latestInfo : null,
-      );
-    } catch (e) {
-      return const VersionCheckResult(
-        hasUpdate: false,
-        currentVersion: 'unknown',
-      );
-    }
+    return VersionCheckResult(
+      hasUpdate: hasUpdate,
+      currentVersion: currentVersionStr,
+      latestVersion: hasUpdate ? latestInfo : null,
+    );
   }
 }

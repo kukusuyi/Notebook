@@ -17,6 +17,7 @@ import '../features/similar_question/similar_question_page.dart';
 import '../features/tag_manage/tag_manage_page.dart';
 import '../shared/models/common_models.dart';
 import '../shared/models/question_models.dart';
+import '../features/review/review_page.dart';
 import 'app_shell.dart';
 import 'tab_navigation_intent.dart';
 
@@ -36,10 +37,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       return null;
     },
     routes: [
-      GoRoute(
-        path: '/auth',
-        builder: (context, state) => const AuthPage(),
-      ),
+      GoRoute(path: '/auth', builder: (context, state) => const AuthPage()),
       ShellRoute(
         builder: (context, state, child) {
           return AppShell(
@@ -51,6 +49,15 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           );
         },
         routes: [
+          GoRoute(
+            path: '/reviews',
+            builder: (context, state) => const ReviewPage(),
+          ),
+          GoRoute(
+            path: '/reviews/:id',
+            builder: (context, state) =>
+                ReviewPage(sessionId: int.parse(state.pathParameters['id']!)),
+          ),
           GoRoute(
             path: '/dashboard',
             pageBuilder: (context, state) =>
@@ -68,31 +75,23 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           ),
           GoRoute(
             path: '/questions/create',
-            pageBuilder: (context, state) => _buildTabPage(
-              state: state,
-              child: const QuestionCreatePage(),
-            ),
+            pageBuilder: (context, state) =>
+                _buildTabPage(state: state, child: const QuestionCreatePage()),
           ),
           GoRoute(
             path: '/questions/upload',
-            pageBuilder: (context, state) => _buildTabPage(
-              state: state,
-              child: const QuestionUploadPage(),
-            ),
+            pageBuilder: (context, state) =>
+                _buildTabPage(state: state, child: const QuestionUploadPage()),
           ),
           GoRoute(
             path: '/questions/ocr-review',
-            pageBuilder: (context, state) => _buildTabPage(
-              state: state,
-              child: const OcrReviewPage(),
-            ),
+            pageBuilder: (context, state) =>
+                _buildTabPage(state: state, child: const OcrReviewPage()),
           ),
           GoRoute(
             path: '/questions/ai-review',
-            pageBuilder: (context, state) => _buildTabPage(
-              state: state,
-              child: const AiReviewPage(),
-            ),
+            pageBuilder: (context, state) =>
+                _buildTabPage(state: state, child: const AiReviewPage()),
           ),
           GoRoute(
             path: '/questions/:id',
@@ -114,17 +113,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           ),
           GoRoute(
             path: '/tags',
-            pageBuilder: (context, state) => _buildTabPage(
-              state: state,
-              child: const TagManagePage(),
-            ),
+            pageBuilder: (context, state) =>
+                _buildTabPage(state: state, child: const TagManagePage()),
           ),
           GoRoute(
             path: '/settings',
-            pageBuilder: (context, state) => _buildTabPage(
-              state: state,
-              child: const SettingsPage(),
-            ),
+            pageBuilder: (context, state) =>
+                _buildTabPage(state: state, child: const SettingsPage()),
           ),
         ],
       ),
@@ -136,16 +131,17 @@ Page<void> _buildTabPage({
   required GoRouterState state,
   required Widget child,
 }) {
-  return NoTransitionPage<void>(
-    key: state.pageKey,
-    child: child,
-  );
+  return NoTransitionPage<void>(key: state.pageKey, child: child);
 }
 
 ListQuestionFilter _questionFilterFromState(GoRouterState state) {
   final query = state.uri.queryParameters;
 
   return ListQuestionFilter(
+    keyword: query['keyword'],
+    subject: query['subject'],
+    chapter: query['chapter'],
+    page: int.tryParse(query['page'] ?? '1') ?? 1,
     masteryStatus: _masteryStatusFromValue(query['mastery_status']),
     sourceType: _sourceTypeFromValue(query['source_type']),
     tagIds: _parseTagIds(query['tag_ids']),

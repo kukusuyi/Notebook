@@ -37,7 +37,7 @@ jobs:
 
       - name: Verify versions and generated themes
         run: |
-          node scripts/check-version.mjs 2.0.0
+          node scripts/check-version.mjs
           python3 scripts/generate-themes.py --check
 
       - name: Test backend
@@ -54,8 +54,9 @@ jobs:
 
       - name: Build and smoke-test embedded Linux server
         run: |
+          version="$(node -p "require('./desktop/package.json').version")"
           node scripts/build.mjs
-          python3 scripts/smoke.py dist/questrace-2.0.0-linux-amd64/questrace-server
+          python3 scripts/smoke.py "dist/questrace-${version}-linux-amd64/questrace-server"
 
   flutter-tests:
     runs-on: macos-latest

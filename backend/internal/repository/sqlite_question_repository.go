@@ -3,6 +3,7 @@ package repository
 import (
 	"database/sql"
 	"fmt"
+	"github.com/kukusuyi/Questrace/backend/internal/pkg/searchtext"
 	"strings"
 	"time"
 
@@ -81,6 +82,10 @@ func (r *SQLiteQuestionRepository) Update(question model.WrongQuestion) (model.W
 		}
 	}()
 
+	_, err = tx.Exec(`UPDATE review_plan SET streak=0,due_at=?,last_reviewed_at=? WHERE question_id=? AND EXISTS (SELECT 1 FROM wrong_question WHERE id=? AND mastery_status<>?)`, time.Now().Add(time.Duration(map[bool]int{true: 7, false: 1}[question.MasteryStatus == "mastered"])*24*time.Hour).Unix(), time.Now().Unix(), question.ID, question.ID, question.MasteryStatus)
+	if err != nil {
+		return model.WrongQuestion{}, err
+	}
 	_, err = tx.Exec(
 		`UPDATE wrong_question
 		SET subject = ?,
@@ -412,9 +417,12 @@ func buildQuestionFilterSQL(filter QuestionFilter) (string, []any) {
 		args = append(args, "%"+strings.TrimSpace(filter.Chapter)+"%")
 	}
 	if strings.TrimSpace(filter.Keyword) != "" {
-		conditions = append(conditions, "(q.question_core LIKE ? OR q.semantic_summary LIKE ? OR q.wrong_solution LIKE ?)")
-		keyword := "%" + strings.TrimSpace(filter.Keyword) + "%"
-		args = append(args, keyword, keyword, keyword)
+		conditions = append(conditions, `(instr(q.search_text,?)>0 OR EXISTS (SELECT 1 FROM wrong_question_tag wqt JOIN tag t ON t.id=wqt.tag_id WHERE wqt.question_id=q.id AND t.is_active=1 AND instr(t.search_text,?)>0))`)
+		keyword := searchtext.Normalize(filter.Keyword)
+		if keyword == "" {
+			conditions = append(conditions, "0=1")
+		}
+		args = append(args, keyword, keyword)
 	}
 	if strings.TrimSpace(filter.MasteryStatus) != "" {
 		conditions = append(conditions, "q.mastery_status = ?")
@@ -428,7 +436,12 @@ func buildQuestionFilterSQL(filter QuestionFilter) (string, []any) {
 		conditions = append(conditions, "q.source_type = ?")
 		args = append(args, filter.SourceType)
 	}
-	if len(filter.TagNames) > 0 {
+	if len(filter.TagIDs) > 0 {
+		conditions = append(conditions, "EXISTS (SELECT 1 FROM wrong_question_tag wqt JOIN tag t ON t.id=wqt.tag_id WHERE wqt.question_id=q.id AND t.is_active=1 AND t.id IN ("+buildInt64InClause(filter.TagIDs)+"))")
+		for _, id := range filter.TagIDs {
+			args = append(args, id)
+		}
+	} else if len(filter.TagNames) > 0 {
 		conditions = append(conditions, fmt.Sprintf(
 			`EXISTS (
 				SELECT 1

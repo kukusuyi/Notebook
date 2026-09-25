@@ -1,0 +1,6 @@
+export const backgroundLimit=10*1024*1024
+export function validateBackground(file:Blob){if(!['image/jpeg','image/png','image/webp'].includes(file.type)||file.size>backgroundLimit)throw new Error('请选择 10 MB 以内的 JPG、PNG 或 WebP 图片。')}
+const dbName='questrace-appearance'
+async function database():Promise<IDBDatabase>{return new Promise((resolve,reject)=>{const req=indexedDB.open(dbName,1);req.onupgradeneeded=()=>req.result.createObjectStore('images');req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error)})}
+export async function storeBackground(blob:Blob|null){const db=await database();try{await new Promise<void>((resolve,reject)=>{const tx=db.transaction('images','readwrite');if(blob)tx.objectStore('images').put(blob,'background');else tx.objectStore('images').delete('background');tx.oncomplete=()=>resolve();tx.onerror=()=>reject(tx.error);tx.onabort=()=>reject(tx.error)})}finally{db.close()}}
+export async function loadBackground():Promise<Blob|null>{const db=await database();try{return await new Promise((resolve,reject)=>{const req=db.transaction('images').objectStore('images').get('background');req.onsuccess=()=>resolve(req.result||null);req.onerror=()=>reject(req.error)})}finally{db.close()}}

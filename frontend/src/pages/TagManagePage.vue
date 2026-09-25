@@ -31,9 +31,9 @@
         </section>
 
         <section class="paper-card table-card">
-            <div v-if="isMobile" class="mobile-tags"><article v-for="tag in tags" :key="tag.tag_id"><div><strong>{{tag.tag_name}}</strong><p class="meta-text">使用 {{tag.usage_count}} 次 · {{tag.is_active?'启用':'停用'}}</p></div><el-button text type="danger" @click="removeTag(tag.tag_id)">删除</el-button></article><el-empty v-if="!tags.length" description="还没有标签"/></div><el-table v-else :data="tags" v-loading="loading">
+            <div v-if="isMobile" class="mobile-tags"><article v-for="tag in tags" :key="tag.tag_id"><div><RouterLink :to="{path:'/questions',query:{tag_ids:String(tag.tag_id)}}">{{tag.tag_name}}</RouterLink><p class="meta-text">使用 {{tag.usage_count}} 次 · {{tag.is_active?'启用':'停用'}}</p></div><el-button text type="danger" @click="removeTag(tag.tag_id)">删除</el-button></article><el-empty v-if="!tags.length" description="还没有标签"/></div><el-table v-else :data="tags" v-loading="loading">
                 <el-table-column prop="tag_id" label="ID" width="90" />
-                <el-table-column prop="tag_name" label="标签名称" />
+                <el-table-column label="标签名称"><template #default="{row}"><RouterLink :to="{path:'/questions',query:{tag_ids:String(row.tag_id)}}">{{row.tag_name}}</RouterLink></template></el-table-column>
                 <el-table-column prop="tag_type" label="标签类型" width="160" />
                 <el-table-column
                     prop="usage_count"
@@ -88,6 +88,7 @@
 </template>
 
 <script setup lang="ts">
+import {RouterLink} from 'vue-router'
 import {useViewport} from "@/composables/useViewport";
 const isMobile=useViewport();
 import { ElMessage, ElMessageBox } from "element-plus";

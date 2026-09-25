@@ -1,22 +1,18 @@
 import 'dart:io';
 
 import 'package:dio/dio.dart';
+import 'package:dio/io.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../config/app_environment.dart';
-import '../storage/app_settings_controller.dart';
+import '../config/effective_api_base_url.dart';
+import 'read_retry_interceptor.dart';
 import '../storage/auth_session_repository.dart';
 import 'api_exception.dart';
 
 final apiClientProvider = Provider<Dio>((ref) {
-  final environment = ref.watch(appEnvironmentProvider);
-  final settings = ref.watch(appSettingsControllerProvider);
+  final baseUrl = ref.watch(effectiveApiBaseUrlProvider);
   final sessionRepository = ref.watch(authSessionRepositoryProvider);
-
-  final baseUrl = settings.apiBaseUrlOverride.isNotEmpty
-      ? settings.apiBaseUrlOverride
-      : environment.defaultApiBaseUrl;
 
   final dio = Dio(
     BaseOptions(
@@ -24,11 +20,16 @@ final apiClientProvider = Provider<Dio>((ref) {
       connectTimeout: const Duration(seconds: 15),
       receiveTimeout: const Duration(seconds: 30),
       sendTimeout: const Duration(seconds: 30),
-      headers: const {
-        HttpHeaders.acceptHeader: 'application/json',
-      },
+      headers: const {HttpHeaders.acceptHeader: 'application/json'},
     ),
   );
+
+  // Release idle sockets promptly when the phone or PC changes network state.
+  dio.httpClientAdapter = IOHttpClientAdapter(
+    createHttpClient: () =>
+        HttpClient()..idleTimeout = const Duration(seconds: 5),
+  );
+  dio.interceptors.add(ReadRetryInterceptor(dio));
 
   dio.interceptors.add(
     InterceptorsWrapper(
@@ -69,12 +70,7 @@ final apiClientProvider = Provider<Dio>((ref) {
   );
 
   if (kDebugMode) {
-    dio.interceptors.add(
-      LogInterceptor(
-        requestBody: true,
-        responseBody: true,
-      ),
-    );
+    dio.interceptors.add(LogInterceptor(requestBody: true, responseBody: true));
   }
 
   ref.onDispose(dio.close);

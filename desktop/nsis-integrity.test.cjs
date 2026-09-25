@@ -1,7 +1,7 @@
 const {test} = require('node:test');
 const assert = require('node:assert/strict');
 const {crc32} = require('node:zlib');
-const {verify, finalizeUninstaller} = require('./build/nsis-integrity.cjs');
+const {verify, findUninstallers, finalizeUninstaller} = require('./build/nsis-integrity.cjs');
 function fixture(flags = 1) {
   const buffer = Buffer.alloc(1088);
   buffer.write('MZ');
@@ -35,4 +35,38 @@ test('finalization is idempotent and later corruption remains detectable', () =>
   finalizeUninstaller(buffer); assert.deepEqual(buffer, original);
   buffer[1052] ^= 1;
   assert.throws(() => verify(buffer), /CRC mismatch/);
+});
+test('finds NSIS uninstallers by header instead of file name', () => {
+  // Windows and macOS hosts name the entry differently; only the header flags
+  // can tell which unpacked executable is the uninstaller.
+  assert.deepEqual(
+    findUninstallers([
+      {name: 'Uninstall Questrace.exe', buffer: fixture(1)},
+      {name: 'elevate.exe', buffer: Buffer.from('MZnot an NSIS executable')},
+    ]),
+    ['Uninstall Questrace.exe'],
+  );
+  assert.deepEqual(
+    findUninstallers([{name: '$PLUGINSDIR\\Uninstall.exe', buffer: fixture(1)}]),
+    ['$PLUGINSDIR\\Uninstall.exe'],
+  );
+  // A plain NSIS installer is not an uninstaller, and hosts that only unpack
+  // application executables legitimately report nothing.
+  assert.deepEqual(findUninstallers([{name: 'Questrace.exe', buffer: fixture(0)}]), []);
+  assert.deepEqual(findUninstallers([]), []);
+  assert.deepEqual(
+    findUninstallers([
+      {name: 'a.exe', buffer: fixture(1)},
+      {name: 'b.exe', buffer: fixture(1)},
+    ]),
+    ['a.exe', 'b.exe'],
+  );
+  // A candidate that claims to be an uninstaller but no longer matches its
+  // stored CRC must fail the build instead of being skipped as an unknown file.
+  const corrupted = fixture(1);
+  corrupted[700] = 42;
+  assert.throws(
+    () => findUninstallers([{name: 'Uninstall.exe', buffer: corrupted}]),
+    /CRC mismatch/,
+  );
 });

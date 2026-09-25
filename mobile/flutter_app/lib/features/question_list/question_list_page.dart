@@ -1,3 +1,5 @@
+import '../../shared/widgets/tag_filter.dart';
+import '../../shared/models/common_models.dart';
 import 'package:questrace_flutter/core/network/api_exception.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -53,6 +55,95 @@ class _QuestionListPageState extends ConsumerState<QuestionListPage> {
     }
   }
 
+  Future<void> _showFilters() async {
+    final keyword = TextEditingController(text: _filter.keyword),
+        subject = TextEditingController(text: _filter.subject);
+    var tags = List<int>.from(_filter.tagIds);
+    var mastery = _filter.masteryStatus;
+    var source = _filter.sourceType;
+    final query = await showModalBottomSheet<Map<String, String>>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      builder: (sheet) => StatefulBuilder(
+        builder: (context, setLocal) => Padding(
+          padding: EdgeInsets.fromLTRB(
+            20,
+            20,
+            20,
+            MediaQuery.viewInsetsOf(context).bottom + 20,
+          ),
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: keyword,
+                  decoration: const InputDecoration(
+                    labelText: '关键词',
+                    hintText: '搜索题目与标签',
+                  ),
+                ),
+                TextField(
+                  controller: subject,
+                  decoration: const InputDecoration(labelText: '学科'),
+                ),
+                DropdownButtonFormField<MasteryStatus>(
+                  initialValue: mastery,
+                  decoration: const InputDecoration(labelText: '掌握状态'),
+                  items: [
+                    const DropdownMenuItem(value: null, child: Text('全部')),
+                    for (final m in MasteryStatus.values)
+                      DropdownMenuItem(value: m, child: Text(m.label)),
+                  ],
+                  onChanged: (v) => setLocal(() => mastery = v),
+                ),
+                DropdownButtonFormField<SourceType>(
+                  initialValue: source,
+                  decoration: const InputDecoration(labelText: '来源'),
+                  items: [
+                    const DropdownMenuItem(value: null, child: Text('全部')),
+                    for (final m in SourceType.values)
+                      DropdownMenuItem(value: m, child: Text(m.label)),
+                  ],
+                  onChanged: (v) => setLocal(() => source = v),
+                ),
+                TagFilter(
+                  selected: tags,
+                  onChanged: (v) => setLocal(() => tags = v),
+                ),
+                const SizedBox(height: 16),
+                FilledButton(
+                  onPressed: () => Navigator.pop(sheet, {
+                    'keyword': keyword.text.trim(),
+                    'subject': subject.text.trim(),
+                    'tag_ids': tags.join(','),
+                    'mastery_status': mastery?.value ?? '',
+                    'source_type': source?.value ?? '',
+                  }),
+                  child: const Text('应用筛选'),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+    // Keep controllers alive until the route transition has released its fields.
+    Future.delayed(const Duration(milliseconds: 400), () {
+      keyword.dispose();
+      subject.dispose();
+    });
+    if (query != null && mounted) {
+      context.go(
+        Uri(
+          path: '/questions',
+          queryParameters: query..removeWhere((k, v) => v.isEmpty),
+        ).toString(),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final questions = ref.watch(questionListProvider(_filter));
@@ -61,6 +152,16 @@ class _QuestionListPageState extends ConsumerState<QuestionListPage> {
       appBar: AppBar(
         title: const Text('错题列表'),
         actions: [
+          IconButton(
+            tooltip: '复习与组卷',
+            onPressed: () => context.push('/reviews'),
+            icon: const Icon(Icons.school_outlined),
+          ),
+          IconButton(
+            tooltip: '搜索与筛选',
+            onPressed: _showFilters,
+            icon: const Icon(Icons.search),
+          ),
           if (_filter.hasAnyFilter || widget.activeTagName.isNotEmpty)
             TextButton(
               onPressed: () => context.go('/questions'),
@@ -129,8 +230,9 @@ class _QuestionListPageState extends ConsumerState<QuestionListPage> {
                           _selectedQuestionIds.clear();
                         });
                       },
-                onExport:
-                    _selectedQuestionIds.isEmpty ? null : _showExportOptions,
+                onExport: _selectedQuestionIds.isEmpty
+                    ? null
+                    : _showExportOptions,
               ),
               const SizedBox(height: 16),
               Text(
@@ -138,6 +240,25 @@ class _QuestionListPageState extends ConsumerState<QuestionListPage> {
                 style: Theme.of(context).textTheme.bodyMedium,
               ),
               const SizedBox(height: 12),
+              if (data.total > _filter.pageSize)
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    TextButton(
+                      onPressed: _filter.page > 1
+                          ? () => _goPage(_filter.page - 1)
+                          : null,
+                      child: const Text('上一页'),
+                    ),
+                    Text('第 ${_filter.page} 页'),
+                    TextButton(
+                      onPressed: _filter.page * _filter.pageSize < data.total
+                          ? () => _goPage(_filter.page + 1)
+                          : null,
+                      child: const Text('下一页'),
+                    ),
+                  ],
+                ),
             ];
 
             return CustomScrollView(
@@ -177,6 +298,14 @@ class _QuestionListPageState extends ConsumerState<QuestionListPage> {
     );
   }
 
+  void _goPage(int page) {
+    final query = Map<String, String>.from(
+      GoRouterState.of(context).uri.queryParameters,
+    );
+    query['page'] = '$page';
+    context.go(Uri(path: '/questions', queryParameters: query).toString());
+  }
+
   bool _isQuestionSelected(int questionId) {
     return _selectedQuestionIds.contains(questionId);
   }
@@ -194,9 +323,9 @@ class _QuestionListPageState extends ConsumerState<QuestionListPage> {
 
   Future<void> _showExportOptions() async {
     if (_selectedQuestionIds.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('请先选择要导出的错题')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('请先选择要导出的错题')));
       return;
     }
 
@@ -205,17 +334,17 @@ class _QuestionListPageState extends ConsumerState<QuestionListPage> {
 
   Future<void> _exportSelectedQuestions(_QuestionExportMode exportMode) async {
     if (_selectedQuestionIds.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('请先选择要导出的错题')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('请先选择要导出的错题')));
       return;
     }
 
     final token = ref.read(authSessionRepositoryProvider).readToken();
     if (token == null || token.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('当前登录态无效，请重新登录后再试')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('当前登录态无效，请重新登录后再试')));
       return;
     }
 
@@ -223,18 +352,17 @@ class _QuestionListPageState extends ConsumerState<QuestionListPage> {
     final baseUri = Uri.parse(apiBaseUrl);
     final exportUri = baseUri
         .resolve('/api/v1/wrong-questions/export/print')
-        .replace(queryParameters: <String, String>{
-      'question_ids': _selectedQuestionIds.join(','),
-      'export_mode': exportMode.value,
-      'access_token': token,
-    });
+        .replace(
+          queryParameters: <String, String>{
+            'question_ids': _selectedQuestionIds.join(','),
+            'export_mode': exportMode.value,
+            'access_token': token,
+          },
+        );
 
     bool launched = false;
     try {
-      launched = await launchUrl(
-        exportUri,
-        mode: LaunchMode.platformDefault,
-      );
+      launched = await launchUrl(exportUri, mode: LaunchMode.platformDefault);
     } catch (error) {
       if (!mounted) {
         return;
@@ -251,9 +379,9 @@ class _QuestionListPageState extends ConsumerState<QuestionListPage> {
     }
 
     if (!launched) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('无法打开系统浏览器，请检查设备设置')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('无法打开系统浏览器，请检查设备设置')));
       return;
     }
 
@@ -326,10 +454,7 @@ class _QuestionListCard extends StatelessWidget {
 }
 
 class _FilterSummaryCard extends StatelessWidget {
-  const _FilterSummaryCard({
-    required this.filter,
-    required this.activeTagName,
-  });
+  const _FilterSummaryCard({required this.filter, required this.activeTagName});
 
   final ListQuestionFilter filter;
   final String activeTagName;
@@ -337,6 +462,8 @@ class _FilterSummaryCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final chips = <String>[
+      if (filter.keyword?.isNotEmpty == true) '关键词：${filter.keyword}',
+      if (filter.subject?.isNotEmpty == true) '学科：${filter.subject}',
       if (filter.masteryStatus != null) '掌握状态：${filter.masteryStatus!.label}',
       if (filter.sourceType != null) '来源：${filter.sourceType!.label}',
       if (activeTagName.isNotEmpty) '标签：$activeTagName',
@@ -352,9 +479,9 @@ class _FilterSummaryCard extends StatelessWidget {
           children: [
             Text(
               '当前筛选',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w700,
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
             ),
             const SizedBox(height: 12),
             Wrap(
@@ -410,15 +537,12 @@ class _SelectionSummaryCard extends StatelessWidget {
               width: 220,
               child: Text(
                 selectedCount == 0 ? '还没有选择要导出的错题' : '已选 $selectedCount 道错题',
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w700,
-                    ),
+                style: Theme.of(
+                  context,
+                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
               ),
             ),
-            TextButton(
-              onPressed: onClear,
-              child: const Text('清空'),
-            ),
+            TextButton(onPressed: onClear, child: const Text('清空')),
             const SizedBox(width: 8),
             FilledButton.icon(
               onPressed: onExport,

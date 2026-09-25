@@ -97,7 +97,7 @@ run(
   [
     'build',
     '-trimpath',
-    '-ldflags=-s -w',
+    `-ldflags=-s -w -X github.com/kukusuyi/Questrace/backend/internal/pkg/buildinfo.Version=${version}`,
     '-o',
     resolve(output, executableName),
     './cmd/api',

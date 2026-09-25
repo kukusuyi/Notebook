@@ -9,6 +9,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	v1 "github.com/kukusuyi/Questrace/backend/internal/http/handler/v1"
+	"github.com/kukusuyi/Questrace/backend/internal/pkg/buildinfo"
 	"golang.org/x/crypto/bcrypt"
 	"io"
 	"io/fs"
@@ -111,6 +113,9 @@ func (s *LocalRuntime) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		r.Body = http.MaxBytesReader(w, r.Body, 24*1024*1024)
 	}
 	switch r.URL.Path {
+	case "/api/v1/updates/latest", "/api/v1/mobile/latest-version":
+		s.updates(w, r)
+		return
 	case "/api/v1/auth/logout":
 		if r.Method != "POST" {
 			fail(w, 405, "Method not allowed")
@@ -126,16 +131,20 @@ func (s *LocalRuntime) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		cfg := s.Config()
-		dto.WriteSuccess(w, map[string]any{"version": "2.0.0", "setup_required": s.NeedsSetup(), "registration_enabled": cfg.Auth.EnableRegistration, "ocr_enabled": cfg.ImageOcr.APIKey != "", "ai_enabled": len(cfg.Models) > 0, "embedding_enabled": cfg.EmbeddingModel.APIKey != "", "urls": s.addresses()})
+		dto.WriteSuccess(w, map[string]any{"version": buildinfo.Version, "setup_required": s.NeedsSetup(), "registration_enabled": cfg.Auth.EnableRegistration, "ocr_enabled": cfg.ImageOcr.APIKey != "", "ai_enabled": len(cfg.Models) > 0, "embedding_enabled": cfg.EmbeddingModel.APIKey != "", "urls": s.addresses()})
 		return
 	case "/api/v1/system/setup":
 		s.setup(w, r)
 		return
 	}
-	if strings.HasPrefix(r.URL.Path, "/api/v1/admin/") || strings.HasPrefix(r.URL.Path, "/api/v1/vector-jobs") || strings.HasPrefix(r.URL.Path, "/api/v1/files/content/") {
+	if strings.HasPrefix(r.URL.Path, "/api/v1/reviews/") || strings.HasPrefix(r.URL.Path, "/api/v1/admin/") || strings.HasPrefix(r.URL.Path, "/api/v1/vector-jobs") || strings.HasPrefix(r.URL.Path, "/api/v1/files/content/") {
 		u, err := s.user(r)
 		if err != nil {
 			fail(w, 401, "请先登录")
+			return
+		}
+		if strings.HasPrefix(r.URL.Path, "/api/v1/reviews/") {
+			(v1.ReviewHandler{Service: service.ReviewService{DB: s.DB}}).Serve(w, r, u.ID)
 			return
 		}
 		if strings.HasPrefix(r.URL.Path, "/api/v1/admin/") {

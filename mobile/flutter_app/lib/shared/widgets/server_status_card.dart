@@ -1,75 +1,109 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
 import '../../core/network/api_client.dart';
+import '../../core/network/server_capabilities.dart';
+import '../../features/auth/auth_controller.dart';
 
-final _serverStatusProvider =
-    FutureProvider.autoDispose<Map<String, dynamic>>((ref) async {
-  final client = ref.watch(apiClientProvider);
-  final status = await client.get('/api/v1/system/status');
-  final jobs = await client.get('/api/v1/vector-jobs');
-  return {
-    ...Map<String, dynamic>.from(status.data as Map),
-    'jobs': Map<String, dynamic>.from(jobs.data as Map),
-  };
+final vectorJobsProvider = FutureProvider.autoDispose<Map<String, dynamic>>((
+  ref,
+) async {
+  ref.watch(authControllerProvider.select((s) => s.session?.token));
+  final response = await ref
+      .watch(apiClientProvider)
+      .get('/api/v1/vector-jobs');
+  if (response.data is! Map) throw const FormatException('索引状态格式不兼容');
+  return Map<String, dynamic>.from(response.data as Map);
 });
+String statusError(Object error) {
+  if (error is DioException) {
+    switch (error.response?.statusCode) {
+      case 401:
+        return '登录已失效，请重新登录';
+      case 403:
+        return '当前账户没有读取权限';
+      case 404:
+        return '电脑版本不支持此接口，请更新电脑程序';
+    }
+    return '连接失败，请确认电脑在线且处于同一局域网';
+  }
+  return '服务响应格式不兼容，请更新电脑程序';
+}
 
 class ServerStatusCard extends ConsumerWidget {
   const ServerStatusCard({super.key});
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final state = ref.watch(_serverStatusProvider);
+    final status = ref.watch(serverCapabilitiesProvider),
+        jobs = ref.watch(vectorJobsProvider);
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(20),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Row(children: [
-            const Expanded(child: Text('电脑服务与相似题索引')),
-            IconButton(
-              tooltip: '刷新状态',
-              onPressed: () => ref.invalidate(_serverStatusProvider),
-              icon: const Icon(Icons.refresh),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                const Expanded(child: Text('电脑服务与相似题索引')),
+                IconButton(
+                  tooltip: '刷新状态',
+                  onPressed: () {
+                    ref.invalidate(serverCapabilitiesProvider);
+                    ref.invalidate(vectorJobsProvider);
+                  },
+                  icon: const Icon(Icons.refresh),
+                ),
+              ],
             ),
-          ]),
-          state.when(
-            loading: () => const LinearProgressIndicator(),
-            error: (_, __) => const Text('无法读取服务状态。请确认电脑程序正在运行、网络可达并已登录。'),
-            data: (data) {
-              final jobs = data['jobs'] as Map<String, dynamic>;
-              return Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                        'OCR：${data['ocr_enabled'] == true ? '可用' : '未配置'} · AI：${data['ai_enabled'] == true ? '可用' : '未配置'}'),
-                    const SizedBox(height: 8),
-                    Text(data['embedding_enabled'] == true
-                        ? '索引完成 ${jobs['done'] ?? 0} · 等待 ${jobs['pending'] ?? 0} · 失败 ${jobs['failed'] ?? 0}'
-                        : '相似题服务未配置，请管理员在电脑网页的设置页配置 Embedding。'),
-                    const SizedBox(height: 8),
-                    const Text('题目保存后在电脑后台生成索引；未配置模型也可以手动录题和查看图片。'),
-                    if ((jobs['failed'] as num? ?? 0) > 0)
-                      TextButton(
-                        onPressed: () async {
-                          try {
-                            await ref
-                                .read(apiClientProvider)
-                                .post('/api/v1/vector-jobs/retry');
-                            ref.invalidate(_serverStatusProvider);
-                          } catch (_) {
-                            if (context.mounted) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                      content: Text('重试失败，请检查电脑连接')));
-                            }
+            status.when(
+              loading: () => const LinearProgressIndicator(),
+              error: (e, _) => Text(statusError(e)),
+              data: (data) => Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'OCR：${data['ocr_enabled'] == true ? '可用' : '未配置'} · AI：${data['ai_enabled'] == true ? '可用' : '未配置'}',
+                  ),
+                  if (data['embedding_enabled'] != true)
+                    const Text('相似题服务未配置，请在电脑设置中配置 Embedding。'),
+                ],
+              ),
+            ),
+            const SizedBox(height: 12),
+            jobs.when(
+              loading: () => const Text('正在读取索引任务…'),
+              error: (e, _) => Text('索引加载失败：${statusError(e)}'),
+              data: (data) => Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '索引完成 ${data['done'] ?? 0} · 等待 ${data['pending'] ?? 0} · 失败 ${data['failed'] ?? 0}',
+                  ),
+                  if ((data['failed'] as num? ?? 0) > 0)
+                    TextButton(
+                      onPressed: () async {
+                        try {
+                          await ref
+                              .read(apiClientProvider)
+                              .post('/api/v1/vector-jobs/retry');
+                          ref.invalidate(vectorJobsProvider);
+                        } catch (e) {
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text(statusError(e))),
+                            );
                           }
-                        },
-                        child: const Text('重试失败任务'),
-                      ),
-                  ]);
-            },
-          ),
-        ]),
+                        }
+                      },
+                      child: const Text('重试失败任务'),
+                    ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 8),
+            const Text('题目保存在电脑上；未配置模型也能手动录题和复习。'),
+          ],
+        ),
       ),
     );
   }

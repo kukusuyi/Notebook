@@ -33,3 +33,18 @@
 发行版本 `2.0.0` 不代表 API 路径必须改为 `/api/v2`。现有题目接口契约尽量保留，但 2.0 客户端应连接 2.0 后端。
 
 移动端也可使用 `POST /api/v1/vector-jobs/retry`，与 `POST /api/v1/vector-jobs` 相同：重试当前用户尚未完成的任务。
+
+## 更新与复习
+
+- `GET /api/v1/updates/latest?platform=android&arch=arm64`（公开）：从 GitHub 正式 Release 查询，缓存一小时；返回 `version,current_version,description,release_url,download_url,platform,arch`。省略平台则匹配电脑服务的平台／架构，无对应包时下载地址为空。网络失败返回 502。旧 `mobile/latest-version` 保留字段映射。
+- `GET /api/v1/reviews/summary`：当前用户到期数量 `due` 和最近 100 份练习 `sessions`（`id,created_at,total,done`）。
+- `POST /api/v1/reviews/sessions`：`{subject?,tag_ids?:number[],mastery_status?,count?:number}`，默认十题，范围 1–100；优先到期，标签采用任一匹配。返回 `id,requested_count,created_at,items`。题目不足按实际数量生成；无题返回 400。
+- `GET /api/v1/reviews/sessions/{id}`：返回练习及题目、标准答案、自评结果和删除标记，供跨端续练。
+- `POST /api/v1/reviews/sessions/{id}/results`：`{question_id,submission_id,result,note?}`；`result` 为 `forgot|partial|correct`。返回 `mastery_status,due_at`。同一用户的 `submission_id` 幂等，已答题用其他标识再次提交返回 409；非本人练习返回 404，已删除题目返回 410。
+- `GET /api/v1/reviews/history`：最近 100 次复习，包含题目、自评、掌握状态、笔记、复习时间及下次时间。
+
+计划时间与练习创建时间采用 Unix 秒；复习历史的 `reviewed_at` 为日期时间字符串。首次或到期答对依次安排 1、3、7、14、30 天，连续三次有效答对后掌握；提前答对不推进。不会／模糊清零连续次数并安排次日复习。数据仅当前用户可访问。
+
+错题列表继续使用 `tag_ids` 逗号分隔参数，现按标签 ID 精确匹配，不再按名称混淆类型。关键词匹配题干、摘要、错误解答和有效标签，忽略大小写、空白与 LaTeX 排版符号。
+
+数据库版本升级至 2：升级前自动备份，增加复习计划／练习表与搜索归一化字段，保留旧题目与掌握状态。

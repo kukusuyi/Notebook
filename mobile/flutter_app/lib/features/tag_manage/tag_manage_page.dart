@@ -1,3 +1,4 @@
+import 'package:go_router/go_router.dart';
 import 'package:questrace_flutter/core/network/api_exception.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -41,9 +42,7 @@ class _TagManagePageState extends ConsumerState<TagManagePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('标签管理'),
-      ),
+      appBar: AppBar(title: const Text('标签管理')),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _showCreateSheet,
         icon: const Icon(Icons.add),
@@ -64,8 +63,8 @@ class _TagManagePageState extends ConsumerState<TagManagePage> {
                     Text(
                       '筛选标签',
                       style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                            fontWeight: FontWeight.w700,
-                          ),
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
                     const SizedBox(height: 16),
                     DropdownButtonFormField<TagType?>(
@@ -132,10 +131,8 @@ class _TagManagePageState extends ConsumerState<TagManagePage> {
                       children: [
                         Text(
                           '标签列表',
-                          style:
-                              Theme.of(context).textTheme.titleLarge?.copyWith(
-                                    fontWeight: FontWeight.w700,
-                                  ),
+                          style: Theme.of(context).textTheme.titleLarge
+                              ?.copyWith(fontWeight: FontWeight.w700),
                         ),
                         const Spacer(),
                         Text(
@@ -155,9 +152,7 @@ class _TagManagePageState extends ConsumerState<TagManagePage> {
                     else if (_tags.isEmpty)
                       const Padding(
                         padding: EdgeInsets.symmetric(vertical: 24),
-                        child: Center(
-                          child: Text('暂无符合条件的标签'),
-                        ),
+                        child: Center(child: Text('暂无符合条件的标签')),
                       )
                     else
                       ..._tags.map(
@@ -185,10 +180,9 @@ class _TagManagePageState extends ConsumerState<TagManagePage> {
     });
 
     try {
-      final response = await ref.read(tagRepositoryProvider).listTags(
-            tagType: _selectedType,
-            keyword: _keywordController.text,
-          );
+      final response = await ref
+          .read(tagRepositoryProvider)
+          .listTags(tagType: _selectedType, keyword: _keywordController.text);
 
       if (!mounted) {
         return;
@@ -256,8 +250,8 @@ class _TagManagePageState extends ConsumerState<TagManagePage> {
                   Text(
                     '新增标签',
                     style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          fontWeight: FontWeight.w700,
-                        ),
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
                   const SizedBox(height: 16),
                   TextFormField(
@@ -293,13 +287,13 @@ class _TagManagePageState extends ConsumerState<TagManagePage> {
                       onPressed: _creating
                           ? null
                           : () => _submitCreate(
-                                onFinish: () => Navigator.of(ctx).pop(),
-                                onStateChanged: (value) {
-                                  setSheetState(() {
-                                    _creating = value;
-                                  });
-                                },
-                              ),
+                              onFinish: () => Navigator.of(ctx).pop(),
+                              onStateChanged: (value) {
+                                setSheetState(() {
+                                  _creating = value;
+                                });
+                              },
+                            ),
                       child: Text(_creating ? '创建中...' : '创建标签'),
                     ),
                   ),
@@ -325,10 +319,9 @@ class _TagManagePageState extends ConsumerState<TagManagePage> {
     onStateChanged(true);
     var success = false;
     try {
-      await ref.read(tagRepositoryProvider).createTag(
-            tagName: _createNameController.text,
-            tagType: _createType,
-          );
+      await ref
+          .read(tagRepositoryProvider)
+          .createTag(tagName: _createNameController.text, tagType: _createType);
       success = true;
       _creating = false;
       onFinish();
@@ -347,17 +340,14 @@ class _TagManagePageState extends ConsumerState<TagManagePage> {
   }
 
   void _showMessage(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 }
 
 class _TagTile extends StatelessWidget {
-  const _TagTile({
-    required this.item,
-    required this.onDelete,
-  });
+  const _TagTile({required this.item, required this.onDelete});
 
   final TagItem item;
   final VoidCallback onDelete;
@@ -386,11 +376,17 @@ class _TagTile extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    item.tagName,
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w700,
-                        ),
+                  TextButton(
+                    onPressed: () => context.push(
+                      Uri(
+                        path: '/questions',
+                        queryParameters: {
+                          'tag_ids': '${item.tagId}',
+                          'tag_name': item.tagName,
+                        },
+                      ).toString(),
+                    ),
+                    child: Text(item.tagName),
                   ),
                   const SizedBox(height: 8),
                   Wrap(
@@ -404,10 +400,12 @@ class _TagTile extends StatelessWidget {
                       ),
                       _MiniPill(
                         label: '使用 ${item.usageCount} 次',
-                        backgroundColor:
-                            Theme.of(context).colorScheme.surfaceContainerLow,
-                        textColor:
-                            Theme.of(context).colorScheme.onSurfaceVariant,
+                        backgroundColor: Theme.of(
+                          context,
+                        ).colorScheme.surfaceContainerLow,
+                        textColor: Theme.of(
+                          context,
+                        ).colorScheme.onSurfaceVariant,
                       ),
                       _MiniPill(
                         label: item.isActive ? '启用中' : '未启用',
@@ -458,9 +456,9 @@ class _MiniPill extends StatelessWidget {
         child: Text(
           label,
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: textColor,
-                fontWeight: FontWeight.w700,
-              ),
+            color: textColor,
+            fontWeight: FontWeight.w700,
+          ),
         ),
       ),
     );

@@ -2,21 +2,35 @@ package sqlite
 
 import (
 	"database/sql"
+	"database/sql/driver"
 	_ "embed"
 	"fmt"
+	"github.com/kukusuyi/Questrace/backend/internal/pkg/searchtext"
 	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
 	"time"
 
-	_ "modernc.org/sqlite"
+	sqliteDriver "modernc.org/sqlite"
 )
 
 //go:embed schema.sql
 var schema string
 
-const Version = 1
+//go:embed migration_v2.sql
+var migrationV2 string
+
+const Version = 2
+
+func init() {
+	sqliteDriver.MustRegisterDeterministicScalarFunction("search_normalize", 1, func(_ *sqliteDriver.FunctionContext, args []driver.Value) (driver.Value, error) {
+		if args[0] == nil {
+			return "", nil
+		}
+		return searchtext.Normalize(fmt.Sprint(args[0])), nil
+	})
+}
 
 const (
 	// DatabaseName is the database file of a fresh installation.
@@ -89,8 +103,16 @@ func migrate(db *sql.DB, dir string) error {
 		return err
 	}
 	defer tx.Rollback()
-	if _, err = tx.Exec(schema); err != nil {
-		return err
+	if version == 0 {
+		if _, err = tx.Exec(schema); err != nil {
+			return err
+		}
+		version = 1
+	}
+	if version < 2 {
+		if _, err = tx.Exec(migrationV2); err != nil {
+			return err
+		}
 	}
 	if _, err = tx.Exec(fmt.Sprintf("PRAGMA user_version=%d", Version)); err != nil {
 		return err

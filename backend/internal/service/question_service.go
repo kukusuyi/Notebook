@@ -125,6 +125,7 @@ func (s *QuestionService) List(ctx context.Context, filter dto.ListQuestionFilte
 		Chapter:         filter.Chapter,
 		Keyword:         filter.Keyword,
 		TagNames:        tagNames,
+		TagIDs:          filter.TagIDs,
 		MasteryStatus:   filter.MasteryStatus,
 		DifficultyLevel: filter.DifficultyLevel,
 		SourceType:      filter.SourceType,

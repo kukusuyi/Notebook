@@ -2,15 +2,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'key_value_store.dart';
 import 'package:dio/dio.dart';
+import '../network/read_retry_interceptor.dart';
 import '../../features/auth/auth_controller.dart';
 import '../../features/question_create/question_draft_controller.dart';
 import 'storage_keys.dart';
 
 class AppSettings {
-  const AppSettings({
-    this.apiBaseUrlOverride = '',
-    this.themeColorSeed,
-  });
+  const AppSettings({this.apiBaseUrlOverride = '', this.themeColorSeed});
 
   final String apiBaseUrlOverride;
   final int? themeColorSeed;
@@ -22,16 +20,17 @@ class AppSettings {
   }) {
     return AppSettings(
       apiBaseUrlOverride: apiBaseUrlOverride ?? this.apiBaseUrlOverride,
-      themeColorSeed:
-          clearThemeColorSeed ? null : (themeColorSeed ?? this.themeColorSeed),
+      themeColorSeed: clearThemeColorSeed
+          ? null
+          : (themeColorSeed ?? this.themeColorSeed),
     );
   }
 }
 
 final appSettingsControllerProvider =
     NotifierProvider<AppSettingsController, AppSettings>(
-  AppSettingsController.new,
-);
+      AppSettingsController.new,
+    );
 
 class AppSettingsController extends Notifier<AppSettings> {
   @override
@@ -56,14 +55,21 @@ class AppSettingsController extends Notifier<AppSettings> {
         (uri.path.isNotEmpty && uri.path != '/')) {
       throw const FormatException('请输入完整服务地址，例如 http://192.168.1.10:8080');
     }
-    final probe = Dio(BaseOptions(
-        connectTimeout: const Duration(seconds: 5),
-        receiveTimeout: const Duration(seconds: 5)));
+    final probe = Dio(
+      BaseOptions(
+        connectTimeout: const Duration(seconds: 10),
+        receiveTimeout: const Duration(seconds: 10),
+      ),
+    );
+    probe.interceptors.add(ReadRetryInterceptor(probe));
     try {
       final response = await probe.get('$normalized/api/v1/system/status');
       if (response.data is! Map ||
-          response.data['data']?['version'] != '2.0.0') {
-        throw const FormatException('该地址不是 Questrace 2.0 服务');
+          response.data['data'] is! Map ||
+          response.data['data']['version'] is! String ||
+          response.data['data']['ocr_enabled'] is! bool ||
+          response.data['data']['embedding_enabled'] is! bool) {
+        throw const FormatException('该地址不是兼容的题迹服务');
       }
     } finally {
       probe.close();

@@ -31,18 +31,15 @@ class _AuthPageState extends ConsumerState<AuthPage> {
   @override
   void initState() {
     super.initState();
-    ref.listenManual<AuthState>(
-      authControllerProvider,
-      (previous, next) {
-        final message = next.errorMessage?.trim() ?? '';
-        if (!mounted || message.isEmpty || message == _lastShownErrorMessage) {
-          return;
-        }
+    ref.listenManual<AuthState>(authControllerProvider, (previous, next) {
+      final message = next.errorMessage?.trim() ?? '';
+      if (!mounted || message.isEmpty || message == _lastShownErrorMessage) {
+        return;
+      }
 
-        _lastShownErrorMessage = message;
-        _showMessage(message);
-      },
-    );
+      _lastShownErrorMessage = message;
+      _showMessage(message);
+    });
   }
 
   @override
@@ -58,136 +55,160 @@ class _AuthPageState extends ConsumerState<AuthPage> {
   Widget build(BuildContext context) {
     final authState = ref.watch(authControllerProvider);
     final environment = ref.watch(appEnvironmentProvider);
-    final apiBaseUrl =
-        ref.watch(appSettingsControllerProvider).apiBaseUrlOverride;
+    final apiBaseUrl = ref
+        .watch(appSettingsControllerProvider)
+        .apiBaseUrlOverride;
     final effective = ref.watch(effectiveApiBaseUrlProvider);
     final connecting = effective.isEmpty || _apiUrlExpanded;
     _hydrateApiUrlIfNeeded(environment.defaultApiBaseUrl, apiBaseUrl);
-    final registration = effective.isNotEmpty &&
+    final registration =
+        effective.isNotEmpty &&
         ref
                 .watch(serverCapabilitiesProvider)
                 .valueOrNull?['registration_enabled'] ==
             true;
     return Scaffold(
-        body: SafeArea(
-            child: Center(
-                child: SingleChildScrollView(
-      keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-      padding: const EdgeInsets.all(24),
-      child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 460),
-          child: Card(
-              child: Padding(
+      body: SafeArea(
+        child: Center(
+          child: SingleChildScrollView(
+            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+            padding: const EdgeInsets.all(24),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 460),
+              child: Card(
+                child: Padding(
                   padding: const EdgeInsets.all(24),
                   child: AutofillGroup(
-                      child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                        Icon(Icons.auto_stories_outlined,
-                            size: 36,
-                            color: Theme.of(context).colorScheme.primary),
-                        const SizedBox(height: 20),
-                        Text('题迹 Questrace',
-                            style: Theme.of(context)
-                                .textTheme
-                                .headlineMedium
-                                ?.copyWith(fontWeight: FontWeight.w700)),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          '题迹 Questrace',
+                          style: Theme.of(context).textTheme.headlineMedium
+                              ?.copyWith(fontWeight: FontWeight.w700),
+                        ),
                         const SizedBox(height: 8),
                         Text(connecting ? '连接你的电脑，开始整理错题。' : '欢迎回来，继续你的学习。'),
                         const SizedBox(height: 28),
                         if (connecting) ...[
                           TextField(
-                              controller: _apiUrlController,
-                              keyboardType: TextInputType.url,
-                              autocorrect: false,
-                              decoration: InputDecoration(
-                                  labelText: '电脑服务地址',
-                                  hintText: 'http://192.168.1.10:8080',
-                                  errorText: _connectionError)),
+                            controller: _apiUrlController,
+                            keyboardType: TextInputType.url,
+                            autocorrect: false,
+                            decoration: InputDecoration(
+                              labelText: '电脑服务地址',
+                              hintText: 'http://192.168.1.10:8080',
+                              errorText: _connectionError,
+                            ),
+                          ),
                           const SizedBox(height: 12),
                           const Text('打开电脑上的题迹，在“电脑连接”中找到局域网地址。手机与电脑需连接同一网络。'),
                           const SizedBox(height: 20),
                           SizedBox(
-                              width: double.infinity,
-                              child: FilledButton(
-                                  onPressed: _connecting
-                                      ? null
-                                      : () => _saveApiUrl(
-                                          environment.defaultApiBaseUrl),
-                                  child:
-                                      Text(_connecting ? '正在验证连接…' : '连接电脑'))),
+                            width: double.infinity,
+                            child: FilledButton(
+                              onPressed: _connecting
+                                  ? null
+                                  : () => _saveApiUrl(
+                                      environment.defaultApiBaseUrl,
+                                    ),
+                              child: Text(_connecting ? '正在验证连接…' : '连接电脑'),
+                            ),
+                          ),
                           if (effective.isNotEmpty)
                             TextButton(
-                                onPressed: () =>
-                                    setState(() => _apiUrlExpanded = false),
-                                child: const Text('返回登录')),
+                              onPressed: () =>
+                                  setState(() => _apiUrlExpanded = false),
+                              child: const Text('返回登录'),
+                            ),
                         ] else ...[
                           ListTile(
-                              contentPadding: EdgeInsets.zero,
-                              leading: const Icon(Icons.computer_outlined),
-                              title: const Text('当前电脑'),
-                              subtitle: Text(effective),
-                              trailing: TextButton(
-                                  onPressed: () =>
-                                      setState(() => _apiUrlExpanded = true),
-                                  child: const Text('更换'))),
+                            contentPadding: EdgeInsets.zero,
+                            leading: const Icon(Icons.computer_outlined),
+                            title: const Text('当前电脑'),
+                            subtitle: Text(effective),
+                            trailing: TextButton(
+                              onPressed: () =>
+                                  setState(() => _apiUrlExpanded = true),
+                              child: const Text('更换'),
+                            ),
+                          ),
                           const SizedBox(height: 16),
                           TextFormField(
-                              controller: _usernameController,
-                              autofillHints: const [AutofillHints.username],
-                              decoration:
-                                  const InputDecoration(labelText: '用户名')),
+                            controller: _usernameController,
+                            autofillHints: const [AutofillHints.username],
+                            decoration: const InputDecoration(labelText: '用户名'),
+                          ),
                           const SizedBox(height: 16),
                           if (_registerMode) ...[
                             TextFormField(
-                                controller: _emailController,
-                                keyboardType: TextInputType.emailAddress,
-                                autofillHints: const [AutofillHints.email],
-                                decoration:
-                                    const InputDecoration(labelText: '邮箱')),
-                            const SizedBox(height: 16)
+                              controller: _emailController,
+                              keyboardType: TextInputType.emailAddress,
+                              autofillHints: const [AutofillHints.email],
+                              decoration: const InputDecoration(
+                                labelText: '邮箱',
+                              ),
+                            ),
+                            const SizedBox(height: 16),
                           ],
                           TextFormField(
-                              controller: _passwordController,
-                              obscureText: true,
-                              autofillHints: const [AutofillHints.password],
-                              decoration:
-                                  const InputDecoration(labelText: '密码'),
-                              onFieldSubmitted: (_) => _submit()),
+                            controller: _passwordController,
+                            obscureText: true,
+                            autofillHints: const [AutofillHints.password],
+                            decoration: const InputDecoration(labelText: '密码'),
+                            onFieldSubmitted: (_) => _submit(),
+                          ),
                           const SizedBox(height: 20),
                           if ((authState.errorMessage ?? '').isNotEmpty)
                             Padding(
-                                padding: const EdgeInsets.only(bottom: 16),
-                                child: Text(authState.errorMessage!,
-                                    style: TextStyle(
-                                        color: Theme.of(context)
-                                            .colorScheme
-                                            .error))),
+                              padding: const EdgeInsets.only(bottom: 16),
+                              child: Text(
+                                authState.errorMessage!,
+                                style: TextStyle(
+                                  color: Theme.of(context).colorScheme.error,
+                                ),
+                              ),
+                            ),
                           SizedBox(
-                              width: double.infinity,
-                              child: FilledButton(
-                                  onPressed:
-                                      authState.isSubmitting ? null : _submit,
-                                  child: Text(authState.isSubmitting
-                                      ? '正在登录…'
-                                      : _registerMode
-                                          ? '创建账户'
-                                          : '登录'))),
+                            width: double.infinity,
+                            child: FilledButton(
+                              onPressed: authState.isSubmitting
+                                  ? null
+                                  : _submit,
+                              child: Text(
+                                authState.isSubmitting
+                                    ? '正在登录…'
+                                    : _registerMode
+                                    ? '创建账户'
+                                    : '登录',
+                              ),
+                            ),
+                          ),
                           if (registration)
                             TextButton(
-                                onPressed: () => setState(
-                                    () => _registerMode = !_registerMode),
-                                child:
-                                    Text(_registerMode ? '已有账户，去登录' : '创建新账户')),
+                              onPressed: () => setState(
+                                () => _registerMode = !_registerMode,
+                              ),
+                              child: Text(_registerMode ? '已有账户，去登录' : '创建新账户'),
+                            ),
                         ],
-                      ]))))),
-    ))));
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
   }
 
   void _hydrateApiUrlIfNeeded(String defaultBaseUrl, String overrideBaseUrl) {
     if (_apiUrlHydrated) return;
-    _apiUrlController.text =
-        overrideBaseUrl.isNotEmpty ? overrideBaseUrl : defaultBaseUrl;
+    _apiUrlController.text = overrideBaseUrl.isNotEmpty
+        ? overrideBaseUrl
+        : defaultBaseUrl;
     _apiUrlHydrated = true;
   }
 
@@ -231,7 +252,9 @@ class _AuthPageState extends ConsumerState<AuthPage> {
 
     try {
       if (_registerMode) {
-        await ref.read(authControllerProvider.notifier).register(
+        await ref
+            .read(authControllerProvider.notifier)
+            .register(
               RegisterPayload(
                 username: username,
                 password: password,
@@ -239,12 +262,9 @@ class _AuthPageState extends ConsumerState<AuthPage> {
               ),
             );
       } else {
-        await ref.read(authControllerProvider.notifier).login(
-              LoginPayload(
-                username: username,
-                password: password,
-              ),
-            );
+        await ref
+            .read(authControllerProvider.notifier)
+            .login(LoginPayload(username: username, password: password));
       }
 
       if (mounted) {
@@ -259,10 +279,7 @@ class _AuthPageState extends ConsumerState<AuthPage> {
     messenger
       ..hideCurrentSnackBar()
       ..showSnackBar(
-        SnackBar(
-          content: Text(message),
-          behavior: SnackBarBehavior.floating,
-        ),
+        SnackBar(content: Text(message), behavior: SnackBarBehavior.floating),
       );
   }
 }

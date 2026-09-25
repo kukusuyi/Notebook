@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"github.com/kukusuyi/Questrace/backend/internal/pkg/searchtext"
 	"sort"
 	"strings"
 	"sync"
@@ -17,6 +18,7 @@ type QuestionFilter struct {
 	Chapter         string
 	Keyword         string
 	TagNames        []string
+	TagIDs          []int64
 	MasteryStatus   string
 	DifficultyLevel int
 	SourceType      string
@@ -109,8 +111,11 @@ func (r *InMemoryQuestionRepository) List(filter QuestionFilter) ([]model.WrongQ
 		}
 
 		if filter.Keyword != "" {
-			combined := strings.ToLower(item.QuestionCore + " " + item.SemanticSummary + " " + item.WrongSolution)
-			if !strings.Contains(combined, strings.ToLower(filter.Keyword)) {
+			combined := searchtext.Normalize(item.QuestionCore + " " + item.SemanticSummary + " " + item.WrongSolution)
+			for _, tag := range collectTypedTagRecords(item.Tags) {
+				combined += "\n" + searchtext.Normalize(tag.Name)
+			}
+			if !strings.Contains(combined, searchtext.Normalize(filter.Keyword)) {
 				continue
 			}
 		}

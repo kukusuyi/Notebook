@@ -1,3 +1,5 @@
+import 'dart:io';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -5,10 +7,7 @@ import '../../core/update/models.dart';
 import 'update_controller.dart';
 
 class UpdateDialog extends ConsumerWidget {
-  const UpdateDialog({
-    super.key,
-    required this.versionInfo,
-  });
+  const UpdateDialog({super.key, required this.versionInfo});
 
   final MobileVersionInfo versionInfo;
 
@@ -28,10 +27,12 @@ class UpdateDialog extends ConsumerWidget {
     final updateState = ref.watch(updateControllerProvider);
 
     return PopScope(
-      canPop: !versionInfo.forceUpdate &&
+      canPop:
+          !versionInfo.forceUpdate &&
           updateState.status != UpdateStatus.downloading,
       child: AlertDialog(
         title: const Text('发现新版本'),
+        scrollable: true,
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -61,9 +62,7 @@ class UpdateDialog extends ConsumerWidget {
               const SizedBox(height: 12),
               Text(
                 updateState.error ?? '更新失败',
-                style: TextStyle(
-                  color: Theme.of(context).colorScheme.error,
-                ),
+                style: TextStyle(color: Theme.of(context).colorScheme.error),
               ),
             ],
           ],
@@ -80,23 +79,33 @@ class UpdateDialog extends ConsumerWidget {
             ),
           if (updateState.status == UpdateStatus.downloading)
             const SizedBox.shrink()
+          else if (!Platform.isAndroid || versionInfo.apkUrl.isEmpty)
+            TextButton(
+              onPressed: versionInfo.releaseUrl.isEmpty
+                  ? null
+                  : () => launchUrl(
+                      Uri.parse(versionInfo.releaseUrl),
+                      mode: LaunchMode.externalApplication,
+                    ),
+              child: const Text('查看发布说明（暂无安装包）'),
+            )
           else if (updateState.status == UpdateStatus.error)
             TextButton(
               onPressed: () {
-                ref.read(updateControllerProvider.notifier).downloadAndInstall(
-                      versionInfo.apkUrl,
-                    );
+                ref
+                    .read(updateControllerProvider.notifier)
+                    .downloadAndInstall(versionInfo.apkUrl);
               },
               child: const Text('重试'),
             )
           else
             FilledButton(
               onPressed: () {
-                ref.read(updateControllerProvider.notifier).downloadAndInstall(
-                      versionInfo.apkUrl,
-                    );
+                ref
+                    .read(updateControllerProvider.notifier)
+                    .downloadAndInstall(versionInfo.apkUrl);
               },
-              child: const Text('立即更新'),
+              child: const Text('下载并打开安装包'),
             ),
         ],
       ),

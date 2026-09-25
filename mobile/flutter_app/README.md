@@ -19,6 +19,15 @@ flutter run -d DEVICE_ID --dart-define=APP_FLAVOR=production
 
 仓库已经包含 `ios/` 和 `android/` 原生工程，不要再次执行 `flutter create .`，以免覆盖项目已有的包名、权限和原生配置。
 
+Android 构建前用 `flutter doctor -v` 确认 Flutter 实际使用的 Java。项目当前的 Gradle 8.10.2 不支持 Java 25；如果构建立即失败且 `What went wrong` 只有 `25.0.3`，请指定兼容的 JDK（正式流水线使用 JDK 17）：
+
+```bash
+flutter config --jdk-dir="/你的/JDK17/安装目录"
+flutter build apk --release --dart-define=APP_FLAVOR=production
+```
+
+`--jdk-dir` 是本机 Flutter 配置，会影响本机其他 Flutter 项目；不要把机器专属路径写进仓库。仅设置 `JAVA_HOME` 不一定能覆盖 Flutter 选中的 Android Studio 内置 Java。依赖存在新版本及 iOS Swift Package Manager 的提示不是此次 Android 构建失败的原因。
+
 移动端默认 API 地址优先读取：
 
 - `config/app_config.json`
