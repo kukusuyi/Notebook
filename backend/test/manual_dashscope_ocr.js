@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-const DEFAULT_MODEL = "qwen3.6-plus";
+const DEFAULT_MODEL = "qwen3.8-flash";
 const DEFAULT_API_BASE = "https://dashscope.aliyuncs.com/compatible-mode/v1";
 const DEFAULT_TIMEOUT_MS = 180000;
 const DEFAULT_PROMPT = `你是一个数学题图片结构化识别助手。

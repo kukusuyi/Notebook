@@ -41,7 +41,7 @@ func NewQwenOCRClient(apiKey string, model string) *QwenOCRClient {
 
 func NewQwenOCRClientWithLogger(apiKey string, model string, logger *slog.Logger) *QwenOCRClient {
 	if model == "" {
-		model = "qwen3.6-plus"
+		model = "qwen3.8-flash"
 	}
 	if logger == nil {
 		logger = slog.Default()

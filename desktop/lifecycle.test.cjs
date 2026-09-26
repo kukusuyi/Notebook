@@ -10,6 +10,7 @@ async function launch({health} = {}) {
   const child = new EventEmitter();
   const lines = new EventEmitter();
   const timers = new Map();
+  const intervals = new Map();
   const windows = [];
   const errors = [];
   let ended = 0, exited = false, trayDestroyed = false;
@@ -54,10 +55,12 @@ async function launch({health} = {}) {
     fetch: health || (() => Promise.resolve({ok: true})),
     setTimeout(fn, delay) { const token = {}; timers.set(token, {fn, delay}); return token; },
     clearTimeout(token) { timers.delete(token); },
+    setInterval(fn,delay){const token={};intervals.set(token,{fn,delay});return token},
+    clearInterval(token){intervals.delete(token)},
     URL,
   });
   await new Promise(setImmediate);
-  return {app, child, timers, windows, signals, errors,
+  return {app, child, timers, intervals, windows, signals, errors,
     state: () => ({ended, exited, trayDestroyed}),
     async ready() {
       lines.emit('line', JSON.stringify({event: 'ready', url: 'http://127.0.0.1:8080', urls: []}));
@@ -75,6 +78,7 @@ test('Windows close stops backend and exits after it finishes', async () => {
   run.child.emit('exit', 0);
   assert.deepEqual(run.state(), {ended: 1, exited: true, trayDestroyed: true});
   assert.equal(run.timers.size, 0);
+  assert.equal(run.intervals.size,0);
   assert.equal(run.errors.length, 0);
 });
 

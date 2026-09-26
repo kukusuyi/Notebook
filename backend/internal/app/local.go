@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/kukusuyi/Questrace/backend/internal/discovery"
 	v1 "github.com/kukusuyi/Questrace/backend/internal/http/handler/v1"
 	"github.com/kukusuyi/Questrace/backend/internal/pkg/buildinfo"
 	"golang.org/x/crypto/bcrypt"
@@ -44,6 +45,7 @@ type LocalRuntime struct {
 	logger      *slog.Logger
 	URLs        []string
 	AddressList func() []string
+	Discovery   func() discovery.Status
 }
 
 func NewLocal(cfg config.Config, logger *slog.Logger) (*LocalRuntime, error) {
@@ -131,7 +133,7 @@ func (s *LocalRuntime) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		cfg := s.Config()
-		dto.WriteSuccess(w, map[string]any{"version": buildinfo.Version, "setup_required": s.NeedsSetup(), "registration_enabled": cfg.Auth.EnableRegistration, "ocr_enabled": cfg.ImageOcr.APIKey != "", "ai_enabled": len(cfg.Models) > 0, "embedding_enabled": cfg.EmbeddingModel.APIKey != "", "urls": s.addresses()})
+		dto.WriteSuccess(w, map[string]any{"version": buildinfo.Version, "setup_required": s.NeedsSetup(), "registration_enabled": cfg.Auth.EnableRegistration, "ocr_enabled": cfg.ImageOcr.APIKey != "", "ai_enabled": len(cfg.Models) > 0, "embedding_enabled": cfg.EmbeddingModel.APIKey != "", "urls": s.addresses(), "discovery": s.discoveryStatus()})
 		return
 	case "/api/v1/system/setup":
 		s.setup(w, r)
@@ -340,6 +342,10 @@ type settings struct {
 }
 
 func (s *LocalRuntime) admin(w http.ResponseWriter, r *http.Request) {
+	if r.URL.Path == "/api/v1/admin/settings/models" {
+		s.probeModels(w, r)
+		return
+	}
 	if r.URL.Path == "/api/v1/admin/users" {
 		if r.Method == "POST" {
 			var req dto.RegisterRequest
@@ -422,12 +428,19 @@ func (s *LocalRuntime) admin(w http.ResponseWriter, r *http.Request) {
 	for i := range req.Models {
 		if req.Models[i].APIKey == "__KEEP__" {
 			req.Models[i].APIKey = ""
+			savedName := req.Models[i].SavedName
+			if savedName == "" {
+				savedName = req.Models[i].Name
+			}
 			for _, old := range cfg.Models {
-				if old.Name == req.Models[i].Name {
+				if old.Name == savedName {
 					req.Models[i].APIKey = old.APIKey
 				}
 			}
 		}
+	}
+	for i := range req.Models {
+		req.Models[i].SavedName = ""
 	}
 	if req.DownloadURL != "" {
 		u, err := url.Parse(req.DownloadURL)
@@ -522,4 +535,11 @@ func (s *LocalRuntime) addresses() []string {
 		return s.AddressList()
 	}
 	return s.URLs
+}
+
+func (s *LocalRuntime) discoveryStatus() discovery.Status {
+	if s.Discovery != nil {
+		return s.Discovery()
+	}
+	return discovery.Status{State: "disabled"}
 }

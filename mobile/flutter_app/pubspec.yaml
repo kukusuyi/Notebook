@@ -2,7 +2,7 @@ name: questrace_flutter
 description: 题迹 Questrace mobile client built with Flutter.
 publish_to: "none"
 
-version: 2.1.0+21000
+version: 2.1.1+21100
 
 environment:
   sdk: ">=3.10.0 <4.0.0"
@@ -25,6 +25,7 @@ dependencies:
   permission_handler: ^11.0.0
   shared_preferences: ^2.3.2
   url_launcher: ^6.3.1
+  nsd: ^5.0.1
 
 dev_dependencies:
   flutter_lints: ^4.0.0

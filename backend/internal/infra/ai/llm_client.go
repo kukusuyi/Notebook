@@ -145,6 +145,9 @@ func normalizeProviderConfig(cfg config.AIModelConfig) config.AIModelConfig {
 			cfg.BaseURL = "https://api.moonshot.cn/v1"
 		}
 	}
+	if cfg.Model == "" && cfg.ProviderType == ProviderTypeQwen {
+		cfg.Model = "qwen3.8-flash"
+	}
 	return cfg
 }
 

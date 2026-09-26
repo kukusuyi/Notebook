@@ -131,3 +131,15 @@ cd mobile/flutter_app && flutter analyze && flutter test
 ## 许可证
 
 [CC BY-NC 4.0](LICENSE)：可分享和修改，需署名，禁止商业使用。
+
+### 2.1.1 局域网与双站发布
+
+Windows/macOS 的电脑连接页显示每台设备独立的 `.local` 地址（带实际端口）。手机可用“搜索局域网电脑”连接，换网后自动寻找原设备。Linux 沿用原有 IP 连接。路由器隔离客户端、禁用组播或系统拒绝局域网权限时，仍可手动填写地址。
+
+更新检查只通过 ipapi.co 查询电脑公网 IP 的国家代码：大陆优先 GitCode，其他地区优先 GitHub；地区未知优先 GitCode，源失败时自动回退。国家结果缓存 24 小时，网络变化后失效；不会向地区查询服务发送题目、API Key 或账户数据。VPN 可能影响来源判断。
+
+发布前运行 `node scripts/verify-local.mjs`，报告写入忽略跟踪的 `dist/local-verification.json`。实体设备测试报告 `dist/local-network-verification.json` 须包含同一 `commit`、`tree`（取自验证报告），以及 `macos_phone`、`windows_phone`、`wifi_reconnect`、`permission_denied`、`multicast_unavailable`、`device_isolation` 六项，每项记录真实的 `{ "passed": true, "evidence": "设备、网络与观察结果" }`。不得用交叉编译替代运行验证。
+
+最终提交、工作区无未提交改动、全部本地验证成功后，运行 `node scripts/push-release.mjs`。该入口先向 `gitcode`、再向 `origin` 推送同一分支和标签，不强推。GitHub Actions 只负责 GitHub 一侧：构建六个平台的安装包，核对校验值后建立草稿 release，再下载已上传的附件复核一遍 SHA256SUMS，最后自动转正。
+
+GitCode 一侧的附件不再由 Action 上传（美国机器传 GitCode 太慢，会超时），改为本地同步：先用 `gh release download v<版本> --dir <目录>` 取回 GitHub 的同一批产物，再运行 `node scripts/publish-mirrors.mjs v<版本> <目录>`。脚本会核验已有附件、补齐缺失文件，两站校验一致后把 GitCode 记录转为正式版本。令牌属于 GitCode 的 `xiaosusu`，不要放进源码；Git 提交署名仍沿用现有身份。跨站发布不能原子完成，失败重跑会先核验已有附件再完成剩余发布，不覆盖已发布文件。

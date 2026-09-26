@@ -7,3 +7,9 @@ test('allows only Questrace release download links on GitHub',()=>{
  assert.equal(isTrustedExternal('https://github.com/kukusuyi/Questrace/releases/download/v2.1.0/Questrace-2.1.0-android.apk'),true);
  assert.equal(isTrustedExternal('https://github.com/elsewhere/repo/releases/latest'),false);
 });
+test('allows campus offer and only project-scoped GitCode downloads',()=>{
+ assert.equal(isTrustedExternal('https://www.aliyun.com/activity/ecs/campus-deal'),true);
+ assert.equal(isTrustedExternal('https://www.aliyun.com/elsewhere'),false);
+ assert.equal(isTrustedExternal('https://api.gitcode.com/api/v5/repos/xiaosusu/Questrace/releases/v2.1.1/attach_files/Questrace-2.1.1-android.apk/download'),true);
+ assert.equal(isTrustedExternal('https://api.gitcode.com/api/v5/repos/other/repo/releases/v1/attach_files/a/download'),false);
+});

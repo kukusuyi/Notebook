@@ -28,6 +28,8 @@
 	<true/>
 	<key>NSCameraUsageDescription</key>
 	<string>需要访问相机以拍摄错题图片。</string>
+	<key>NSBonjourServices</key>
+	<array><string>_questrace._tcp</string></array>
 	<key>NSLocalNetworkUsageDescription</key>
 	<string>需要访问局域网以连接运行 Questrace 2.0 的电脑。</string>
 	<key>NSAppTransportSecurity</key>

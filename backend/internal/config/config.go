@@ -1,6 +1,7 @@
 package config
 
 type Config struct {
+	DeviceID       string               `json:"device_id,omitempty"`
 	DataDir        string               `json:"-"`
 	SetupToken     string               `json:"setup_token"`
 	App            AppConfig            `json:"app"`
@@ -43,6 +44,7 @@ type ImageOcrConfig struct {
 }
 
 type AIModelConfig struct {
+	SavedName    string `json:"saved_name,omitempty"`
 	Name         string `json:"name"`
 	ProviderType string `json:"provider_type"`
 	BaseURL      string `json:"base_url"`
@@ -68,7 +70,7 @@ func defaults() Config {
 		App:            AppConfig{Name: "Questrace", Host: "0.0.0.0", Port: 8080, Env: "local"},
 		File:           FileConfig{StorageProvider: "local", DefaultBucket: "images"},
 		JWT:            JWTConfig{ExpirationHours: 168},
-		ImageOcr:       ImageOcrConfig{Name: "qwen", Model: "qwen3.6-plus"},
+		ImageOcr:       ImageOcrConfig{Name: "qwen", Model: "qwen3.8-flash"},
 		EmbeddingModel: EmbeddingModelConfig{ProviderType: "openai_compatible", BaseURL: "https://dashscope.aliyuncs.com/compatible-mode/v1", Model: "text-embedding-v4"},
 		MobileVersion:  MobileVersionConfig{Version: "2.0.0"},
 	}

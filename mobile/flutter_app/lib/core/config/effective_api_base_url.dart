@@ -15,3 +15,10 @@ final effectiveApiBaseUrlProvider = Provider<String>((ref) {
 
   return environment.defaultApiBaseUrl;
 });
+
+final serverStorageKeyProvider = Provider<String>((ref) {
+  final key = ref.watch(
+    appSettingsControllerProvider.select((s) => s.serverKey),
+  );
+  return key.isEmpty ? ref.watch(effectiveApiBaseUrlProvider) : key;
+});

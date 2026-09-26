@@ -9,12 +9,14 @@ import 'storage_keys.dart';
 
 final authSessionRepositoryProvider = Provider<AuthSessionRepository>((ref) {
   return AuthSessionRepository(
-      ref.watch(keyValueStoreProvider), ref.watch(effectiveApiBaseUrlProvider));
+    ref.watch(keyValueStoreProvider),
+    ref.watch(serverStorageKeyProvider),
+  );
 });
 
 class AuthSessionRepository {
   AuthSessionRepository(this._store, [String server = ''])
-      : _key = '${StorageKeys.authSession}:$server';
+    : _key = '${StorageKeys.authSession}:$server';
   final String _key;
 
   final KeyValueStore _store;
@@ -33,10 +35,7 @@ class AuthSessionRepository {
   }
 
   Future<void> saveSession(AuthSession session) async {
-    await _store.writeString(
-      _key,
-      jsonEncode(session.toJson()),
-    );
+    await _store.writeString(_key, jsonEncode(session.toJson()));
   }
 
   Future<void> clearSession() async {

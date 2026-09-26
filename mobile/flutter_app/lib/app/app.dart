@@ -1,3 +1,5 @@
+import '../core/discovery/lan_discovery.dart';
+import '../core/storage/app_settings_controller.dart';
 import 'dart:io';
 import 'dart:convert';
 import 'dart:async';
@@ -17,12 +19,68 @@ class App extends ConsumerStatefulWidget {
   ConsumerState<App> createState() => _AppState();
 }
 
-class _AppState extends ConsumerState<App> {
+class _AppState extends ConsumerState<App> with WidgetsBindingObserver {
+  Timer? _reconnectTimer;
+  bool _reconnecting = false;
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    _startReconnect();
+  }
+
+  void _startReconnect() {
+    _reconnectTimer?.cancel();
+    _reconnectTimer = Timer.periodic(
+      const Duration(seconds: 20),
+      (_) => _reconnect(),
+    );
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _startReconnect();
+      _reconnect();
+    } else {
+      _reconnectTimer?.cancel();
+    }
+  }
+
+  Future<void> _reconnect() async {
+    if (_reconnecting) return;
+    final id = ref.read(appSettingsControllerProvider).deviceId;
+    if (id.isEmpty) return;
+    _reconnecting = true;
+    try {
+      final computers = await LanDiscovery().scan();
+      if (!mounted) return;
+      for (final c in computers) {
+        if (c.id == id) {
+          await ref
+              .read(appSettingsControllerProvider.notifier)
+              .setApiBaseUrlOverride(
+                c.url,
+                expectedDeviceId: id,
+                reconnect: true,
+              );
+          break;
+        }
+      }
+    } catch (_) {
+      /* The saved connection remains available for manual recovery. */
+    } finally {
+      _reconnecting = false;
+    }
+  }
+
   Timer? _updateTimer;
   bool _initialCheckScheduled = false;
   @override
   void dispose() {
     _updateTimer?.cancel();
+    _reconnectTimer?.cancel();
+    WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
 

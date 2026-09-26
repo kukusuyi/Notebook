@@ -31,10 +31,33 @@
 	</dict>
 	<key>NSCameraUsageDescription</key>
 	<string>需要访问相机以拍摄错题图片。</string>
+	<key>NSBonjourServices</key>
+	<array><string>_questrace._tcp</string></array>
 	<key>NSLocalNetworkUsageDescription</key>
 	<string>需要访问局域网以连接运行 Questrace 2.0 的电脑。</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>需要访问相册以选择错题图片。</string>
+	<key>UIApplicationSceneManifest</key>
+	<dict>
+		<key>UIApplicationSupportsMultipleScenes</key>
+		<false/>
+		<key>UISceneConfigurations</key>
+		<dict>
+			<key>UIWindowSceneSessionRoleApplication</key>
+			<array>
+				<dict>
+					<key>UISceneClassName</key>
+					<string>UIWindowScene</string>
+					<key>UISceneConfigurationName</key>
+					<string>flutter</string>
+					<key>UISceneDelegateClassName</key>
+					<string>FlutterSceneDelegate</string>
+					<key>UISceneStoryboardFile</key>
+					<string>Main</string>
+				</dict>
+			</array>
+		</dict>
+	</dict>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
 	<key>UIMainStoryboardFile</key>

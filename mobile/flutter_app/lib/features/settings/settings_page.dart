@@ -1,3 +1,4 @@
+import '../../shared/widgets/lan_computer_picker.dart';
 import '../../core/update/update_preferences.dart';
 import '../update/update_check.dart';
 import 'package:flutter/material.dart';
@@ -52,6 +53,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
               childrenPadding: const EdgeInsets.all(20),
               children: [
                 const Text('切换电脑将退出当前账户。每台电脑的草稿会分别保留。'),
+                const LanComputerPicker(),
                 const SizedBox(height: 16),
                 TextField(
                   controller: _address,

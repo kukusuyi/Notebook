@@ -20,6 +20,7 @@ import (
 	"github.com/gofrs/flock"
 	"github.com/kukusuyi/Questrace/backend/internal/app"
 	"github.com/kukusuyi/Questrace/backend/internal/config"
+	"github.com/kukusuyi/Questrace/backend/internal/discovery"
 )
 
 func main() {
@@ -94,10 +95,21 @@ func run() error {
 	}
 	actual := listener.Addr().(*net.TCPAddr).Port
 	local := fmt.Sprintf("http://127.0.0.1:%d", actual)
-	rt.AddressList = func() []string { return app.Addresses(*host, actual) }
+	publisher := discovery.New(cfg.DeviceID, *host, actual)
+	rt.Discovery = publisher.Status
+	rt.AddressList = func() []string {
+		urls := app.Addresses(*host, actual)
+		if url := publisher.URL(); url != "" {
+			urls = append([]string{url}, urls...)
+		}
+		return urls
+	}
 	rt.URLs = rt.AddressList()
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancel()
+	discoveryDone := make(chan struct{})
+	go func() { defer close(discoveryDone); publisher.Run(ctx) }()
+	defer func() { cancel(); <-discoveryDone }()
 	if *parent {
 		go func() { _, _ = io.Copy(io.Discard, os.Stdin); cancel() }()
 	}

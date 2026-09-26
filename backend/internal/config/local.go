@@ -124,6 +124,9 @@ func LoadLocal(dir string) (Config, error) {
 	cfg.DataDir = dir
 	cfg.File.Root = filepath.Join(dir, "files")
 	cfg.File.StorageProvider = "local"
+	if (runtime.GOOS == "darwin" || runtime.GOOS == "windows") && cfg.DeviceID == "" {
+		cfg.DeviceID = RandomSecret()[:12]
+	}
 	if cfg.JWT.Secret == "" {
 		cfg.JWT.Secret = RandomSecret()
 	}

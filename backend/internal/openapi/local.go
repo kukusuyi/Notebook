@@ -7,7 +7,7 @@ func addLocalPaths(paths map[string]any) {
 		"/api/v1/reviews/summary": {"get"}, "/api/v1/reviews/history": {"get"},
 		"/api/v1/reviews/sessions": {"post"}, "/api/v1/reviews/sessions/{sessionID}": {"get"}, "/api/v1/reviews/sessions/{sessionID}/results": {"post"},
 		"/api/v1/system/status": {"get"}, "/api/v1/system/setup": {"post"},
-		"/api/v1/admin/settings": {"get", "put"}, "/api/v1/admin/settings/test": {"post"},
+		"/api/v1/admin/settings": {"get", "put"}, "/api/v1/admin/settings/test": {"post"}, "/api/v1/admin/settings/models": {"post"},
 		"/api/v1/admin/users": {"get", "post"}, "/api/v1/vector-jobs": {"get", "post"}, "/api/v1/vector-jobs/retry": {"post"},
 		"/api/v1/files/content/{objectKey}": {"get"}, "/api/v1/auth/logout": {"post"},
 	} {

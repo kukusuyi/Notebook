@@ -1,3 +1,4 @@
+import '../../shared/widgets/lan_computer_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -91,6 +92,7 @@ class _AuthPageState extends ConsumerState<AuthPage> {
                         Text(connecting ? '连接你的电脑，开始整理错题。' : '欢迎回来，继续你的学习。'),
                         const SizedBox(height: 28),
                         if (connecting) ...[
+                          const LanComputerPicker(),
                           TextField(
                             controller: _apiUrlController,
                             keyboardType: TextInputType.url,

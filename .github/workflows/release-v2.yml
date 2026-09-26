@@ -1,4 +1,4 @@
-name: Questrace 2.0 release
+name: Questrace release
 
 on:
   push:
@@ -391,12 +391,32 @@ jobs:
           assets=(release-assets/Questrace-* release-assets/SHA256SUMS)
           if gh release view "${GITHUB_REF_NAME}" >/dev/null 2>&1; then
             is_draft="$(gh release view "${GITHUB_REF_NAME}" --json isDraft --jq .isDraft)"
-            test "${is_draft}" = "true" || { echo 'Refusing to replace an already-published release.' >&2; exit 1; }
-            gh release upload "${GITHUB_REF_NAME}" "${assets[@]}" --clobber
+            if [ "${is_draft}" = "true" ]; then
+              gh release upload "${GITHUB_REF_NAME}" "${assets[@]}" --clobber
+            fi
           else
             gh release create "${GITHUB_REF_NAME}" "${assets[@]}" \
               --draft \
               --verify-tag \
               --title "Questrace ${RELEASE_VERSION}" \
               --notes-file "${notes}"
+          fi
+
+      - name: Verify uploaded release assets
+        if: github.ref_type == 'tag'
+        shell: bash
+        run: |
+          set -euo pipefail
+          verify_dir="$(mktemp -d)"
+          gh release download "${GITHUB_REF_NAME}" --dir "${verify_dir}"
+          (cd "${verify_dir}" && sha256sum --check --quiet SHA256SUMS)
+
+      - name: Publish Release
+        if: github.ref_type == 'tag'
+        shell: bash
+        run: |
+          set -euo pipefail
+          is_draft="$(gh release view "${GITHUB_REF_NAME}" --json isDraft --jq .isDraft)"
+          if [ "${is_draft}" = "true" ]; then
+            gh release edit "${GITHUB_REF_NAME}" --draft=false
           fi

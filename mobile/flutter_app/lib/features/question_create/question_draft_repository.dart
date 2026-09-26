@@ -7,15 +7,18 @@ import '../../core/storage/storage_keys.dart';
 import '../../core/config/effective_api_base_url.dart';
 import '../../shared/models/question_models.dart';
 
-final questionDraftRepositoryProvider =
-    Provider<QuestionDraftRepository>((ref) {
+final questionDraftRepositoryProvider = Provider<QuestionDraftRepository>((
+  ref,
+) {
   return QuestionDraftRepository(
-      ref.watch(keyValueStoreProvider), ref.watch(effectiveApiBaseUrlProvider));
+    ref.watch(keyValueStoreProvider),
+    ref.watch(serverStorageKeyProvider),
+  );
 });
 
 class QuestionDraftRepository {
   QuestionDraftRepository(this._store, [String server = ''])
-      : _key = '${StorageKeys.questionDraft}:$server';
+    : _key = '${StorageKeys.questionDraft}:$server';
   final String _key;
 
   final KeyValueStore _store;
@@ -30,16 +33,15 @@ class QuestionDraftRepository {
   }
 
   Future<void> saveDraft(QuestionDraft draft) async {
-    await _store.writeString(
-      _key,
-      jsonEncode(draft.toJson()),
-    );
+    await _store.writeString(_key, jsonEncode(draft.toJson()));
   }
 
   Future<void> saveAnalysisSnapshot(QuestionDraft draft) async {
     if (_store.readString('$_key:before-analysis') == null) {
       await _store.writeString(
-          '$_key:before-analysis', jsonEncode(draft.toJson()));
+        '$_key:before-analysis',
+        jsonEncode(draft.toJson()),
+      );
     }
   }
 

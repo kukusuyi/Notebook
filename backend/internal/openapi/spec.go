@@ -459,7 +459,7 @@ func schemas() map[string]any {
 		"AnalyzeWrongQuestionRequest": objectSchemaRequired(
 			[]string{"question_json"},
 			field("provider_name", map[string]any{"type": "string", "example": "qwen"}),
-			field("model_name", map[string]any{"type": "string", "example": "qwen3.6-plus"}),
+			field("model_name", map[string]any{"type": "string", "example": "qwen3.8-flash"}),
 			field("chapter", map[string]any{"type": "string", "example": "函数的极限和连续"}),
 			field("question_json", refSchema("#/components/schemas/QuestionJSON")),
 			field("ocr_context", refSchema("#/components/schemas/OCRContext")),
@@ -474,7 +474,7 @@ func schemas() map[string]any {
 		"AIProviderItem": objectSchema(
 			field("provider_name", map[string]any{"type": "string", "example": "qwen"}),
 			field("provider_type", map[string]any{"type": "string", "example": "qwen"}),
-			field("configured_model", map[string]any{"type": "string", "example": "qwen3.6-plus"}),
+			field("configured_model", map[string]any{"type": "string", "example": "qwen3.8-flash"}),
 		),
 		"AIProviderListResponse": objectSchema(
 			field("list", map[string]any{
@@ -486,7 +486,7 @@ func schemas() map[string]any {
 			field("list", stringArraySchema([]string{"函数的极限和连续", "定积分"})),
 		),
 		"AIProviderModelItem": objectSchema(
-			field("model_name", map[string]any{"type": "string", "example": "qwen3.6-plus"}),
+			field("model_name", map[string]any{"type": "string", "example": "qwen3.8-flash"}),
 		),
 		"AIProviderModelListResponse": objectSchema(
 			field("provider_name", map[string]any{"type": "string", "example": "qwen"}),

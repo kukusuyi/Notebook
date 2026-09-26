@@ -6,7 +6,7 @@ const {isTrustedExternal}=require('./external-links.cjs');
 const branding=require('./branding.cjs');
 const {resolveDataDir}=require('./data-dir.cjs');
 function openWindow({url}){try{if(ready&&new URL(url).origin===ready.url)return {action:'allow',overrideBrowserWindowOptions:{webPreferences:{nodeIntegration:false,contextIsolation:true,sandbox:true}}};if(isTrustedExternal(url))void shell.openExternal(url).catch(()=>{dialog.showErrorBox("无法打开浏览器", "请复制链接到系统浏览器中打开。")})}catch{}return {action:'deny'}}
-let win,tray,child,ready,quitting=false,exitTimer;
+let win,tray,child,ready,quitting=false,exitTimer,addressTimer;
 const lock=app.requestSingleInstanceLock();
 if(!lock) app.quit();
 app.on('second-instance',()=>{if(win){win.show();win.focus()}});
@@ -20,7 +20,7 @@ function stop(){
  stopping.stdin.end();
 }
 app.on('before-quit',e=>{quitting=true;if(child){e.preventDefault();stop()} });
-app.on('will-quit',()=>{clearTimeout(exitTimer);if(tray)tray.destroy()});
+app.on('will-quit',()=>{clearTimeout(exitTimer);clearInterval(addressTimer);if(tray)tray.destroy()});
 app.on('activate',show);
 // Apply the same boundary to print popups and any later child window.
 app.on('web-contents-created',(_event,contents)=>{
@@ -52,6 +52,7 @@ async function boot(){
  // Embedded PNG avoids runtime asset dependencies for the tray icon.
  const icon=nativeImage.createFromDataURL('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAASklEQVR4nO3SwQkAIAzF0O7iQg7R/VfQq1cRGqQJ9P7gN8KORs5VcQIECLgCvPY/AJ9AAA7AnxAH4BMIwAH4E+IAfAIBAnoBWrYBv+oHK1KNPpQAAAAASUVORK5CYII=');
  tray=new Tray(icon);tray.setToolTip(branding.trayTooltip);tray.setContextMenu(Menu.buildFromTemplate([{label:branding.trayOpenLabel,click:show},...data.urls.map(url=>({label:'复制 '+url,click:()=>clipboard.writeText(url)})),{type:'separator'},{label:'退出并停止服务',click:()=>app.quit()}]));tray.on('click',show);
+ const refreshAddresses=async()=>{try{const response=await fetch(data.url+'/api/v1/system/status');const result=await response.json();if(quitting||!tray)return;tray.setContextMenu(Menu.buildFromTemplate([{label:branding.trayOpenLabel,click:show},...result.data.urls.map(url=>({label:'复制 '+url,click:()=>clipboard.writeText(url)})),{type:'separator'},{label:'退出并停止服务',click:()=>app.quit()}]));}catch{}};void refreshAddresses();addressTimer=setInterval(refreshAddresses,10000);
  await win.loadURL(data.url+(data.setup_token?'/setup#token='+encodeURIComponent(data.setup_token):'/'));
  }catch(err){dialog.showErrorBox('Questrace 启动失败',err.message);quitting=true;stop()}
  });
